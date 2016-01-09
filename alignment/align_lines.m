@@ -6,9 +6,12 @@ function aligned_frame = align_lines(frame, pos_data)
 %   frame: 2p image data [slow_axis x fast_axis]
 %   pos_data: Samples of the fast-axis galvo position
 %
+% Note: Pixel values of -1 indicate that the correction required sampling
+%       beyond the acquired image.
+%
 
 % Knobs
-debug = 1;
+debug = 0;
 
 % Needs to be floating point for interpolation
 frame = double(frame);
