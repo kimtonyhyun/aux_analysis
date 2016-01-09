@@ -4,7 +4,7 @@ M_aligned = zeros(size(M_image));
 num_frames = size(M_aligned, 3);
 
 for k = 1:num_frames
-    if mod(k, 100)
+    if (mod(k, 100) == 0)
         fprintf('%s: Aligning frame %d of %d...\n',...
             datestr(now), k, num_frames);
     end
