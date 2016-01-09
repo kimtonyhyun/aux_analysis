@@ -1,4 +1,4 @@
-function aligned_frame = align_lines(frame, pos_data)
+function [aligned_frame, info] = align_lines(frame, pos_data, varargin)
 % Performs correction of odd-even line offset, given a simultaneously
 % acquired galvo position signal.
 %
@@ -10,8 +10,19 @@ function aligned_frame = align_lines(frame, pos_data)
 %       beyond the acquired image.
 %
 
-% Knobs
-debug = 0;
+pos_odd_ref = [];
+pos_even_ref = [];
+for k = 1:length(varargin)
+    vararg = varargin{k};
+    if ischar(vararg)
+        switch lower(vararg)
+            case {'pos_ref', 'ref'}
+                info_in = varargin{k+1};
+                pos_odd_ref = info_in.pos_odd_ref;
+                pos_even_ref = info_in.pos_even_ref;
+        end
+    end
+end
 
 % Needs to be floating point for interpolation
 frame = double(frame);
@@ -52,37 +63,15 @@ pos_even_range = pos_even_lin(end) - pos_even_lin(1);
 pos2pix = (num_pixels - 1) /...
           mean([pos_odd_range pos_even_range]);
 
-pixel_offset_odd = pos2pix * (pos_odd_lin - pos_odd);
-pixel_offset_even = pos2pix * (pos_even_lin - pos_even);
-
-if debug
-    subplot(121);
-    
-    % Raw data
-    plot(pos_odd, 'b.'); hold on;
-    plot(pos_even, 'r.');
-    grid on;
-    xlim([1 num_pixels]);
-    xlabel('Fast axis [pixels]');
-    ylabel('Galvo position [a.u.]');
-    legend('Odd lines', 'Even lines', 'Location', 'NorthWest');
-    
-    % Indicate steady state pixels with circles
-    plot(fast_axis_ss, pos_odd(ss_inds), 'o');
-    plot(fast_axis_ss, pos_even(ss_inds), 'ro');
-    
-    % Linear fits
-    plot(pos_odd_lin, '--');
-    plot(pos_even_lin, 'r--');
-    
-    subplot(122);
-    plot(pixel_offset_odd, '.'); hold on;
-    plot(pixel_offset_even, '.r');
-    grid on;
-    xlim([1 num_pixels]);
-    xlabel('Fast axis [pixels]');
-    ylabel('Pixel offset [pixels]');
+if isempty(pos_odd_ref)
+    pos_odd_ref = pos_odd_lin;
 end
+if isempty(pos_even_ref)
+    pos_even_ref = pos_even_lin;
+end
+
+pixel_offset_odd = pos2pix * (pos_odd_ref - pos_odd);
+pixel_offset_even = pos2pix * (pos_even_ref - pos_even);
 
 % Apply correction to image
 %------------------------------------------------------------
@@ -101,5 +90,9 @@ for k = 1:num_lines
     end
     aligned_frame(k,:) = aligned_line;
 end
+
+% Pack auxiliary info
+info.pos_odd_ref = pos_odd_ref;
+info.pos_even_ref = pos_even_ref;
 
 end % align_lines
