@@ -1,4 +1,4 @@
-function [aligned_frame, info] = align_lines(frame, pos_data, varargin)
+function [aligned_frame, info] = align_lines_in_frame(frame, pos_data, varargin)
 % Performs correction of odd-even line offset, given a simultaneously
 % acquired galvo position signal.
 %
