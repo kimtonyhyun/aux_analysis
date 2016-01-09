@@ -20,35 +20,9 @@ for k = 2:num_frames
     frame = align_lines(frame, pos_data, 'ref', align_info);
     
     % (Optional) Fill in missing values
-    frame = fill_frame(frame);
+    frame = fill_missing_pixels(frame);
     
     % Store results
     M_aligned(:,:,k) = frame;
 end
 
-end % align_movie
-
-function frame = fill_frame(frame)
-% Look for missing (negative) pixel values in the frame, and replace with
-% pixel values taken from adjacent lines
-
-num_lines = size(frame, 1);
-
-% First line
-line = frame(1,:);
-pixels_to_replace = find(line < 0);
-frame(1, pixels_to_replace) = frame(2, pixels_to_replace);
-
-for k = 2:(num_lines-1)
-    line = frame(k,:);
-    pixels_to_replace = find(line < 0);
-    frame(k, pixels_to_replace) = mean(...
-        [frame(k-1, pixels_to_replace); frame(k+1, pixels_to_replace)]);
-end
-
-% Last line
-line = frame(num_lines,:);
-pixels_to_replace = find(line < 0);
-frame(num_lines, pixels_to_replace) = frame(num_lines-1, pixels_to_replace);
-
-end
