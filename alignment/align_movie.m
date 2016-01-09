@@ -1,9 +1,10 @@
 function M_aligned = align_movie(M_image, M_pos)
+% FIXME: Assumes that the first frame is perfectly aligned!
 
 M_aligned = zeros(size(M_image));
 num_frames = size(M_aligned, 3);
 
-% Special handling for the first frame, which we assume is ideally aligned
+% Special handling for the first frame
 [frame, align_info] = align_lines(M_image(:,:,1), M_pos(:,:,1));
 M_aligned(:,:,1) = frame;
 

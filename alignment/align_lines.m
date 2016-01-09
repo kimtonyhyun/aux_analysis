@@ -13,6 +13,9 @@ function [aligned_frame, info] = align_lines(frame, pos_data, varargin)
 % Note: Pixel values of -1 indicate that the correction required sampling
 %       beyond the acquired image.
 %
+% TODO:
+%   Issue warning when the position data signal is clipped at DAQ bounds
+%
 
 pos_ref_odd = [];
 pos_ref_even = [];
