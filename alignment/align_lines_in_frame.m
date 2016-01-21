@@ -80,6 +80,7 @@ pixel_offset_even = pos2pix * (pos_ref_even - pos_even);
 
 % Apply correction to image
 %------------------------------------------------------------
+interp_method = 'pchip';
 extrap_val = -1;
 
 corrected_odd_axis = fast_axis + pixel_offset_odd;
@@ -89,9 +90,9 @@ aligned_frame = zeros(size(frame));
 for k = 1:num_lines
     line = frame(k,:);
     if mod(k,2) % Odd line
-        aligned_line = interp1(fast_axis, line, corrected_odd_axis, [], extrap_val);
+        aligned_line = interp1(fast_axis, line, corrected_odd_axis, interp_method, extrap_val);
     else % Even line
-        aligned_line = interp1(fast_axis, line, corrected_even_axis, [], extrap_val);
+        aligned_line = interp1(fast_axis, line, corrected_even_axis, interp_method, extrap_val);
     end
     aligned_frame(k,:) = aligned_line;
 end
