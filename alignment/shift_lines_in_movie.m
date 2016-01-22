@@ -8,5 +8,10 @@ for k = 1:num_frames
         fprintf('%s: Aligning frame %d of %d...\n',...
             datestr(now), k, num_frames);
     end
-    M_shift(:,:,k) = shift_lines_in_frame(M(:,:,k), shift_px);
+    frame = shift_lines_in_frame(M(:,:,k), shift_px);
+    
+    % (Optional) Fill in missing values
+    frame = fill_missing_pixels(frame);
+    
+    M_shift(:,:,k) = frame;
 end
