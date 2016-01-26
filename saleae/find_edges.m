@@ -22,6 +22,7 @@ for k = 2:length(trace)
         num_edges = num_edges + 1;
         edges(num_edges) = times(k);
     end
+    prev_val = val;
 end
 
 edges = edges(1:num_edges);
