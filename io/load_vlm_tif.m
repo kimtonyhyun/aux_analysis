@@ -27,7 +27,7 @@ idx = 1;
 for k = 1:num_files
     file = files(k).name;
     fprintf('Reading file "%s" (%d of %d)...\n', file, k, num_files);
-    for i = 1:num_frames_per_file
+    for i = 1:num_frames_per_file(k)
         M(:,:,idx) = imread(file, i);
         idx = idx + 1;
     end
