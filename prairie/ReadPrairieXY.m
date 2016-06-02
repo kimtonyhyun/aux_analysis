@@ -1,6 +1,6 @@
 function XYZ = ReadPrairieXY(xyfile)
 
-s = xml2struct(xyfile);
+s = xml2struct_prairie(xyfile);
 
 s = s.StageLocations.StageLocation;
 N = length(s);

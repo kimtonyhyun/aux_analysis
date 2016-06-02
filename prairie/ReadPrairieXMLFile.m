@@ -6,7 +6,7 @@
 %      relevant to pixel to real space calibration
 function [s, p] = ReadPrairieXMLFile(filename)
 
-s = xml2struct(filename);
+s = xml2struct_prairie(filename);
 pvstate = s.PVScan.Sequence.Frame.PVStateShard.Key;
 
 p = struct();
