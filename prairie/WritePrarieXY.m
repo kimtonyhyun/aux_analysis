@@ -1,4 +1,6 @@
 function WritePrarieXY(fid, XYZ)
+% Format a matrix of XYZ positions into an XML file compatible with Prairie
+% View 4.0.0.18
 
 fprintf(fid,'<?xml version="1.0" encoding="utf-8"?>\n');
 fprintf(fid,'<StageLocations>\n');
