@@ -47,7 +47,11 @@ subplot(2,2,[2 4]);
 plot3(profile_ap(:,1)/1e3, profile_ap(:,2)/1e3, profile_ap(:,3)/1e3, 'o'); hold on;
 plot3(profile_ml(:,1)/1e3, profile_ml(:,2)/1e3, profile_ml(:,3)/1e3, 'rd');
 
-bounds_closed = [bounds; bounds(1,:)];
+bounds_z = mean([profile_ap(:,3); profile_ml(:,3)]);
+num_points_in_bound = size(bounds,1);
+
+bounds_closed = [bounds bounds_z*ones(num_points_in_bound,1)];
+bounds_closed = [bounds_closed; bounds_closed(1,:)];
 plot3(bounds_closed(:,1)/1e3, bounds_closed(:,2)/1e3, bounds_closed(:,3)/1e3, 'k--');
 
 axis equal;
