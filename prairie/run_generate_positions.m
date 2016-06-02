@@ -49,5 +49,7 @@ bounds = [-2000 3200 -1000;
 step_size = 300;
 XYZ = generate_positions(data_ap, data_ml, bounds, step_size);
 
-filename = 'stage_positions.xy';
+% Save XYZ positions to Prairie-readable file
+timestamp = datestr(now, 'yymmdd-HHMMSS');
+filename = sprintf('pos_%s.xy', timestamp);
 WritePrarieXY(filename, XYZ);
