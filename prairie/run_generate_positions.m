@@ -48,3 +48,6 @@ bounds = [-2000 3200 -1000;
 
 step_size = 300;
 XYZ = generate_positions(data_ap, data_ml, bounds, step_size);
+
+filename = 'stage_positions.xy';
+WritePrarieXY(filename, XYZ);
