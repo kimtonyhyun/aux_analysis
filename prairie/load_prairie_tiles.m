@@ -34,7 +34,7 @@ for i = 1:num_tiles
     tif_file = fullfile(sub_dir, tif_file.name);
     
     tiles(i).name = tif_file;
-    tiles(i).im = imread(tif_file);
+    tiles(i).im = fliplr(imread(tif_file)); % Note: LR reversal for proper tiling!
     tiles(i).micronsPerPixel_x = micronsPerPixel_x;
     tiles(i).micronsPerPixel_y = micronsPerPixel_y;
 end

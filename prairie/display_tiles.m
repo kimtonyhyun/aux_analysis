@@ -21,7 +21,7 @@ for i = 1:length(tiles)
                  XYZ(i,1) + [0 fov_x],...
                  XYZ(i,2) + [0 fov_y]);
     
-    imshow(fliplr(A), RA, clim); hold on;
+    imshow(A, RA, clim); hold on;
 end
 
 % Format the plot
@@ -29,4 +29,4 @@ axis image;
 colormap gray;
 xlabel('X [um]');
 ylabel('Y [um]');
-set(gca,'XDir','Reverse');
+set(gca, 'XDir', 'Reverse');
