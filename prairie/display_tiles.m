@@ -13,10 +13,13 @@ clim = [0 4096];
 for i = 1:length(tiles)
     A = tiles(i).im;
     
+    fov_x = size(A,2)*tiles(i).micronsPerPixel_x;
+    fov_y = size(A,1)*tiles(i).micronsPerPixel_y;
+    
     % Locate the image in global coordinate space by using the XYZ list
     RA = imref2d(size(A),...
-                 XYZ(i,1) + [0 tiles(i).fov_x],...
-                 XYZ(i,2) + [0 tiles(i).fov_y]);
+                 XYZ(i,1) + [0 fov_x],...
+                 XYZ(i,2) + [0 fov_y]);
     
     imshow(fliplr(A), RA, clim); hold on;
 end
