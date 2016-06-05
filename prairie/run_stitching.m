@@ -6,4 +6,4 @@ XYZ = ReadPrairieXY(xy_file);
 
 tiles = load_prairie_tiles(pwd);
 
-stitch_tiles(XYZ, tiles);
+display_tiles(XYZ, tiles);
