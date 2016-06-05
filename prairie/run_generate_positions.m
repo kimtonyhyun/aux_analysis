@@ -49,4 +49,4 @@ XYZ = generate_positions(data_ap, data_ml, bounds, step_size);
 % Save XYZ positions to Prairie-readable file
 timestamp = datestr(now, 'yymmdd-HHMMSS');
 filename = sprintf('pos_%s.xy', timestamp);
-WritePrarieXY(filename, XYZ);
+WritePrairieXY(filename, XYZ);

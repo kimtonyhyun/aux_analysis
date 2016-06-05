@@ -1,4 +1,4 @@
-function stitch_tiles(XYZ, tiles)
+function display_tiles(XYZ, tiles)
 % Stitch tiled images from the Prairie. See 'run_stitch_tiles' for usage
 % information.
 %
