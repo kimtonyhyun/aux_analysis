@@ -10,6 +10,8 @@ function tiles = load_prairie_tiles(root_dir)
 % prefix 'SingleImage*'.
 
 ds = dir(fullfile(root_dir, 'SingleImage*'));
+
+% Sort directories by their acquisition order
 acq_order = cellfun(@parse_acquisition_order, {ds.name}, 'UniformOutput', true);
 [~, sort_idx] = sort(acq_order);
 ds = ds(sort_idx);
@@ -48,7 +50,8 @@ end
 end % load_prairie_tiles
 
 function acq_order = parse_acquisition_order(filename)
-    % Assume format is 'SingleImage-06022016-1015-968'
+    % Assume format is 'SingleImage-06022016-1015-968', i.e. three numeric
+    % fields where the last is the acquisition index
     p = sscanf(filename, 'SingleImage-%d-%d-%d');
     acq_order = p(3);
 end % parse_acquisition_order
