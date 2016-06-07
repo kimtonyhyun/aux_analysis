@@ -10,6 +10,10 @@ function tiles = load_prairie_tiles(root_dir)
 % prefix 'SingleImage*'.
 
 ds = dir(fullfile(root_dir, 'SingleImage*'));
+acq_order = cellfun(@parse_acquisition_order, {ds.name}, 'UniformOutput', true);
+[~, sort_idx] = sort(acq_order);
+ds = ds(sort_idx);
+
 num_tiles = length(ds);
 
 tiles = repmat(struct('name', '', 'im', [], 'fov_x', [], 'fov_y', []),...
@@ -34,10 +38,17 @@ for i = 1:num_tiles
     tif_file = fullfile(sub_dir, tif_file.name);
     
     tiles(i).name = tif_file;
-    tiles(i).im = fliplr(imread(tif_file)); % Note: LR reversal for proper tiling!
+    A = imread(tif_file);
+    A = fliplr(A); % Note: LR reversal for proper tiling!
+    tiles(i).im = A;
     tiles(i).micronsPerPixel_x = micronsPerPixel_x;
     tiles(i).micronsPerPixel_y = micronsPerPixel_y;
 end
 
 end % load_prairie_tiles
 
+function acq_order = parse_acquisition_order(filename)
+    % Assume format is 'SingleImage-06022016-1015-968'
+    p = sscanf(filename, 'SingleImage-%d-%d-%d');
+    acq_order = p(3);
+end % parse_acquisition_order
