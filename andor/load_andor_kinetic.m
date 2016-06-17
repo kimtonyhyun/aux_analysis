@@ -8,16 +8,20 @@ if (rc == 22002)
     [~, present] = atsif_isdatasourcepresent(signal);
     if present
         [~, num_frames] = atsif_getnumberframes(signal);
-        fprintf('File "%s" contains %d frames. Loading...\n',...
-            source, num_frames);
+        [~, exposure_time] = atsif_getpropertyvalue(signal, 'ExposureTime');
+        
+        fprintf('File "%s" contains %d frames, exposure time %s sec. Loading...\n',...
+            source, num_frames, exposure_time);
+        
         if (num_frames > 0)
-            [~, size] = atsif_getframesize(signal);
+            % Determine the movie pixel size
             [~, left, bottom, right, top, h_bin, v_bin] = atsif_getsubimageinfo(signal, 0);
-            
             height = (top-bottom+1) / h_bin;
             width  = (right-left+1) / v_bin;
             
             M = zeros(height, width, num_frames, 'uint16');
+            
+            [~, size] = atsif_getframesize(signal);
             for k = 1:num_frames
                 [~, data] = atsif_getframe(signal, k-1, size);
                 data = reshape(data, width, height)'; % Unwrap
