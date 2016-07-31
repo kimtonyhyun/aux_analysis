@@ -7,7 +7,11 @@
 function [s, p] = ReadPrairieXMLFile(filename)
 
 s = xml2struct_prairie(filename);
-pvstate = s.PVScan.Sequence.Frame.PVStateShard.Key;
+frame = s.PVScan.Sequence.Frame;
+if iscell(frame) % If multiple frames, find info on the first
+    frame = frame{1};
+end
+pvstate = frame.PVStateShard.Key;
 
 p = struct();
 for i = 1:length(pvstate)
