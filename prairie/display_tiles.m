@@ -1,4 +1,4 @@
-function display_tiles(XYZ, tiles)
+function display_tiles(XYZ, tiles, varargin)
 % Stitch tiled images from the Prairie. See 'run_stitch_tiles' for usage
 % information.
 %
@@ -8,13 +8,27 @@ function display_tiles(XYZ, tiles)
 %            information
 %
 
+micronsPerPixel_x = tiles(1).micronsPerPixel_x;
+micronsPerPixel_y = tiles(1).micronsPerPixel_y;
+
+for k = 1:length(varargin)
+    vararg = varargin{k};
+    if ischar(vararg)
+        switch lower(vararg)
+            case 'micronsperpixel' % Override scale present in XML
+                micronsPerPixel_x = varargin{k+1};
+                micronsPerPixel_y = varargin{k+1};
+        end
+    end
+end
+
 clim = [0 4096];
 
 for i = 1:length(tiles)
     A = tiles(i).im;
     
-    fov_x = size(A,2)*tiles(i).micronsPerPixel_x;
-    fov_y = size(A,1)*tiles(i).micronsPerPixel_y;
+    fov_x = size(A,2) * micronsPerPixel_x;
+    fov_y = size(A,1) * micronsPerPixel_y;
     
     % Locate the image in global coordinate space by using the XYZ list
     RA = imref2d(size(A),...

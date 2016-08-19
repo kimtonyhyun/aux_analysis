@@ -1,11 +1,23 @@
-function A = generate_tiled_image(XYZ, tiles)
+function A = generate_tiled_image(XYZ, tiles, varargin)
+
+micronsPerPixel_x = tiles(1).micronsPerPixel_x;
+micronsPerPixel_y = tiles(1).micronsPerPixel_y;
+
+for k = 1:length(varargin)
+    vararg = varargin{k};
+    if ischar(vararg)
+        switch lower(vararg)
+            case 'micronsperpixel' % Override scale present in XML
+                micronsPerPixel_x = varargin{k+1};
+                micronsPerPixel_y = varargin{k+1};
+        end
+    end
+end
 
 % Determine the full image resolution
 %------------------------------------------------------------
 numPixels_x = size(tiles(1).im, 2);
 numPixels_y = size(tiles(1).im, 1);
-micronsPerPixel_x = tiles(1).micronsPerPixel_x;
-micronsPerPixel_y = tiles(1).micronsPerPixel_y;
 
 fov_x = micronsPerPixel_x * numPixels_x;
 fov_y = micronsPerPixel_y * numPixels_y;
