@@ -1,5 +1,9 @@
 function generate_pmtext(source)
-
+% Converts Saleae log from the simple Pavlovian setup into a "PlusMaze"
+% text file compatible with DaySummary.
+%
+% Note: First and last trials are just fillers!
+%
 num_frames = 2000;
 
 [~, stem] = fileparts(source);

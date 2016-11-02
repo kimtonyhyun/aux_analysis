@@ -37,14 +37,16 @@ for k = 2:num_samples
         led_detected_in_trial = 0;
     end
     
-    if (~led_en(k-1) && led_en(k)) && ~led_detected_in_trial
-        trial_start_frames(trial_counter,2) = frame_counter;
-        led_detected_in_trial = 1;
-    end
-    
-    if ~reward_en(k-1) && reward_en(k)
-        trial_start_frames(trial_counter,3) = frame_counter;
-    end
+    if (trial_counter > 0)
+        if (~led_en(k-1) && led_en(k)) && ~led_detected_in_trial
+            trial_start_frames(trial_counter,2) = frame_counter;
+            led_detected_in_trial = 1;
+        end
+
+        if ~reward_en(k-1) && reward_en(k)
+            trial_start_frames(trial_counter,3) = frame_counter;
+        end
+    end % trial_counter > 0
 end
 fprintf('%s: Found %d frames and %d trials\n',...
     saleae_file, frame_counter, trial_counter);
