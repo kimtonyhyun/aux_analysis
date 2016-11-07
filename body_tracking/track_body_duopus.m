@@ -1,6 +1,8 @@
 function track_body_duopus(vid_source, reward_source, varargin)
 % Example usage: track_body_duopus('bottom0005.avi', 'rewards5.txt');
 
+frame_halfwidth = 60; % Number of frames around the reward frame to analyze
+
 vid = VideoReader(vid_source);
 num_frames = vid.NumberOfFrames;
 height = vid.Height;
@@ -31,8 +33,7 @@ else
     coords = saved.coords;
 end
 
-frame_halfwidth = 60; % Number of frames around the reward frame to analyze
-
+roi_halfwidth = 10; % Number of pixels to use for auto-track analysis
 for t = trials_to_analyze
     fprintf('%s: Trial %d of %d...\n', datestr(now), t, num_trials);
     
@@ -45,8 +46,12 @@ for t = trials_to_analyze
     while (f <= end_frame)
         % Display frame
         %------------------------------------------------------------
-        subplot(3,2,[1 2]);
-        imagesc(vid.read(f)); truesize;
+        subplot(3,3,[1 2 4 5 7 8]);
+        current_frame = vid.read(f);
+        imagesc(current_frame);
+        axis image;
+        xlabel('x');
+        ylabel('y');
         title(sprintf('Frame %d (Trial %d: Frames %d to %d)',...
                       f, t, start_frame, end_frame));
         
@@ -63,10 +68,37 @@ for t = trials_to_analyze
         if (f == 1)
             prev_coord = [0 0];
         else
-            prev_coord = coords(f-1,:);
+            prev_coord = round(coords(f-1,:));
         end
         if coord_is_nonzero(prev_coord)
+            left = max(1, prev_coord(1)-roi_halfwidth);
+            right = min(width, prev_coord(1)+roi_halfwidth);
+            top = max(1, prev_coord(2)-roi_halfwidth);
+            bottom = min(height, prev_coord(2)+roi_halfwidth);
             
+            prev_frame = vid.read(f-1);
+            prev_sample = prev_frame(top:bottom, left:right, :);
+            subplot(3,3,3);
+            imagesc(prev_sample);
+            axis image;
+            hold on;
+            plot(roi_halfwidth+1, roi_halfwidth+1, '*');
+            hold off;
+            set(gca, 'XTickLabel', '', 'YTickLabel', '');
+            title(sprintf('Previous frame (%d)', f-1));
+            
+            current_sample = current_frame(top:bottom, left:right, :);
+            subplot(3,3,6);
+            imagesc(current_sample);
+            axis image;
+            title(sprintf('Current frame (%d)', f));
+            
+            diff_sample = abs(current_sample - prev_sample);
+            diff = max(diff_sample(:));
+            subplot(3,3,9);
+            imagesc(diff_sample, [0 20]);
+            axis image;
+            title(sprintf('MaxDiff = %.1f', diff));
         end
         
         % Get mouse input
@@ -99,7 +131,7 @@ for t = trials_to_analyze
     % Save ongoing result and prompt user
     save(coord_savename, 'coords', 't', 'vid_source', 'reward_source');
     input('  Press enter to continue... >> ');
-    end
+end
 
 end % function track_body_duopus
 
