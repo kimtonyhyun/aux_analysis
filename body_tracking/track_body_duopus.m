@@ -20,6 +20,10 @@ else
     coord_savename = varargin{1};
     saved = load(coord_savename);
     
+    assert(strcmp(vid_source, saved.vid_source),...
+           'Video source in "%s" (%s) does not match provided video (%s)!',...
+           coord_savename, saved.vid_source, vid_source);
+    
     trials_complete = saved.t; % We save only completed trials
     fprintf('Resuming from Trial %d per "%s"...\n', trials_complete+1, coord_savename);
     
