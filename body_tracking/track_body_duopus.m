@@ -71,25 +71,31 @@ for t = trials_to_analyze
             prev_coord = round(coords(f-1,:));
         end
         if coord_is_nonzero(prev_coord)
+            subplot(3,3,[1 2 4 5 7 8]);
+            hold on;
+            plot(prev_coord(1), prev_coord(2), 'r*');
+            hold off;
+            
             left = max(1, prev_coord(1)-roi_halfwidth);
             right = min(width, prev_coord(1)+roi_halfwidth);
             top = max(1, prev_coord(2)-roi_halfwidth);
             bottom = min(height, prev_coord(2)+roi_halfwidth);
             
             prev_frame = vid.read(f-1);
-            prev_sample = prev_frame(top:bottom, left:right, :);
+            prev_sample = single(prev_frame(top:bottom, left:right, 1));
             subplot(3,3,3);
-            imagesc(prev_sample);
+            imagesc(prev_sample, [0 255]);
+            colormap gray;
             axis image;
             hold on;
-            plot(roi_halfwidth+1, roi_halfwidth+1, '*');
+            plot(roi_halfwidth+1, roi_halfwidth+1, 'r*');
             hold off;
             set(gca, 'XTickLabel', '', 'YTickLabel', '');
             title(sprintf('Previous frame (%d)', f-1));
             
-            current_sample = current_frame(top:bottom, left:right, :);
+            current_sample = single(current_frame(top:bottom, left:right, 1));
             subplot(3,3,6);
-            imagesc(current_sample);
+            imagesc(current_sample, [0 255]);
             axis image;
             title(sprintf('Current frame (%d)', f));
             
