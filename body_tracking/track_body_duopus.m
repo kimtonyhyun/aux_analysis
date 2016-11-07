@@ -34,6 +34,9 @@ else
 end
 
 roi_halfwidth = 10; % Number of pixels to use for auto-track analysis
+hist_grid = 0:5:50;
+hist_spacing = hist_grid(2) - hist_grid(1);
+
 for t = trials_to_analyze
     fprintf('%s: Trial %d of %d...\n', datestr(now), t, num_trials);
     
@@ -92,21 +95,24 @@ for t = trials_to_analyze
             subplot(3,3,6);
             imagesc(current_sample, [0 255]);
             axis image;
+            set(gca, 'XTickLabel', '', 'YTickLabel', '');
             title(sprintf('Current frame (%d)', f));
             
             diff_sample = abs(current_sample - prev_sample);
-            diff = max(diff_sample(:));
+            diff_sample = diff_sample(:);
+            diff_score = round(prctile(diff_sample, 90));
             subplot(3,3,9);
-            imagesc(diff_sample, [0 20]);
-            axis image;
-            dff_text = sprintf('MaxDiff = %.0f', diff);
-            title(dff_text);
+            hist(diff_sample, hist_grid);
+            set(get(gca, 'child'), 'FaceColor', 0.2*[1 1 1]);
+            xlim([hist_grid(1) hist_grid(end)]+hist_spacing/2*[-1 1]);
+            title(sprintf('DiffScore = %d', diff_score));
             
             subplot(3,3,[1 2 4 5 7 8]);
             hold on;
             plot(prev_coord(1), prev_coord(2), 'r*');
             hold off;
-            text(prev_coord(1)+5, prev_coord(2), dff_text, 'Color', 'r', 'FontWeight', 'bold');
+            text(prev_coord(1)+5, prev_coord(2), num2str(diff_score),...
+                 'Color', 'r', 'FontWeight', 'bold', 'FontSize', 24);
         end
         
         % Get mouse input
