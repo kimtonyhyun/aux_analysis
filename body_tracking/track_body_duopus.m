@@ -34,8 +34,8 @@ else
 end
 
 roi_halfwidth = 10; % Number of pixels to use for auto-track analysis
-hist_grid = 0:5:50;
-hist_spacing = hist_grid(2) - hist_grid(1);
+hist_spacing = 2.5;
+hist_grid = 0:hist_spacing:50;
 
 for t = trials_to_analyze
     fprintf('%s: Trial %d of %d...\n', datestr(now), t, num_trials);
@@ -103,7 +103,7 @@ for t = trials_to_analyze
             diff_score = round(prctile(diff_sample, 90));
             subplot(3,3,9);
             hist(diff_sample, hist_grid);
-            set(get(gca, 'child'), 'FaceColor', 0.2*[1 1 1]);
+            set(get(gca, 'child'), 'FaceColor', 0.3*[1 1 1]);
             xlim([hist_grid(1) hist_grid(end)]+hist_spacing/2*[-1 1]);
             title(sprintf('DiffScore = %d', diff_score));
             
