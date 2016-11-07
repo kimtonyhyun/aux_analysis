@@ -59,7 +59,7 @@ for t = trials_to_analyze
         old_coord = coords(f,:);
         if coord_is_nonzero(old_coord)
             hold on;
-            plot(old_coord(1), old_coord(2), '*');
+            plot(old_coord(1), old_coord(2), 'o');
             hold off;
         end
         
@@ -71,11 +71,6 @@ for t = trials_to_analyze
             prev_coord = round(coords(f-1,:));
         end
         if coord_is_nonzero(prev_coord)
-            subplot(3,3,[1 2 4 5 7 8]);
-            hold on;
-            plot(prev_coord(1), prev_coord(2), 'r*');
-            hold off;
-            
             left = max(1, prev_coord(1)-roi_halfwidth);
             right = min(width, prev_coord(1)+roi_halfwidth);
             top = max(1, prev_coord(2)-roi_halfwidth);
@@ -104,7 +99,14 @@ for t = trials_to_analyze
             subplot(3,3,9);
             imagesc(diff_sample, [0 20]);
             axis image;
-            title(sprintf('MaxDiff = %.1f', diff));
+            dff_text = sprintf('MaxDiff = %.0f', diff);
+            title(dff_text);
+            
+            subplot(3,3,[1 2 4 5 7 8]);
+            hold on;
+            plot(prev_coord(1), prev_coord(2), 'r*');
+            hold off;
+            text(prev_coord(1)+5, prev_coord(2), dff_text, 'Color', 'r', 'FontWeight', 'bold');
         end
         
         % Get mouse input
