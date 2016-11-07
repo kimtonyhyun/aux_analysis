@@ -31,7 +31,8 @@ else
     coords = saved.coords;
 end
 
-frame_halfwidth = 60;
+frame_halfwidth = 60; % Number of frames around the reward frame to analyze
+
 for t = trials_to_analyze
     fprintf('%s: Trial %d of %d...\n', datestr(now), t, num_trials);
     
@@ -44,16 +45,28 @@ for t = trials_to_analyze
     while (f <= end_frame)
         % Display frame
         %------------------------------------------------------------
+        subplot(3,2,[1 2]);
         imagesc(vid.read(f)); truesize;
         title(sprintf('Frame %d (Trial %d: Frames %d to %d)',...
                       f, t, start_frame, end_frame));
         
         % Display existing coordinate, if it exists
         old_coord = coords(f,:);
-        if (old_coord(1)~=0) && (old_coord(2)~=0)
+        if coord_is_nonzero(old_coord)
             hold on;
             plot(old_coord(1), old_coord(2), '*');
             hold off;
+        end
+        
+        % If there is a previous coordinate, then show ROI (for
+        % auto-tracking)
+        if (f == 1)
+            prev_coord = [0 0];
+        else
+            prev_coord = coords(f-1,:);
+        end
+        if coord_is_nonzero(prev_coord)
+            
         end
         
         % Get mouse input
@@ -86,4 +99,10 @@ for t = trials_to_analyze
     % Save ongoing result and prompt user
     save(coord_savename, 'coords', 't', 'vid_source', 'reward_source');
     input('  Press enter to continue... >> ');
-end
+    end
+
+end % function track_body_duopus
+
+function is_nonzero = coord_is_nonzero(coord)
+    is_nonzero = (coord(1)~=0) && (coord(2)~=0);
+end % coord_is_nonzero
