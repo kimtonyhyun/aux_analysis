@@ -46,7 +46,7 @@ for t = trials_to_analyze
     end_frame = min(num_frames, reward_frame+frame_halfwidth);
     
     f = start_frame;
-    while (f <= end_frame)
+    while (true)
         % Display frame
         %------------------------------------------------------------
         subplot(3,3,[1 2 4 5 7 8]);
@@ -123,7 +123,18 @@ for t = trials_to_analyze
                 % Check if in bounds of the movie
                 if (1 <= x) && (x <= width) && (1 <= y) && (y <= height)
                     coords(f,:) = [x y];
-                    f = f + 1; % Advance frame
+                    if (f == end_frame) % Final frame
+                        cmd = input('  Press enter to continue... >> ', 's');
+                        switch lower(cmd)
+                            case 'b' % Redo final frame
+                                f = end_frame;
+                            otherwise
+                                save(coord_savename, 'coords', 't', 'vid_source', 'reward_source');
+                                break;
+                        end % switch
+                    else
+                        f = f + 1; % Advance frame
+                    end
                 else
                     fprintf('  Please click within the video frame!\n');
                 end
@@ -142,9 +153,7 @@ for t = trials_to_analyze
         end
     end % while (f <= end_frame)
     
-    % Save ongoing result and prompt user
-    save(coord_savename, 'coords', 't', 'vid_source', 'reward_source');
-    input('  Press enter to continue... >> ');
+    
 end
 
 end % function track_body_duopus
