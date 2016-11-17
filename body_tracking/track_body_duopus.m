@@ -1,6 +1,8 @@
 function track_body_duopus(vid_source, reward_source, varargin)
 % Example usage: track_body_duopus('bottom0005.avi', 'rewards5.txt');
 
+frame_halfwidth = 60; % Number of frames around the reward frame to analyze
+
 vid = VideoReader(vid_source);
 num_frames = vid.NumberOfFrames;
 height = vid.Height;
@@ -31,7 +33,10 @@ else
     coords = saved.coords;
 end
 
-frame_halfwidth = 60;
+roi_halfwidth = 10; % Number of pixels to use for auto-track analysis
+hist_spacing = 2.5;
+hist_grid = 0:hist_spacing:50;
+
 for t = trials_to_analyze
     fprintf('%s: Trial %d of %d...\n', datestr(now), t, num_trials);
     
@@ -41,19 +46,73 @@ for t = trials_to_analyze
     end_frame = min(num_frames, reward_frame+frame_halfwidth);
     
     f = start_frame;
-    while (f <= end_frame)
+    while (true)
         % Display frame
         %------------------------------------------------------------
-        imagesc(vid.read(f)); truesize;
+        subplot(3,3,[1 2 4 5 7 8]);
+        current_frame = vid.read(f);
+        imagesc(current_frame);
+        axis image;
+        xlabel('x');
+        ylabel('y');
         title(sprintf('Frame %d (Trial %d: Frames %d to %d)',...
                       f, t, start_frame, end_frame));
         
         % Display existing coordinate, if it exists
         old_coord = coords(f,:);
-        if (old_coord(1)~=0) && (old_coord(2)~=0)
+        if coord_is_nonzero(old_coord)
             hold on;
-            plot(old_coord(1), old_coord(2), '*');
+            plot(old_coord(1), old_coord(2), 'o');
             hold off;
+        end
+        
+        % If there is a previous coordinate, then show ROI (for
+        % auto-tracking)
+        if (f == 1)
+            prev_coord = [0 0];
+        else
+            prev_coord = round(coords(f-1,:));
+        end
+        if coord_is_nonzero(prev_coord)
+            left = max(1, prev_coord(1)-roi_halfwidth);
+            right = min(width, prev_coord(1)+roi_halfwidth);
+            top = max(1, prev_coord(2)-roi_halfwidth);
+            bottom = min(height, prev_coord(2)+roi_halfwidth);
+            
+            prev_frame = vid.read(f-1);
+            prev_sample = single(prev_frame(top:bottom, left:right, 1));
+            subplot(3,3,3);
+            imagesc(prev_sample, [0 255]);
+            colormap gray;
+            axis image;
+            hold on;
+            plot(roi_halfwidth+1, roi_halfwidth+1, 'r*');
+            hold off;
+            set(gca, 'XTickLabel', '', 'YTickLabel', '');
+            title(sprintf('Previous frame (%d)', f-1));
+            
+            current_sample = single(current_frame(top:bottom, left:right, 1));
+            subplot(3,3,6);
+            imagesc(current_sample, [0 255]);
+            axis image;
+            set(gca, 'XTickLabel', '', 'YTickLabel', '');
+            title(sprintf('Current frame (%d)', f));
+            
+            diff_sample = abs(current_sample - prev_sample);
+            diff_sample = diff_sample(:);
+            diff_score = round(prctile(diff_sample, 90));
+            subplot(3,3,9);
+            hist(diff_sample, hist_grid);
+            set(get(gca, 'child'), 'FaceColor', 0.3*[1 1 1]);
+            xlim([hist_grid(1) hist_grid(end)]+hist_spacing/2*[-1 1]);
+            title(sprintf('DiffScore = %d', diff_score));
+            
+            subplot(3,3,[1 2 4 5 7 8]);
+            hold on;
+            plot(prev_coord(1), prev_coord(2), 'r*');
+            hold off;
+%             text(prev_coord(1)+5, prev_coord(2), num2str(diff_score),...
+%                  'Color', 'r', 'FontWeight', 'bold', 'FontSize', 24);
         end
         
         % Get mouse input
@@ -64,7 +123,18 @@ for t = trials_to_analyze
                 % Check if in bounds of the movie
                 if (1 <= x) && (x <= width) && (1 <= y) && (y <= height)
                     coords(f,:) = [x y];
-                    f = f + 1; % Advance frame
+                    if (f == end_frame) % Final frame
+                        cmd = input('  Press enter to continue... >> ', 's');
+                        switch lower(cmd)
+                            case 'b' % Redo final frame
+                                f = end_frame;
+                            otherwise
+                                save(coord_savename, 'coords', 't', 'vid_source', 'reward_source');
+                                break;
+                        end % switch
+                    else
+                        f = f + 1; % Advance frame
+                    end
                 else
                     fprintf('  Please click within the video frame!\n');
                 end
@@ -83,7 +153,11 @@ for t = trials_to_analyze
         end
     end % while (f <= end_frame)
     
-    % Save ongoing result and prompt user
-    save(coord_savename, 'coords', 't', 'vid_source', 'reward_source');
-    input('  Press enter to continue... >> ');
+    
 end
+
+end % function track_body_duopus
+
+function is_nonzero = coord_is_nonzero(coord)
+    is_nonzero = (coord(1)~=0) && (coord(2)~=0);
+end % coord_is_nonzero
