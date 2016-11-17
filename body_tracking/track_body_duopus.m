@@ -3,15 +3,35 @@ function track_body_duopus(vid_source, reward_source, varargin)
 
 frame_halfwidth = 60; % Number of frames around the reward frame to analyze
 
-vid = VideoReader(vid_source);
-num_frames = vid.NumberOfFrames;
-height = vid.Height;
-width = vid.Width;
+preload_video = false;
+coord_savename = '';
+for k = 1:length(varargin)
+    vararg = varargin{k};
+    if strcmp(vararg(end-4:end), '.mat')
+        coord_savename = vararg;
+    else
+        switch lower(vararg)
+            case 'preload'
+                preload_video = true;
+        end
+    end
+end
+
+
+if ~preload_video % Stream from file
+    vid = VideoReader(vid_source);
+    num_frames = vid.NumberOfFrames;
+    height = vid.Height;
+    width = vid.Width;
+else
+    M = load_behavior_video(vid_source);
+    [height, width, num_frames] = size(M);
+end
 
 reward_frames = load(reward_source);
 num_trials = length(reward_frames);
 
-if isempty(varargin) % No intermediate save provided
+if isempty(coord_savename) % No intermediate save provided
     % Filename used in autosave
     timestamp = datestr(now, 'yymmdd-HHMMSS');
     coord_savename = sprintf('coords_%s.mat', timestamp);
@@ -19,7 +39,6 @@ if isempty(varargin) % No intermediate save provided
     trials_to_analyze = 1:num_trials;
     coords = zeros(num_frames, 2); % Format: [x y]
 else
-    coord_savename = varargin{1};
     saved = load(coord_savename);
     
     assert(strcmp(vid_source, saved.vid_source),...
@@ -50,7 +69,7 @@ for t = trials_to_analyze
         % Display frame
         %------------------------------------------------------------
         subplot(3,3,[1 2 4 5 7 8]);
-        current_frame = vid.read(f);
+        current_frame = get_frame(f);
         imagesc(current_frame);
         axis image;
         xlabel('x');
@@ -79,7 +98,7 @@ for t = trials_to_analyze
             top = max(1, prev_coord(2)-roi_halfwidth);
             bottom = min(height, prev_coord(2)+roi_halfwidth);
             
-            prev_frame = vid.read(f-1);
+            prev_frame = get_frame(f-1);
             prev_sample = single(prev_frame(top:bottom, left:right, 1));
             subplot(3,3,3);
             imagesc(prev_sample, [0 255]);
@@ -152,9 +171,15 @@ for t = trials_to_analyze
                 fprintf('  Usage: Left click to mark feature; right click to go back a frame!\n');
         end
     end % while (f <= end_frame)
-    
-    
 end
+
+    function frame = get_frame(f)
+        if preload_video
+            frame = M(:,:,f);
+        else
+            frame = vid.read(f);
+        end
+    end % get_frame
 
 end % function track_body_duopus
 
