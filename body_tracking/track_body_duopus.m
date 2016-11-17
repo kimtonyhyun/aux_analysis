@@ -7,7 +7,7 @@ preload_video = false;
 coord_savename = '';
 for k = 1:length(varargin)
     vararg = varargin{k};
-    if strcmp(vararg(end-4:end), '.mat')
+    if (length(vararg) > 4) && strcmp(vararg(end-3:end), '.mat')
         coord_savename = vararg;
     else
         switch lower(vararg)
@@ -68,7 +68,7 @@ for t = trials_to_analyze
     while (true)
         % Display frame
         %------------------------------------------------------------
-        subplot(3,3,[1 2 4 5 7 8]);
+%         subplot(3,3,[1 2 4 5 7 8]);
         current_frame = get_frame(f);
         imagesc(current_frame);
         axis image;
@@ -93,40 +93,40 @@ for t = trials_to_analyze
             prev_coord = round(coords(f-1,:));
         end
         if coord_is_nonzero(prev_coord)
-            left = max(1, prev_coord(1)-roi_halfwidth);
-            right = min(width, prev_coord(1)+roi_halfwidth);
-            top = max(1, prev_coord(2)-roi_halfwidth);
-            bottom = min(height, prev_coord(2)+roi_halfwidth);
+%             left = max(1, prev_coord(1)-roi_halfwidth);
+%             right = min(width, prev_coord(1)+roi_halfwidth);
+%             top = max(1, prev_coord(2)-roi_halfwidth);
+%             bottom = min(height, prev_coord(2)+roi_halfwidth);
             
-            prev_frame = get_frame(f-1);
-            prev_sample = single(prev_frame(top:bottom, left:right, 1));
-            subplot(3,3,3);
-            imagesc(prev_sample, [0 255]);
-            colormap gray;
-            axis image;
-            hold on;
-            plot(roi_halfwidth+1, roi_halfwidth+1, 'r*');
-            hold off;
-            set(gca, 'XTickLabel', '', 'YTickLabel', '');
-            title(sprintf('Previous frame (%d)', f-1));
+%             prev_frame = get_frame(f-1);
+%             prev_sample = single(prev_frame(top:bottom, left:right, 1));
+%             subplot(3,3,3);
+%             imagesc(prev_sample, [0 255]);
+%             colormap gray;
+%             axis image;
+%             hold on;
+%             plot(roi_halfwidth+1, roi_halfwidth+1, 'r*');
+%             hold off;
+%             set(gca, 'XTickLabel', '', 'YTickLabel', '');
+%             title(sprintf('Previous frame (%d)', f-1));
             
-            current_sample = single(current_frame(top:bottom, left:right, 1));
-            subplot(3,3,6);
-            imagesc(current_sample, [0 255]);
-            axis image;
-            set(gca, 'XTickLabel', '', 'YTickLabel', '');
-            title(sprintf('Current frame (%d)', f));
+%             current_sample = single(current_frame(top:bottom, left:right, 1));
+%             subplot(3,3,6);
+%             imagesc(current_sample, [0 255]);
+%             axis image;
+%             set(gca, 'XTickLabel', '', 'YTickLabel', '');
+%             title(sprintf('Current frame (%d)', f));
             
-            diff_sample = abs(current_sample - prev_sample);
-            diff_sample = diff_sample(:);
-            diff_score = round(prctile(diff_sample, 90));
-            subplot(3,3,9);
-            hist(diff_sample, hist_grid);
-            set(get(gca, 'child'), 'FaceColor', 0.3*[1 1 1]);
-            xlim([hist_grid(1) hist_grid(end)]+hist_spacing/2*[-1 1]);
-            title(sprintf('DiffScore = %d', diff_score));
+%             diff_sample = abs(current_sample - prev_sample);
+%             diff_sample = diff_sample(:);
+%             diff_score = round(prctile(diff_sample, 90));
+%             subplot(3,3,9);
+%             hist(diff_sample, hist_grid);
+%             set(get(gca, 'child'), 'FaceColor', 0.3*[1 1 1]);
+%             xlim([hist_grid(1) hist_grid(end)]+hist_spacing/2*[-1 1]);
+%             title(sprintf('DiffScore = %d', diff_score));
             
-            subplot(3,3,[1 2 4 5 7 8]);
+%             subplot(3,3,[1 2 4 5 7 8]);
             hold on;
             plot(prev_coord(1), prev_coord(2), 'r*');
             hold off;
