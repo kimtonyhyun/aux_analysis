@@ -111,8 +111,8 @@ for t = trials_to_analyze
             hold on;
             plot(prev_coord(1), prev_coord(2), 'r*');
             hold off;
-            text(prev_coord(1)+5, prev_coord(2), num2str(diff_score),...
-                 'Color', 'r', 'FontWeight', 'bold', 'FontSize', 24);
+%             text(prev_coord(1)+5, prev_coord(2), num2str(diff_score),...
+%                  'Color', 'r', 'FontWeight', 'bold', 'FontSize', 24);
         end
         
         % Get mouse input
