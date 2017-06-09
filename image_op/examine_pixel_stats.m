@@ -45,12 +45,12 @@ draw_pixel_stats(1,1);
         %------------------------------------------------------------
         mu = mean(trace);
         med = median(trace);
-        mode = compute_trace_mode(trace);
         sig = std(trace);
         
         % Empirical histogram
-        num_bins = max(50, num_frames / 50);
+        num_bins = max(100, num_frames / 50);
         [n, bin_centers] = hist(trace, num_bins);
+        mode = compute_trace_mode(trace, num_bins);
         max_n = max(n);
 
         % Show trace
