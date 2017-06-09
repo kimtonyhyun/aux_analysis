@@ -1,16 +1,17 @@
 function examine_pixel_stats(M)
 
 [h, w, num_frames] = size(M);
-max_proj = max(M,[],3);
+% max_proj = max(M,[],3);
 
 % Generate clickable maximum projection image
 subplot(2,2,[1 3]);
-h_mp = imagesc(log(max_proj));
+% h_mp = imagesc(log(max_proj));
+h_mp = imagesc(mean(M,3));
 axis image;
 colormap gray;
 xlabel('X [px]');
 ylabel('Y [px]');
-title('Maximum projection image');
+title('Mean projection image');
 set(h_mp, 'ButtonDownFcn', @click_maxproj_cb);
 
 hold on;
@@ -45,6 +46,7 @@ draw_pixel_stats(1,1);
         mu = mean(trace);
         med = median(trace);
         mode = compute_trace_mode(trace);
+        sig = std(trace);
         
         % Empirical histogram
         num_bins = max(50, num_frames / 50);
@@ -77,7 +79,7 @@ draw_pixel_stats(1,1);
         plot(mu*[1 1], [0 max_n], 'r--');
         plot(med*[1 1], [0 max_n], 'k--');
         plot(mode*[1 1], [0 max_n], 'c--');
-        legend('Data',...
+        legend(sprintf('Data (\\sigma=%.3f)', sig),...
                sprintf('Mean=%.3f', mu),...
                sprintf('Median=%.3f', med),...
                sprintf('Mode=%.3f', mode),...
