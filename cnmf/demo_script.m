@@ -1,7 +1,7 @@
 clear;
 %% load file
 
-movie_source = 'cbl_00001_nc2_ti8_zsc.hdf5';
+movie_source = 'CBL_00001_nc_ti8_zsc.hdf5';
 Y = load_movie(movie_source);
 
 if ~isa(Y,'double');    Y = double(Y);  end         % convert to single
@@ -11,7 +11,7 @@ d = d1*d2;                                          % total number of pixels
 
 %% Set parameters
 
-K = 125;                                           % number of components to be found
+K = 100;                                           % number of components to be found
 tau = 7;                                          % std of gaussian kernel (size of neuron) 
 p = 2;                                            % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
 merge_thr = 1;                                  % merging threshold
