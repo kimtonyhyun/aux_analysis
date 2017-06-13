@@ -1,9 +1,6 @@
-function [fitted_mode, empirical_mode] = compute_trace_mode(trace)
-
-num_frames = length(trace);
+function [fitted_mode, empirical_mode] = compute_trace_mode(trace, num_bins)
 
 % Compute mode based on empirical histogram
-num_bins = max(50, num_frames/50);
 [n, bin_centers] = hist(trace, num_bins);
 [~, max_idx] = max(n);
 empirical_mode = bin_centers(max_idx);
