@@ -1,4 +1,16 @@
-function examine_pixel_stats(M)
+function examine_pixel_stats(M, varargin)
+
+use_outline = 0;
+for k = 1:length(varargin)
+    vararg = varargin{k};
+    if ischar(vararg)
+        switch lower(vararg)
+            case 'boundary'
+                use_outline = 1;
+                ds = varargin{k+1};
+        end
+    end
+end
 
 [h, w, num_frames] = size(M);
 max_proj = max(M,[],3);
@@ -14,6 +26,9 @@ title('Maximum projection image');
 set(h_mp, 'ButtonDownFcn', @click_maxproj_cb);
 
 hold on;
+if use_outline
+    plot_boundaries_with_transform(ds, 'g', 1, [], []);
+end
 h_dot = plot(1,1,'r.');
 hold off;
 draw_pixel_stats(1,1);
