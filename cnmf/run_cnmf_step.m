@@ -1,7 +1,7 @@
 clear;
 %% load file
 
-movie_source = 'CBL_00001_nc_ti8_zsc.hdf5';
+movie_source = 'cbl_nc_ti8_meancorr_zsc.hdf5';
 Y = load_movie(movie_source);
 
 if ~isa(Y,'double');    Y = double(Y);  end         % convert to single
@@ -49,10 +49,13 @@ figure;imagesc(Cn);
 save_cnmf_to_rec;
 
 %% Manual sort
-
-keep = logical(ds.is_cell)';
-A = A(:,keep);
-C = C(keep,:);
+if (ds.num_cells == size(A,2))
+    keep = logical(ds.is_cell)';
+    A = A(:,keep);
+    C = C(keep,:);
+else
+    fprintf('ERROR: Num cells in DaySummary inconsistent with CNMF variables!\n');
+end
 
 %% add points of interest (optional)
 
