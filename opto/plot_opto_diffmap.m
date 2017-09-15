@@ -1,4 +1,16 @@
-function plot_opto_diffmap(M, laser_off, laser_on)
+function plot_opto_diffmap(M, laser_off, laser_on, varargin)
+
+use_boundary = 0;
+for k = 1:length(varargin)
+    vararg = varargin{k};
+    if ischar(vararg)
+        switch lower(vararg)
+            case 'boundary'
+                use_boundary = 1;
+                ds = varargin{k+1};
+        end
+    end
+end
 
 % Compute
 F = compute_fluorescence_stats(M);
@@ -22,8 +34,9 @@ axis image;
 colormap redblue;
 colorbar;
 
-% % Show boundary
-% plot_boundaries_with_transform(ds, 'k', 1, [], []);
-% title(sprintf('AVG laser ON - AVG laser OFF: %d classified cells', ds.num_classified_cells));
-% 
-% subplot(3,1,1); % For manual title
+% Show boundary
+if (use_boundary)
+    plot_boundaries_with_transform(ds, 'k', 1, [], []);
+    title(sprintf('AVG laser ON - AVG laser OFF: %d classified cells', ds.num_classified_cells));
+end
+subplot(3,1,1); % For manual title
