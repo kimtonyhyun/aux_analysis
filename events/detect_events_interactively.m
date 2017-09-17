@@ -63,13 +63,15 @@ while (1)
 end % Main interaction loop
 
     function get_next_page()
-        new_anchor = state.x_anchor + paging_factor*state.x_range + 1;
-        if (new_anchor < num_frames)
-            state.x_anchor = new_anchor;
-            draw_frame();
+        current_end = state.x_anchor + state.x_range;
+        if (current_end >= num_frames)
+            new_anchor = num_frames - state.x_range + 1;
         else
-            fprintf('  Already at end of trace!\n');
+            new_anchor = state.x_anchor + paging_factor*state.x_range + 1;
         end
+
+        state.x_anchor = new_anchor;
+        draw_frame();
     end % get_next_page
 
     function get_prev_page()
