@@ -89,7 +89,12 @@ end
         ylim(y_range);
 
         h_zoom = subplot(2,1,2);
-        plot(trace, 'k');
+        plot(trace, 'k', 'HitTest', 'off');
+        hold on;
+        h_dot = plot(1,trace(1),'ro',...
+            'MarkerFaceColor','r',...
+            'MarkerSize',6,'HitTest','off');
+        h_bar = plot([1 1], y_range, 'k--', 'HitTest', 'off');
         ylim(y_range);
         grid on;
         xlim([state.x_anchor, state.x_anchor+state.x_range]);
@@ -98,7 +103,21 @@ end
             event = events(k);
             plot(event*[1 1], y_range, 'r');
         end
+        
+        % Add GUI event listeners
         set(h_zoom, 'ButtonDownFcn', @add_event);
+        set(hf, 'WindowButtonMotionFcn', @track_cursor);
+        
+        function track_cursor(~, e)
+            x = round(e.IntersectionPoint(1));
+            if ((state.x_anchor<=x)&&(x<=state.x_anchor+state.x_range))
+                if ((1<=x)&&(x<=num_frames))
+                    set(h_dot,'XData',x,'YData',trace(x));
+                    set(h_bar,'XData',x*[1 1]);
+                end
+            end
+        end % track_cursor
+        
     end % setup_gui
 
     function add_event(~, e)
@@ -116,6 +135,8 @@ end
                 
         end
     end % add_event
+
+    
 
 end % detect_events_interactively
 
