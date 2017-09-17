@@ -47,23 +47,11 @@ while (1)
                 state.x_range = 1/zoom_factor*state.x_range;
                 draw_frame();
 
-            case 'n' % Next
-                new_anchor = state.x_anchor + paging_factor*state.x_range + 1;
-                if (new_anchor < num_frames)
-                    state.x_anchor = new_anchor;
-                    draw_frame();
-                else
-                    fprintf('  Already at end of trace!\n');
-                end
+            case {'', 'n'} % Next
+                get_next_page();
 
             case 'p' % Previous
-                new_anchor = state.x_anchor - (paging_factor*state.x_range + 1);
-                if (new_anchor + state.x_range > 0)
-                    state.x_anchor = new_anchor;
-                    draw_frame();
-                else
-                    fprintf('  Already at beginning of trace!\n');
-                end
+                get_prev_page();
 
             otherwise
                 fprintf('  Sorry, could not parse "%s"\n', resp);
@@ -72,36 +60,58 @@ while (1)
         
     resp = lower(strtrim(input(prompt, 's')));
     val = str2double(resp);
-end
+end % Main interaction loop
+
+    function get_next_page()
+        new_anchor = state.x_anchor + paging_factor*state.x_range + 1;
+        if (new_anchor < num_frames)
+            state.x_anchor = new_anchor;
+            draw_frame();
+        else
+            fprintf('  Already at end of trace!\n');
+        end
+    end % get_next_page
+
+    function get_prev_page()
+        new_anchor = state.x_anchor - (paging_factor*state.x_range + 1);
+        state.x_anchor = max(1, new_anchor);
+        draw_frame();
+    end % get_prev_page
 
     function draw_frame()
         clf;
 
+        % Display the GLOBAL trace
         subplot(2,1,1);
         rectangle('Position',[state.x_anchor y_range(1) state.x_range diff(y_range)],...
                   'EdgeColor', 'none',...
                   'FaceColor', 'c');
         hold on;
         plot(trace, 'k');
+        plot(events, trace(events), 'r.');
         hold off;
         box on;
         xlim([1 num_frames]);
         ylim(y_range);
 
+        % Display the ZOOMED IN trace
         h_zoom = subplot(2,1,2);
         plot(trace, 'k', 'HitTest', 'off');
         hold on;
-        h_dot = plot(1,trace(1),'ro',...
+        h_dot = plot(-1,trace(1),'ro',...
             'MarkerFaceColor','r',...
             'MarkerSize',6,'HitTest','off');
-        h_bar = plot([1 1], y_range, 'k--', 'HitTest', 'off');
+        h_bar = plot(-1*[1 1], y_range, 'k--', 'HitTest', 'off');
         ylim(y_range);
         grid on;
-        xlim([state.x_anchor, state.x_anchor+state.x_range]);
+        x_range = [state.x_anchor, state.x_anchor+state.x_range];
+        xlim(x_range);
         hold on;
         for k = 1:length(events)
-            event = events(k);
-            plot(event*[1 1], y_range, 'r');
+            x = events(k);
+            if ((x_range(1)<=x)&&(x<=x_range(2)))
+                plot(x*[1 1], y_range, 'r');
+            end
         end
         
         % Add GUI event listeners
@@ -135,8 +145,6 @@ end
                 
         end
     end % add_event
-
-    
 
 end % detect_events_interactively
 
