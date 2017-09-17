@@ -8,7 +8,7 @@ y_range = [m M] + 0.1*(M-m)*[-1 1];
 
 % Set up GUI
 zoom_factor = 0.5;
-paging_factor = 0.75;
+paging_factor = 0.25;
 init_range = min(2500, num_frames)-1;
 
 state.x_anchor = 1;
@@ -117,6 +117,7 @@ end % Main interaction loop
         % Add GUI event listeners
         set(h_zoom, 'ButtonDownFcn', @add_event);
         set(hf, 'WindowButtonMotionFcn', @track_cursor);
+        set(hf, 'WindowScrollWheelFcn', @scroll_plot);
         
         function track_cursor(~, e)
             x = round(e.IntersectionPoint(1));
@@ -127,6 +128,14 @@ end % Main interaction loop
                 end
             end
         end % track_cursor
+        
+        function scroll_plot(~, e)
+            if (e.VerticalScrollCount < 0) % Scroll up
+                get_prev_page();
+            else
+                get_next_page();
+            end
+        end % scroll_plot
         
     end % setup_gui
 
