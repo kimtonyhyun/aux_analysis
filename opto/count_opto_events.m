@@ -13,7 +13,7 @@ num_nonopto_events = num_events - num_opto_events;
 
 opto_frac = length(laser_on)/(length(laser_on)+length(laser_off));
 p1 = binocdf(num_opto_events, num_events, opto_frac);
-p2 = 1-p1;
+p2 = binocdf(num_opto_events, num_events, opto_frac, 'upper');
 
 % Report results
 fprintf('Observed %d events:\n', num_events);
@@ -21,7 +21,7 @@ fprintf('  - %d events during opto ON\n', num_opto_events);
 fprintf('  - %d events during opto OFF\n', num_nonopto_events);
 fprintf('Opto fraction was %.1f%%. Under null hypothesis:\n', 100*opto_frac);
 fprintf('  - Expected number of events during opto ON: %.1f\n', opto_frac*num_events);
-fprintf('  - p-value of observing fewer than %d opto events: %.4f\n',...
+fprintf('  - p-value of observing %d or FEWER opto events: %.4f\n',...
     num_opto_events, p1);
-fprintf('  - p-value of observing more than %d opto events: %.4f\n',...
+fprintf('  - p-value of observing %d or MORE opto events: %.4f\n',...
     num_opto_events, p2);
