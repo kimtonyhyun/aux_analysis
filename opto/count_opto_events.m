@@ -1,4 +1,4 @@
-function count_opto_events(events, laser_off, laser_on)
+function [p1, p2] = count_opto_events(events, laser_off, laser_on)
 
 num_events = length(events);
 is_opto_event = zeros(num_events,1);
