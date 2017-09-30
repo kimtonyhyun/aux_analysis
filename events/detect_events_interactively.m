@@ -9,7 +9,7 @@ y_range = [m M] + 0.1*(M-m)*[-1 1];
 % Set up GUI
 zoom_factor = 0.5;
 paging_factor = 0.25;
-init_range = min(2500, num_frames)-1;
+init_range = min(1000, num_frames)-1;
 
 state.x_anchor = 1;
 state.x_range = init_range;
@@ -84,13 +84,13 @@ end % Main interaction loop
         clf;
 
         % Display the GLOBAL trace
-        subplot(2,1,1);
+        h_global = subplot(2,1,1);
         rectangle('Position',[state.x_anchor y_range(1) state.x_range diff(y_range)],...
                   'EdgeColor', 'none',...
-                  'FaceColor', 'c');
+                  'FaceColor', 'c', 'HitTest', 'off');
         hold on;
-        plot(trace, 'k');
-        plot(events, trace(events), 'r.');
+        plot(trace, 'k', 'HitTest', 'off');
+        plot(events, trace(events), 'r.', 'HitTest', 'off');
         hold off;
         box on;
         xlim([1 num_frames]);
@@ -117,6 +117,7 @@ end % Main interaction loop
         end
         
         % Add GUI event listeners
+        set(h_global, 'ButtonDownFcn', @refocus_zoom);
         set(h_zoom, 'ButtonDownFcn', @add_event);
         set(hf, 'WindowButtonMotionFcn', @track_cursor);
         set(hf, 'WindowScrollWheelFcn', @scroll_plot);
@@ -140,6 +141,22 @@ end % Main interaction loop
         end % scroll_plot
         
     end % setup_gui
+
+    function refocus_zoom(~, e)
+        switch e.Button
+            case 1 % Left click
+                x = round(e.IntersectionPoint(1));
+                if ((1<=x) && (x<=num_frames))
+                    state.x_anchor = x - state.x_range/2;
+                    draw_frame();
+                else
+                    fprintf('\n  Not a valid frame for this trace!\n');
+                end
+                
+            case 3 % Right click
+                
+        end
+    end % refocus_zoom
 
     function add_event(~, e)
         switch e.Button
