@@ -13,6 +13,7 @@ init_range = min(1000, num_frames)-1;
 
 state.x_anchor = 1;
 state.x_range = init_range;
+state.max_find = true;
 
 events = [];
 
@@ -52,6 +53,24 @@ while (1)
 
             case 'p' % Previous
                 get_prev_page();
+                
+            case 'm' % "Max-find"
+                if (state.max_find)
+                    state.max_find = false;
+                    fprintf('  Max-find turned OFF!\n');
+                else
+                    state.max_find = true;
+                    fprintf('  Max-find turned ON!\n');
+                end
+                
+            case 'x' % Erase last event
+                num_events = size(events, 1);
+                if (num_events > 0)
+                    events = events(1:num_events-1,:);
+                    draw_frame();
+                else
+                    fprintf('  No events to remove!\n');
+                end
 
             otherwise
                 fprintf('  Sorry, could not parse "%s"\n', resp);
@@ -163,6 +182,12 @@ end % Main interaction loop
             case 1 % Left click
                 x = round(e.IntersectionPoint(1));
                 if ((1<=x) && (x<=num_frames))
+                    if (state.max_find)
+                        x_range = max(1,x-5):min(x+5,num_frames);
+                        tr_range = trace(x_range);
+                        [~, max_ind] = max(tr_range);
+                        x = x_range(max_ind);
+                    end
                     events = [events; x];
                     draw_frame();
                 else
