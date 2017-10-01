@@ -147,9 +147,9 @@ end % Main interaction loop
 
         % Setup the LOCAL trace plot
         gui.local = subplot(2,1,2);
-        plot(trace, 'k', 'HitTest', 'off');
+        gui.local_raw = plot(trace_orig, 'Color', 0.6*[1 1 1], 'HitTest', 'off');
         hold on;
-        gui.local_raw = plot(trace_orig, 'Color', 0.4*[1 1 1], 'HitTest', 'off');
+        plot(trace, 'k', 'HitTest', 'off');
         if state.show_raw
             set(gui.local_raw, 'Visible', 'on');
         else
