@@ -10,12 +10,13 @@ trace_hist = get_histogram(trace);
 state.x_anchor = 1;
 state.x_range = min(1000, num_frames);
 
-events.threshold = -Inf;
-events.auto = [];
+events.threshold = prctile(trace, 95);
+events.auto = find_events(trace, events.threshold);
 events.manual = [];
 
 hfig = figure;
 gui = setup_gui(hfig, num_frames, trace_range, trace_hist);
+redraw_threshold(gui);
 
 % Interaction loop:
 %------------------------------------------------------------
@@ -34,6 +35,7 @@ while (1)
                 % Look for duplicates and sort
                 events.auto = sort(unique(events.auto));
                 events.manual = sort(unique(events.manual));
+                events.manual = setdiff(events.manual, events.auto);
                 break;
 
             case 'z' % zoom in
@@ -93,8 +95,8 @@ end % Main interaction loop
         hold on;
         plot(trace, 'k', 'HitTest', 'off');
         gui.global_thresh = plot([1 num_frames], events.threshold*[1 1], 'm--', 'HitTest', 'off');
-        gui.global_auto = plot(-1, -1, 'm.', 'HitTest', 'off');
-        gui.global_manual = plot(-1, -1, 'r.', 'HitTest', 'off');
+        gui.global_auto = plot(-Inf, -1, 'm.', 'HitTest', 'off');
+        gui.global_manual = plot(-Inf, -1, 'r.', 'HitTest', 'off');
         hold off;
         box on;
         xlim([1 num_frames]);
@@ -125,7 +127,7 @@ end % Main interaction loop
         gui.local_dot = plot(-1,trace(1),'ro',...
             'MarkerFaceColor','r',...
             'MarkerSize',6,'HitTest','off');
-        gui.local_bar = plot(-1*[1 1], trace_range, 'k--', 'HitTest', 'off');
+        gui.local_bar = plot(-Inf*[1 1], trace_range, 'k--', 'HitTest', 'off');
         gui.local_thresh = plot([1 num_frames], events.threshold*[1 1], 'm--', 'HitTest', 'off');
         gui.local_auto = plot(-1, -1, 'm');
         gui.local_manual = plot(-1, -1, 'r');
@@ -179,9 +181,10 @@ end % Main interaction loop
         xlim([state.x_anchor, state.x_anchor+state.x_range-1]);
     end % redraw_local_window
 
-    function redraw_threshold(gui)
+    function redraw_threshold(gui)        
         set(gui.global_thresh, 'YData', events.threshold*[1 1]);
         set(gui.global_auto, 'XData', events.auto, 'YData', trace(events.auto));
+        update_event_tally(gui);
         
         set(gui.histogram_thresh, 'XData', events.threshold*[1 1]);
         set(gui.local_thresh, 'YData', events.threshold*[1 1]);
@@ -198,7 +201,17 @@ end % Main interaction loop
         X = kron(events.manual, [1 1 NaN]);
         Y = repmat([gui.trace_range NaN], 1, length(events.manual));
         set(gui.local_manual, 'XData', X, 'YData', Y);
+        
+        update_event_tally(gui);
     end % redraw_manual_events
+
+    function update_event_tally(gui)
+        num_auto = length(events.auto);
+        num_manual = length(events.manual);
+        
+        subplot(gui.global);
+        title(sprintf('Num events: %d (auto), %d (manual)', num_auto, num_manual));
+    end % update_event_tally
 
     % Event handlers for mouse input
     %------------------------------------------------------------
