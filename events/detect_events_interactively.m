@@ -4,7 +4,7 @@ function events = detect_events_interactively(trace)
 num_frames = length(trace);
 trace_range = [min(trace) max(trace)];
 trace_range = trace_range + 0.1*diff(trace_range)*[-1 1];
-trace_hist = get_histogram(trace);
+stats = compute_trace_stats(trace);
 
 % Application state
 state.x_anchor = 1;
@@ -15,7 +15,7 @@ events.auto = find_events(trace, events.threshold);
 events.manual = [];
 
 hfig = figure;
-gui = setup_gui(hfig, num_frames, trace_range, trace_hist);
+gui = setup_gui(hfig, num_frames, trace_range, stats);
 redraw_threshold(gui);
 
 % Interaction loop:
@@ -82,7 +82,7 @@ end % Main interaction loop
         redraw_local_window(gui);
     end % get_prev_page
 
-    function gui = setup_gui(hf, num_frames, trace_range, trace_hist)
+    function gui = setup_gui(hf, num_frames, trace_range, trace_stats)
         % Display parameters kept around for convenience
         gui.num_frames = num_frames;
         gui.trace_range = trace_range;
@@ -106,12 +106,12 @@ end % Main interaction loop
         
         % Setup the HISTOGRAM
         gui.histogram = subplot(2,5,5);
-        semilogy(trace_hist.centers, trace_hist.counts, 'k.', 'HitTest', 'off');
+        semilogy(trace_stats.hist_centers, trace_stats.hist_counts, 'k.', 'HitTest', 'off');
         xlim(trace_range);
         hold on;
         count_range = get(gui.histogram, 'YLim');
-        for k = 1:size(trace_hist.percentiles,1)
-            y = trace_hist.percentiles(k,2);
+        for k = 1:size(trace_stats.percentiles,1)
+            y = trace_stats.percentiles(k,2);
             plot(y*[1 1], count_range, 'Color', 0.5*[1 1 1], 'HitTest', 'off');
         end
         gui.histogram_thresh = plot(events.threshold*[1 1], count_range, 'm--', 'HitTest', 'off');
@@ -291,16 +291,3 @@ function x = localmax(x, trace)
         iter = iter + 1;
     end
 end % localmax
-
-function trace_hist = get_histogram(trace)
-    num_bins = 500;
-    [n, x] = hist(trace, num_bins);
-    
-    nonzero_inds = n>0;
-    trace_hist.counts = n(nonzero_inds);
-    trace_hist.centers = x(nonzero_inds);
-    
-    % Also compute percentiles
-    ps = [95 96 97 98 99]';
-    trace_hist.percentiles = [ps prctile(trace,ps)];
-end % get_histogram
