@@ -264,8 +264,12 @@ end % Main interaction loop
             case 1 % Left click
                 x = round(e.IntersectionPoint(1));
                 if ((1<=x) && (x<=gui.num_frames))
-                    events.manual = [events.manual localmax(x, trace)];
-                    redraw_manual_events(gui);
+                    x = localmax(x, trace);
+                    % Don't make duplicate events
+                    if ~ismember(x, events.auto) && ~ismember(x, events.manual)
+                        events.manual = [events.manual x];
+                        redraw_manual_events(gui);
+                    end
                 else
                     fprintf('\n  Not a valid event for this trace!\n');
                 end
