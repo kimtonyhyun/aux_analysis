@@ -2,13 +2,8 @@ function events = detect_events_interactively(trace)
 
 % Basic trace properties
 num_frames = length(trace);
-M = max(trace);
-m = min(trace);
-trace_range = [m M] + 0.1*(M-m)*[-1 1];
-
-% Some GUI parameters
-zoom_factor = 0.5;
-paging_factor = 0.25;
+trace_range = [min(trace) max(trace)];
+trace_range = trace_range + 0.1*diff(trace_range)*[-1 1];
 
 % Application state
 state.x_anchor = 1;
@@ -18,8 +13,8 @@ events.threshold = -Inf;
 events.auto = [];
 events.manual = [];
 
-hf = figure;
-gui = setup_gui();
+hfig = figure;
+gui = setup_gui(hfig, num_frames, trace_range);
 
 % Interaction loop:
 %------------------------------------------------------------
@@ -33,7 +28,7 @@ while (1)
     else % Not a number
         switch (resp)
             case 'q' % "quit"
-                close(hf);
+                close(hfig);
                 
                 % Look for duplicates and sort
                 events.auto = sort(unique(events.auto));
@@ -41,11 +36,11 @@ while (1)
                 break;
 
             case 'z' % zoom in
-                state.x_range = zoom_factor*state.x_range;
+                state.x_range = 0.5*state.x_range;
                 redraw_local_window(gui);
                 
             case {'u', 'o'} % zoom out
-                state.x_range = 1/zoom_factor*state.x_range;
+                state.x_range = 2*state.x_range;
                 redraw_local_window(gui);
                                
             case 'x' % Erase last event
@@ -68,10 +63,10 @@ end % Main interaction loop
 
     function get_next_page(gui)
         current_end = state.x_anchor + state.x_range;
-        if (current_end >= num_frames)
-            new_anchor = num_frames - state.x_range + 1;
+        if (current_end >= gui.num_frames)
+            new_anchor = gui.num_frames - state.x_range + 1;
         else
-            new_anchor = state.x_anchor + paging_factor*state.x_range + 1;
+            new_anchor = state.x_anchor + 0.25*state.x_range + 1;
         end
 
         state.x_anchor = new_anchor;
@@ -79,12 +74,15 @@ end % Main interaction loop
     end % get_next_page
 
     function get_prev_page(gui)
-        new_anchor = state.x_anchor - (paging_factor*state.x_range + 1);
+        new_anchor = state.x_anchor - (0.25*state.x_range + 1);
         state.x_anchor = max(1, new_anchor);
         redraw_local_window(gui);
     end % get_prev_page
 
-    function gui = setup_gui()
+    function gui = setup_gui(hf, num_frames, trace_range)
+        gui.num_frames = num_frames;
+        gui.trace_range = trace_range;
+        
         % Setup the GLOBAL trace
         gui.global = subplot(2,1,1);
         gui.global_rect = rectangle('Position',[state.x_anchor trace_range(1) state.x_range diff(trace_range)],...
@@ -119,14 +117,14 @@ end % Main interaction loop
         
         % Add GUI event listeners
         set(gui.global, 'ButtonDownFcn', {@global_plot_handler, gui});
-        set(gui.local, 'ButtonDownFcn', @add_event);
+        set(gui.local, 'ButtonDownFcn', {@local_plot_handler, gui});
         set(hf, 'WindowButtonMotionFcn', {@track_cursor, gui});
         set(hf, 'WindowScrollWheelFcn', {@scroll_plot, gui});
         
         function track_cursor(~, e, gui)
             x = round(e.IntersectionPoint(1));
             if ((state.x_anchor<=x)&&(x<=state.x_anchor+state.x_range))
-                if ((1<=x)&&(x<=num_frames))                  
+                if ((1<=x)&&(x<=gui.num_frames))                  
                     x = localmax(x, trace);
                     set(gui.local_bar,'XData',x*[1 1]);
                     set(gui.local_dot,'XData',x,'YData',trace(x));
@@ -144,6 +142,8 @@ end % Main interaction loop
         
     end % setup_gui
 
+    % Update the GUI
+    %------------------------------------------------------------
     function redraw_local_window(gui)
         rect_pos = get(gui.global_rect, 'Position');
         rect_pos(1) = state.x_anchor;
@@ -152,7 +152,7 @@ end % Main interaction loop
         
         subplot(gui.local);
         xlim([state.x_anchor, state.x_anchor+state.x_range-1]);
-    end % update_frame
+    end % redraw_local_window
 
     function redraw_threshold(gui)
         set(gui.global_thresh, 'YData', events.threshold*[1 1]);
@@ -162,23 +162,25 @@ end % Main interaction loop
         
         % Note: NaN's break connections between line segments
         X = kron(events.auto, [1 1 NaN]);
-        Y = repmat([trace_range NaN], 1, length(events.auto));
+        Y = repmat([gui.trace_range NaN], 1, length(events.auto));
         set(gui.local_auto, 'XData', X, 'YData', Y);
-    end % update_threshold
+    end % redraw_threshold
 
     function redraw_manual_events(gui)
         set(gui.global_manual, 'XData', events.manual, 'YData', trace(events.manual));
         
         X = kron(events.manual, [1 1 NaN]);
-        Y = repmat([trace_range NaN], 1, length(events.manual));
+        Y = repmat([gui.trace_range NaN], 1, length(events.manual));
         set(gui.local_manual, 'XData', X, 'YData', Y);
-    end
+    end % redraw_manual_events
 
+    % Event handlers for mouse input
+    %------------------------------------------------------------
     function global_plot_handler(~, e, gui)
         switch e.Button
             case 1 % Left click -- Move the local viewpoint
                 x = round(e.IntersectionPoint(1));
-                if ((1<=x) && (x<=num_frames))
+                if ((1<=x) && (x<=gui.num_frames))
                     state.x_anchor = x - state.x_range/2;
                     redraw_local_window(gui);
                 else
@@ -193,11 +195,11 @@ end % Main interaction loop
         end
     end % refocus_zoom
 
-    function add_event(~, e)
+    function local_plot_handler(~, e, gui)
         switch e.Button
             case 1 % Left click
                 x = round(e.IntersectionPoint(1));
-                if ((1<=x) && (x<=num_frames))
+                if ((1<=x) && (x<=gui.num_frames))
                     events.manual = [events.manual localmax(x, trace)];
                     redraw_manual_events(gui);
                 else
