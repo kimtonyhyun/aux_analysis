@@ -10,7 +10,7 @@ trace_hist = get_histogram(trace);
 state.x_anchor = 1;
 state.x_range = min(1000, num_frames);
 
-events.threshold = prctile(trace, 95);
+events.threshold = prctile(trace, 98);
 events.auto = find_events(trace, events.threshold);
 events.manual = [];
 
