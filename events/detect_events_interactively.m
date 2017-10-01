@@ -1,15 +1,18 @@
-function events = detect_events_interactively(trace, varargin)
+function events = detect_events_interactively(trace_orig, varargin)
 
-aux_trace = [];
+fps = 10;
 for i = 1:length(varargin)
     vararg = varargin{i};
     if ischar(vararg)
         switch lower(vararg)
-            case {'aux', 'auxtrace'}
-                aux_trace = varargin{i+1};
+            case 'fps'
+                fps = varargin{i+1};
         end
     end
 end
+
+% Look for events in a smoothed version of the trace
+trace = filter_trace(trace_orig, 0.2*fps, fps);
 
 % Basic trace properties
 num_frames = length(trace);
@@ -26,7 +29,7 @@ events.auto = find_events(trace, events.threshold);
 events.manual = [];
 
 hfig = figure;
-gui = setup_gui(hfig, num_frames, trace_range, stats, aux_trace);
+gui = setup_gui(hfig, num_frames, trace_range, stats, trace_orig);
 redraw_threshold(gui);
 
 % Interaction loop:
@@ -93,7 +96,7 @@ end % Main interaction loop
         redraw_local_window(gui);
     end % get_prev_page
 
-    function gui = setup_gui(hf, num_frames, trace_range, trace_stats, aux_trace)
+    function gui = setup_gui(hf, num_frames, trace_range, trace_stats, trace_orig)
         % Display parameters kept around for convenience
         gui.num_frames = num_frames;
         gui.trace_range = trace_range;
@@ -135,10 +138,7 @@ end % Main interaction loop
         gui.local = subplot(2,1,2);
         plot(trace, 'k', 'HitTest', 'off');
         hold on;
-        if ~isempty(aux_trace)
-            offset = mean(trace-aux_trace);
-            plot(aux_trace + offset, 'Color', 0.5*[1 1 1], 'HitTest', 'off');
-        end
+        plot(trace_orig, 'Color', 0.5*[1 1 1], 'HitTest', 'off');        
         gui.local_dot = plot(-1,trace(1),'ro',...
             'MarkerFaceColor','r',...
             'MarkerSize',6,'HitTest','off');
