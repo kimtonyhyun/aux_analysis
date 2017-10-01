@@ -1,4 +1,15 @@
-function events = detect_events_interactively(trace)
+function events = detect_events_interactively(trace, varargin)
+
+aux_trace = [];
+for i = 1:length(varargin)
+    vararg = varargin{i};
+    if ischar(vararg)
+        switch lower(vararg)
+            case {'aux', 'auxtrace'}
+                aux_trace = varargin{i+1};
+        end
+    end
+end
 
 % Basic trace properties
 num_frames = length(trace);
@@ -15,7 +26,7 @@ events.auto = find_events(trace, events.threshold);
 events.manual = [];
 
 hfig = figure;
-gui = setup_gui(hfig, num_frames, trace_range, stats);
+gui = setup_gui(hfig, num_frames, trace_range, stats, aux_trace);
 redraw_threshold(gui);
 
 % Interaction loop:
@@ -82,7 +93,7 @@ end % Main interaction loop
         redraw_local_window(gui);
     end % get_prev_page
 
-    function gui = setup_gui(hf, num_frames, trace_range, trace_stats)
+    function gui = setup_gui(hf, num_frames, trace_range, trace_stats, aux_trace)
         % Display parameters kept around for convenience
         gui.num_frames = num_frames;
         gui.trace_range = trace_range;
@@ -124,6 +135,10 @@ end % Main interaction loop
         gui.local = subplot(2,1,2);
         plot(trace, 'k', 'HitTest', 'off');
         hold on;
+        if ~isempty(aux_trace)
+            offset = mean(trace-aux_trace);
+            plot(aux_trace + offset, 'Color', 0.5*[1 1 1], 'HitTest', 'off');
+        end
         gui.local_dot = plot(-1,trace(1),'ro',...
             'MarkerFaceColor','r',...
             'MarkerSize',6,'HitTest','off');
@@ -138,8 +153,6 @@ end % Main interaction loop
         xlim(x_range);
         xlabel('Frame');
         ylabel('Fluorescence');
-        
-        
         
         % Add GUI event listeners
         set(gui.global, 'ButtonDownFcn', {@global_plot_handler, gui});
