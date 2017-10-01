@@ -1,6 +1,6 @@
 function events = detect_events_interactively(trace_orig, varargin)
 
-fps = 10;
+fps = 30;
 for i = 1:length(varargin)
     vararg = varargin{i};
     if ischar(vararg)
@@ -11,8 +11,11 @@ for i = 1:length(varargin)
     end
 end
 
-% Look for events in a smoothed version of the trace
-trace = filter_trace(trace_orig, 0.2*fps, fps);
+% We'll for events in a smoothed version of the trace
+% Default parameters comes from cerebellar processing:
+%   - 30 Hz sampling frequency
+%   - 4 Hz cutoff frequency
+trace = filter_trace(trace_orig, 4/30*fps, fps);
 
 % Basic trace properties
 num_frames = length(trace);
@@ -23,6 +26,7 @@ stats = compute_trace_stats(trace);
 % Application state
 state.x_anchor = 1;
 state.x_range = min(1000, num_frames);
+state.show_raw = true;
 
 events.threshold = estimate_threshold(trace, stats);
 events.auto = find_events(trace, events.threshold);
@@ -59,8 +63,15 @@ while (1)
             case {'u', 'o'} % zoom out
                 state.x_range = 2*state.x_range;
                 redraw_local_window(gui);
-                               
-            case 'x' % Erase last event
+                
+            case 'r' % toggle raw trace
+                state.show_raw = ~state.show_raw;
+                if (state.show_raw)
+                    set(gui.local_raw, 'Visible', 'on');
+                else
+                    set(gui.local_raw, 'Visible', 'off');
+                end
+            case 'x' % erase last event
                 num_events = length(events.manual);
                 if (num_events > 0)
                     events.manual = events.manual(1:num_events-1);
@@ -138,7 +149,12 @@ end % Main interaction loop
         gui.local = subplot(2,1,2);
         plot(trace, 'k', 'HitTest', 'off');
         hold on;
-        plot(trace_orig, 'Color', 0.5*[1 1 1], 'HitTest', 'off');        
+        gui.local_raw = plot(trace_orig, 'Color', 0.4*[1 1 1], 'HitTest', 'off');
+        if state.show_raw
+            set(gui.local_raw, 'Visible', 'on');
+        else
+            set(gui.local_raw, 'Visible', 'off');
+        end
         gui.local_dot = plot(-1,trace(1),'ro',...
             'MarkerFaceColor','r',...
             'MarkerSize',6,'HitTest','off');
