@@ -66,7 +66,7 @@ end % Main interaction loop
         if (current_end >= gui.num_frames)
             new_anchor = gui.num_frames - state.x_range + 1;
         else
-            new_anchor = state.x_anchor + 0.25*state.x_range + 1;
+            new_anchor = state.x_anchor + 0.1*state.x_range + 1;
         end
 
         state.x_anchor = new_anchor;
@@ -74,12 +74,13 @@ end % Main interaction loop
     end % get_next_page
 
     function get_prev_page(gui)
-        new_anchor = state.x_anchor - (0.25*state.x_range + 1);
+        new_anchor = state.x_anchor - (0.1*state.x_range + 1);
         state.x_anchor = max(1, new_anchor);
         redraw_local_window(gui);
     end % get_prev_page
 
     function gui = setup_gui(hf, num_frames, trace_range)
+        % Display parameters kept around for convenience
         gui.num_frames = num_frames;
         gui.trace_range = trace_range;
         
