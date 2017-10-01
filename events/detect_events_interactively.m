@@ -1,4 +1,4 @@
-function eventdata = detect_events_interactively(trace)
+function events = detect_events_interactively(trace)
 
 % Basic trace properties
 num_frames = length(trace);
@@ -13,15 +13,13 @@ paging_factor = 0.25;
 % Application state
 state.x_anchor = 1;
 state.x_range = min(1000, num_frames);
-state.max_find = true;
-state.max_find_method = 'localmax';
 
-eventdata.threshold = [];
-eventdata.auto = [];
-eventdata.manual = [];
+events.threshold = -Inf;
+events.auto = [];
+events.manual = [];
 
 hf = figure;
-draw_frame();
+gui = setup_gui();
 
 % Interaction loop:
 %------------------------------------------------------------
@@ -31,46 +29,30 @@ val = str2double(resp);
 
 while (1)
     if (~isnan(val)) % Is a number
-        if ((1 <= val) && (val <= num_frames))
-            state.x_anchor = val;
-            draw_frame();
-        else
-            fprintf('  Sorry, %d is not a frame number for this trace!\n', val);
-        end
+        fprintf('  Number input not handled!\n');
     else % Not a number
         switch (resp)
             case 'q' % "quit"
                 close(hf);
+                
+                % Look for duplicates and sort
+                events.auto = sort(unique(events.auto));
+                events.manual = sort(unique(events.manual));
                 break;
 
-            case {'z', 'i'} % zoom in
+            case 'z' % zoom in
                 state.x_range = zoom_factor*state.x_range;
-                draw_frame();
+                redraw_local_window(gui);
                 
             case {'u', 'o'} % zoom out
                 state.x_range = 1/zoom_factor*state.x_range;
-                draw_frame();
-
-            case {'', 'n'} % Next
-                get_next_page();
-
-            case 'p' % Previous
-                get_prev_page();
-                
-            case 'm' % "Max-find"
-                if (state.max_find)
-                    state.max_find = false;
-                    fprintf('  Max-find turned OFF!\n');
-                else
-                    state.max_find = true;
-                    fprintf('  Max-find turned ON!\n');
-                end
-                
+                redraw_local_window(gui);
+                               
             case 'x' % Erase last event
-                num_events = size(eventdata.manual, 1);
+                num_events = length(events.manual);
                 if (num_events > 0)
-                    eventdata.manual = eventdata.manual(1:num_events-1,:);
-                    draw_frame();
+                    events.manual = events.manual(1:num_events-1);
+                    redraw_manual_events(gui);
                 else
                     fprintf('  No events to remove!\n');
                 end
@@ -84,7 +66,7 @@ while (1)
     val = str2double(resp);
 end % Main interaction loop
 
-    function get_next_page()
+    function get_next_page(gui)
         current_end = state.x_anchor + state.x_range;
         if (current_end >= num_frames)
             new_anchor = num_frames - state.x_range + 1;
@@ -93,109 +75,121 @@ end % Main interaction loop
         end
 
         state.x_anchor = new_anchor;
-        draw_frame();
+        redraw_local_window(gui);
     end % get_next_page
 
-    function get_prev_page()
+    function get_prev_page(gui)
         new_anchor = state.x_anchor - (paging_factor*state.x_range + 1);
         state.x_anchor = max(1, new_anchor);
-        draw_frame();
+        redraw_local_window(gui);
     end % get_prev_page
 
-    function draw_frame()
-        clf;
-
-        % Display the GLOBAL trace
-        h_global = subplot(2,1,1);
-        rectangle('Position',[state.x_anchor trace_range(1) state.x_range diff(trace_range)],...
+    function gui = setup_gui()
+        % Setup the GLOBAL trace
+        gui.global = subplot(2,1,1);
+        gui.global_rect = rectangle('Position',[state.x_anchor trace_range(1) state.x_range diff(trace_range)],...
                   'EdgeColor', 'none',...
                   'FaceColor', 'c', 'HitTest', 'off');
         hold on;
         plot(trace, 'k', 'HitTest', 'off');
-        plot(eventdata.manual, trace(eventdata.manual), 'r.', 'HitTest', 'off');
-        if ~isempty(eventdata.threshold)
-            t = eventdata.threshold;
-            plot([1 num_frames], t*[1 1], 'm--', 'HitTest', 'off');
-            plot(eventdata.auto, trace(eventdata.auto), 'm.', 'HitTest', 'off');
-        end
+        gui.global_thresh = plot([1 num_frames], events.threshold*[1 1], 'm--', 'HitTest', 'off');
+        gui.global_auto = plot(-1, -1, 'm.', 'HitTest', 'off');
+        gui.global_manual = plot(-1, -1, 'r.', 'HitTest', 'off');
         hold off;
         box on;
         xlim([1 num_frames]);
         ylim(trace_range);
 
-        % Display the ZOOMED IN trace
-        h_zoom = subplot(2,1,2);
+        % Setup the LOCAL trace
+        gui.local = subplot(2,1,2);
         plot(trace, 'k', 'HitTest', 'off');
         hold on;
-        h_dot = plot(-1,trace(1),'ro',...
+        gui.local_dot = plot(-1,trace(1),'ro',...
             'MarkerFaceColor','r',...
             'MarkerSize',6,'HitTest','off');
-        h_bar = plot(-1*[1 1], trace_range, 'k--', 'HitTest', 'off');
+        gui.local_bar = plot(-1*[1 1], trace_range, 'k--', 'HitTest', 'off');
         ylim(trace_range);
         grid on;
         x_range = [state.x_anchor, state.x_anchor+state.x_range-1];
         xlim(x_range);
         
-        if ~isempty(eventdata.threshold)
-            t = eventdata.threshold;
-            plot([1 num_frames], t*[1 1], 'm--', 'HitTest', 'off');
-            for k = 1:length(eventdata.auto)
-                x = eventdata.auto(k);
-                if ((x_range(1)<=x)&&(x<=x_range(2)))
-                    plot(x*[1 1], trace_range, 'm');
-                end
-            end
-        end
-        
-        for k = 1:length(eventdata.manual)
-            x = eventdata.manual(k);
-            if ((x_range(1)<=x)&&(x<=x_range(2)))
-                plot(x*[1 1], trace_range, 'r');
-            end
-        end
+        gui.local_thresh = plot([1 num_frames], events.threshold*[1 1], 'm--', 'HitTest', 'off');
+        gui.local_auto = plot(-1, -1, 'm');
+        gui.local_manual = plot(-1, -1, 'r');
         
         % Add GUI event listeners
-        set(h_global, 'ButtonDownFcn', @global_handler);
-        set(h_zoom, 'ButtonDownFcn', @add_event);
-        set(hf, 'WindowButtonMotionFcn', @track_cursor);
-        set(hf, 'WindowScrollWheelFcn', @scroll_plot);
+        set(gui.global, 'ButtonDownFcn', {@global_plot_handler, gui});
+        set(gui.local, 'ButtonDownFcn', @add_event);
+        set(hf, 'WindowButtonMotionFcn', {@track_cursor, gui});
+        set(hf, 'WindowScrollWheelFcn', {@scroll_plot, gui});
         
-        function track_cursor(~, e)
+        function track_cursor(~, e, gui)
             x = round(e.IntersectionPoint(1));
             if ((state.x_anchor<=x)&&(x<=state.x_anchor+state.x_range))
-                if ((1<=x)&&(x<=num_frames))
-                    set(h_dot,'XData',x,'YData',trace(x));
-                    set(h_bar,'XData',x*[1 1]);
+                if ((1<=x)&&(x<=num_frames))                  
+                    x = localmax(x, trace);
+                    set(gui.local_bar,'XData',x*[1 1]);
+                    set(gui.local_dot,'XData',x,'YData',trace(x));
                 end
             end
         end % track_cursor
         
-        function scroll_plot(~, e)
+        function scroll_plot(~, e, gui)
             if (e.VerticalScrollCount < 0) % Scroll up
-                get_prev_page();
+                get_prev_page(gui);
             else
-                get_next_page();
+                get_next_page(gui);
             end
         end % scroll_plot
         
     end % setup_gui
 
-    function global_handler(~, e)
+    function redraw_local_window(gui)
+        rect_pos = get(gui.global_rect, 'Position');
+        rect_pos(1) = state.x_anchor;
+        rect_pos(3) = state.x_range;
+        set(gui.global_rect, 'Position', rect_pos);
+        
+        subplot(gui.local);
+        xlim([state.x_anchor, state.x_anchor+state.x_range-1]);
+    end % update_frame
+
+    function redraw_threshold(gui)
+        set(gui.global_thresh, 'YData', events.threshold*[1 1]);
+        set(gui.global_auto, 'XData', events.auto, 'YData', trace(events.auto));
+        
+        set(gui.local_thresh', 'YData', events.threshold*[1 1]);
+        
+        % Note: NaN's break connections between line segments
+        X = kron(events.auto, [1 1 NaN]);
+        Y = repmat([trace_range NaN], 1, length(events.auto));
+        set(gui.local_auto, 'XData', X, 'YData', Y);
+    end % update_threshold
+
+    function redraw_manual_events(gui)
+        set(gui.global_manual, 'XData', events.manual, 'YData', trace(events.manual));
+        
+        X = kron(events.manual, [1 1 NaN]);
+        Y = repmat([trace_range NaN], 1, length(events.manual));
+        set(gui.local_manual, 'XData', X, 'YData', Y);
+    end
+
+    function global_plot_handler(~, e, gui)
         switch e.Button
             case 1 % Left click -- Move the local viewpoint
                 x = round(e.IntersectionPoint(1));
                 if ((1<=x) && (x<=num_frames))
                     state.x_anchor = x - state.x_range/2;
-                    draw_frame();
+                    redraw_local_window(gui);
                 else
                     fprintf('\n  Not a valid frame for this trace!\n');
                 end
                 
             case 3 % Right click -- Add threshold
                 t = e.IntersectionPoint(2);
-                eventdata.threshold = t;
-                eventdata.auto = find_events(trace, t);
-                draw_frame();
+                events.threshold = t;
+                events.auto = find_events(trace, t);
+                redraw_threshold(gui);
         end
     end % refocus_zoom
 
@@ -204,46 +198,8 @@ end % Main interaction loop
             case 1 % Left click
                 x = round(e.IntersectionPoint(1));
                 if ((1<=x) && (x<=num_frames))
-                    if (state.max_find)
-                        switch (state.max_find_method)
-                            case 'range'
-                                x_range = max(1,x-5):min(x+5,num_frames);
-                                tr_range = trace(x_range);
-                                [~, max_ind] = max(tr_range);
-                                x = x_range(max_ind);
-                            case 'localmax'
-                                iter = 0;
-                                while (iter < 100)
-                                    if x == 1
-                                        delta_left = -Inf;
-                                    else
-                                        delta_left = trace(x-1) - trace(x);
-                                    end
-                                    
-                                    if x == num_frames
-                                        delta_right = -Inf; 
-                                    else
-                                        delta_right = trace(x+1) - trace(x);
-                                    end
-                                        
-                                    if max([delta_left delta_right]) <= 0
-                                        break;
-                                    else
-                                        if delta_left > delta_right
-                                            x = x - 1;
-                                        else
-                                            x = x + 1;
-                                        end
-                                    end
-                                    iter = iter + 1;
-                                end
-                                
-                            otherwise
-                                fprintf('  Unknown max-find method "%s"!\n', state.max_find_method);
-                        end
-                    end
-                    eventdata.manual = [eventdata.manual x];
-                    draw_frame();
+                    events.manual = [events.manual localmax(x, trace)];
+                    redraw_manual_events(gui);
                 else
                     fprintf('\n  Not a valid event for this trace!\n');
                 end
@@ -255,3 +211,30 @@ end % Main interaction loop
 
 end % detect_events_interactively
 
+function x = localmax(x, trace)
+    iter = 0;
+    while (iter < 100)
+        if x == 1
+            delta_left = -Inf;
+        else
+            delta_left = trace(x-1) - trace(x);
+        end
+
+        if x == length(trace)
+            delta_right = -Inf; 
+        else
+            delta_right = trace(x+1) - trace(x);
+        end
+
+        if max([delta_left delta_right]) <= 0
+            break;
+        else
+            if delta_left > delta_right
+                x = x - 1;
+            else
+                x = x + 1;
+            end
+        end
+        iter = iter + 1;
+    end
+end % localmax
