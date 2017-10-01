@@ -4,6 +4,7 @@ function events = detect_events_interactively(trace)
 num_frames = length(trace);
 trace_range = [min(trace) max(trace)];
 trace_range = trace_range + 0.1*diff(trace_range)*[-1 1];
+trace_hist = get_histogram(trace);
 
 % Application state
 state.x_anchor = 1;
@@ -14,7 +15,7 @@ events.auto = [];
 events.manual = [];
 
 hfig = figure;
-gui = setup_gui(hfig, num_frames, trace_range);
+gui = setup_gui(hfig, num_frames, trace_range, trace_hist);
 
 % Interaction loop:
 %------------------------------------------------------------
@@ -79,13 +80,13 @@ end % Main interaction loop
         redraw_local_window(gui);
     end % get_prev_page
 
-    function gui = setup_gui(hf, num_frames, trace_range)
+    function gui = setup_gui(hf, num_frames, trace_range, trace_hist)
         % Display parameters kept around for convenience
         gui.num_frames = num_frames;
         gui.trace_range = trace_range;
         
         % Setup the GLOBAL trace
-        gui.global = subplot(2,1,1);
+        gui.global = subplot(2,5,1:4);
         gui.global_rect = rectangle('Position',[state.x_anchor trace_range(1) state.x_range diff(trace_range)],...
                   'EdgeColor', 'none',...
                   'FaceColor', 'c', 'HitTest', 'off');
@@ -98,6 +99,24 @@ end % Main interaction loop
         box on;
         xlim([1 num_frames]);
         ylim(trace_range);
+        xlabel('Frame');
+        ylabel('Fluorescence');
+        
+        % Setup the HISTOGRAM
+        gui.histogram = subplot(2,5,5);
+        semilogy(trace_hist.centers, trace_hist.counts, 'k.', 'HitTest', 'off');
+        xlim(trace_range);
+        hold on;
+        count_range = get(gui.histogram, 'YLim');
+        for k = 1:size(trace_hist.percentiles,1)
+            y = trace_hist.percentiles(k,2);
+            plot(y*[1 1], count_range, 'Color', 0.5*[1 1 1], 'HitTest', 'off');
+        end
+        gui.histogram_thresh = plot(events.threshold*[1 1], count_range, 'm--', 'HitTest', 'off');
+        hold off;
+        view([90 90]);
+        set(gui.histogram, 'XDir', 'Reverse');
+        ylabel('Counts');
 
         % Setup the LOCAL trace
         gui.local = subplot(2,1,2);
@@ -107,17 +126,22 @@ end % Main interaction loop
             'MarkerFaceColor','r',...
             'MarkerSize',6,'HitTest','off');
         gui.local_bar = plot(-1*[1 1], trace_range, 'k--', 'HitTest', 'off');
+        gui.local_thresh = plot([1 num_frames], events.threshold*[1 1], 'm--', 'HitTest', 'off');
+        gui.local_auto = plot(-1, -1, 'm');
+        gui.local_manual = plot(-1, -1, 'r');
+        hold off;
         ylim(trace_range);
         grid on;
         x_range = [state.x_anchor, state.x_anchor+state.x_range-1];
         xlim(x_range);
+        xlabel('Frame');
+        ylabel('Fluorescence');
         
-        gui.local_thresh = plot([1 num_frames], events.threshold*[1 1], 'm--', 'HitTest', 'off');
-        gui.local_auto = plot(-1, -1, 'm');
-        gui.local_manual = plot(-1, -1, 'r');
+        
         
         % Add GUI event listeners
         set(gui.global, 'ButtonDownFcn', {@global_plot_handler, gui});
+        set(gui.histogram, 'ButtonDownFcn', {@histogram_handler, gui});
         set(gui.local, 'ButtonDownFcn', {@local_plot_handler, gui});
         set(hf, 'WindowButtonMotionFcn', {@track_cursor, gui});
         set(hf, 'WindowScrollWheelFcn', {@scroll_plot, gui});
@@ -159,7 +183,8 @@ end % Main interaction loop
         set(gui.global_thresh, 'YData', events.threshold*[1 1]);
         set(gui.global_auto, 'XData', events.auto, 'YData', trace(events.auto));
         
-        set(gui.local_thresh', 'YData', events.threshold*[1 1]);
+        set(gui.histogram_thresh, 'XData', events.threshold*[1 1]);
+        set(gui.local_thresh, 'YData', events.threshold*[1 1]);
         
         % Note: NaN's break connections between line segments
         X = kron(events.auto, [1 1 NaN]);
@@ -188,13 +213,25 @@ end % Main interaction loop
                     fprintf('\n  Not a valid frame for this trace!\n');
                 end
                 
-            case 3 % Right click -- Add threshold
+            case 3 % Right click -- Set threshold
                 t = e.IntersectionPoint(2);
                 events.threshold = t;
                 events.auto = find_events(trace, t);
                 redraw_threshold(gui);
         end
-    end % refocus_zoom
+    end % global_plot_handler
+
+    function histogram_handler(~, e, gui)
+        switch e.Button
+            case 1 % Left click -- Set threshold
+                t = e.IntersectionPoint(1);
+                events.threshold = t;
+                events.auto = find_events(trace, t);
+                redraw_threshold(gui);
+            case 3 % Right click
+                
+        end
+    end % histogram_handler
 
     function local_plot_handler(~, e, gui)
         switch e.Button
@@ -210,13 +247,13 @@ end % Main interaction loop
             case 3 % Right click
                 
         end
-    end % add_event
+    end % local_plot_handler
 
 end % detect_events_interactively
 
 function x = localmax(x, trace)
     iter = 0;
-    while (iter < 100)
+    while (iter < 100) % Hard brake to prevent long/infinite loops
         if x == 1
             delta_left = -Inf;
         else
@@ -241,3 +278,16 @@ function x = localmax(x, trace)
         iter = iter + 1;
     end
 end % localmax
+
+function trace_hist = get_histogram(trace)
+    num_bins = 500;
+    [n, x] = hist(trace, num_bins);
+    
+    nonzero_inds = n>0;
+    trace_hist.counts = n(nonzero_inds);
+    trace_hist.centers = x(nonzero_inds);
+    
+    % Also compute percentiles
+    ps = [95 96 97 98 99]';
+    trace_hist.percentiles = [ps prctile(trace,ps)];
+end % get_histogram
