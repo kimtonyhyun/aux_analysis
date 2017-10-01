@@ -10,7 +10,7 @@ stats = compute_trace_stats(trace);
 state.x_anchor = 1;
 state.x_range = min(1000, num_frames);
 
-events.threshold = prctile(trace, 98);
+events.threshold = estimate_threshold(trace, stats);
 events.auto = find_events(trace, events.threshold);
 events.manual = [];
 
@@ -87,7 +87,7 @@ end % Main interaction loop
         gui.num_frames = num_frames;
         gui.trace_range = trace_range;
         
-        % Setup the GLOBAL trace
+        % Setup the GLOBAL trace plot
         gui.global = subplot(2,5,1:4);
         gui.global_rect = rectangle('Position',[state.x_anchor trace_range(1) state.x_range diff(trace_range)],...
                   'EdgeColor', 'none',...
@@ -104,7 +104,7 @@ end % Main interaction loop
         xlabel('Frame');
         ylabel('Fluorescence');
         
-        % Setup the HISTOGRAM
+        % Setup the HISTOGRAM plot
         gui.histogram = subplot(2,5,5);
         semilogy(trace_stats.hist_centers, trace_stats.hist_counts, 'k.', 'HitTest', 'off');
         xlim(trace_range);
@@ -120,7 +120,7 @@ end % Main interaction loop
         set(gui.histogram, 'XDir', 'Reverse');
         ylabel('Counts');
 
-        % Setup the LOCAL trace
+        % Setup the LOCAL trace plot
         gui.local = subplot(2,1,2);
         plot(trace, 'k', 'HitTest', 'off');
         hold on;
@@ -291,3 +291,13 @@ function x = localmax(x, trace)
         iter = iter + 1;
     end
 end % localmax
+
+function thresh = estimate_threshold(trace, stats)
+    tr_lower = trace(trace <= stats.mode);
+    sigma = std(tr_lower - stats.mode);
+    
+    % Convert standard deviation of the half-normal distribution 
+    % to that of the normal distribution
+    sigma = sigma / (1 - 2/pi);
+    thresh = stats.mode + 3*sigma;
+end % estimate_threshold
