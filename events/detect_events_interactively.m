@@ -4,9 +4,9 @@ function eventdata = detect_events_interactively(trace)
 num_frames = length(trace);
 M = max(trace);
 m = min(trace);
-y_range = [m M] + 0.1*(M-m)*[-1 1];
+trace_range = [m M] + 0.1*(M-m)*[-1 1];
 
-% Set up GUI
+% Some GUI parameters
 zoom_factor = 0.5;
 paging_factor = 0.25;
 
@@ -15,10 +15,10 @@ state.x_anchor = 1;
 state.x_range = min(1000, num_frames);
 state.max_find = true;
 state.max_find_method = 'localmax';
-state.threshold = [];
 
-events_auto = [];
-events = [];
+eventdata.threshold = [];
+eventdata.auto = [];
+eventdata.manual = [];
 
 hf = figure;
 draw_frame();
@@ -41,9 +41,6 @@ while (1)
         switch (resp)
             case 'q' % "quit"
                 close(hf);
-                eventdata.manual = events;
-                eventdata.auto = events_auto;
-                eventdata.threshold = state.threshold;
                 break;
 
             case {'z', 'i'} % zoom in
@@ -70,9 +67,9 @@ while (1)
                 end
                 
             case 'x' % Erase last event
-                num_events = size(events, 1);
+                num_events = size(eventdata.manual, 1);
                 if (num_events > 0)
-                    events = events(1:num_events-1,:);
+                    eventdata.manual = eventdata.manual(1:num_events-1,:);
                     draw_frame();
                 else
                     fprintf('  No events to remove!\n');
@@ -110,21 +107,21 @@ end % Main interaction loop
 
         % Display the GLOBAL trace
         h_global = subplot(2,1,1);
-        rectangle('Position',[state.x_anchor y_range(1) state.x_range diff(y_range)],...
+        rectangle('Position',[state.x_anchor trace_range(1) state.x_range diff(trace_range)],...
                   'EdgeColor', 'none',...
                   'FaceColor', 'c', 'HitTest', 'off');
         hold on;
         plot(trace, 'k', 'HitTest', 'off');
-        plot(events, trace(events), 'r.', 'HitTest', 'off');
-        if ~isempty(state.threshold)
-            t = state.threshold;
+        plot(eventdata.manual, trace(eventdata.manual), 'r.', 'HitTest', 'off');
+        if ~isempty(eventdata.threshold)
+            t = eventdata.threshold;
             plot([1 num_frames], t*[1 1], 'm--', 'HitTest', 'off');
-            plot(events_auto, trace(events_auto), 'm.', 'HitTest', 'off');
+            plot(eventdata.auto, trace(eventdata.auto), 'm.', 'HitTest', 'off');
         end
         hold off;
         box on;
         xlim([1 num_frames]);
-        ylim(y_range);
+        ylim(trace_range);
 
         % Display the ZOOMED IN trace
         h_zoom = subplot(2,1,2);
@@ -133,27 +130,27 @@ end % Main interaction loop
         h_dot = plot(-1,trace(1),'ro',...
             'MarkerFaceColor','r',...
             'MarkerSize',6,'HitTest','off');
-        h_bar = plot(-1*[1 1], y_range, 'k--', 'HitTest', 'off');
-        ylim(y_range);
+        h_bar = plot(-1*[1 1], trace_range, 'k--', 'HitTest', 'off');
+        ylim(trace_range);
         grid on;
         x_range = [state.x_anchor, state.x_anchor+state.x_range-1];
         xlim(x_range);
         
-        if ~isempty(state.threshold)
-            t = state.threshold;
+        if ~isempty(eventdata.threshold)
+            t = eventdata.threshold;
             plot([1 num_frames], t*[1 1], 'm--', 'HitTest', 'off');
-            for k = 1:length(events_auto)
-                x = events_auto(k);
+            for k = 1:length(eventdata.auto)
+                x = eventdata.auto(k);
                 if ((x_range(1)<=x)&&(x<=x_range(2)))
-                    plot(x*[1 1], y_range, 'm');
+                    plot(x*[1 1], trace_range, 'm');
                 end
             end
         end
         
-        for k = 1:length(events)
-            x = events(k);
+        for k = 1:length(eventdata.manual)
+            x = eventdata.manual(k);
             if ((x_range(1)<=x)&&(x<=x_range(2)))
-                plot(x*[1 1], y_range, 'r');
+                plot(x*[1 1], trace_range, 'r');
             end
         end
         
@@ -196,8 +193,8 @@ end % Main interaction loop
                 
             case 3 % Right click -- Add threshold
                 t = e.IntersectionPoint(2);
-                state.threshold = t;
-                events_auto = find_events(trace, t);
+                eventdata.threshold = t;
+                eventdata.auto = find_events(trace, t);
                 draw_frame();
         end
     end % refocus_zoom
@@ -245,7 +242,7 @@ end % Main interaction loop
                                 fprintf('  Unknown max-find method "%s"!\n', state.max_find_method);
                         end
                     end
-                    events = [events; x];
+                    eventdata.manual = [eventdata.manual; x];
                     draw_frame();
                 else
                     fprintf('\n  Not a valid event for this trace!\n');
