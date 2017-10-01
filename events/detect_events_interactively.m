@@ -242,7 +242,7 @@ end % Main interaction loop
                                 fprintf('  Unknown max-find method "%s"!\n', state.max_find_method);
                         end
                     end
-                    eventdata.manual = [eventdata.manual; x];
+                    eventdata.manual = [eventdata.manual x];
                     draw_frame();
                 else
                     fprintf('\n  Not a valid event for this trace!\n');

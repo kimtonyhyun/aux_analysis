@@ -6,7 +6,7 @@ above_thresh_frames = find(trace > threshold);
 segments = frame_list_to_segments(above_thresh_frames);
 num_segments = size(segments,1);
 
-events = zeros(num_segments,1);
+events = zeros(1,num_segments);
 for k = 1:num_segments
     seg = segments(k,1):segments(k,2);
     tr_seg = trace(seg);
