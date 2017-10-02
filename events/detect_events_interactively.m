@@ -188,7 +188,7 @@ end % Main interaction loop
             x = round(e.IntersectionPoint(1));
             if ((state.x_anchor<=x)&&(x<=state.x_anchor+state.x_range))
                 if ((1<=x)&&(x<=gui.num_frames))                  
-                    x = seek_localmax(x, trace);
+                    x = seek_localmax(trace, x);
                     set(gui.local_bar,'XData',x*[1 1]);
                     set(gui.local_dot,'XData',x,'YData',trace(x));
                 end
