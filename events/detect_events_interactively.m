@@ -179,6 +179,7 @@ end % Main interaction loop
         gui.local_bar = plot(-Inf*[1 1], trace_range, 'k--', 'HitTest', 'off');
         gui.local_thresh = plot([1 num_frames], events.threshold*[1 1], 'm--', 'HitTest', 'off');
         gui.local_auto = plot(-1, -1, 'm');
+        gui.local_auto_amps = plot(-1, -1, 'm', 'LineWidth', 2);
         gui.local_manual = plot(-1, -1, 'r');
         hold off;
         ylim(trace_range);
@@ -238,9 +239,17 @@ end % Main interaction loop
         set(gui.local_thresh, 'YData', events.threshold*[1 1]);
         
         % Note: NaN's break connections between line segments
+        num_auto_events = size(events.auto, 1);
         X = kron(auto_peaks, [1 1 NaN]);
-        Y = repmat([gui.trace_range NaN], 1, size(events.auto,1));
+        Y = repmat([gui.trace_range NaN], 1, num_auto_events);
         set(gui.local_auto, 'XData', X, 'YData', Y);
+        
+        % Draw event amplitudes
+        Y = zeros(3, num_auto_events);
+        Y(1,:) = trace(events.auto(:,2));
+        Y(2,:) = trace(events.auto(:,1));
+        Y(3,:) = NaN;
+        set(gui.local_auto_amps, 'XData', X, 'YData', Y(:));
     end % redraw_threshold
 
     function redraw_manual_events(gui)
