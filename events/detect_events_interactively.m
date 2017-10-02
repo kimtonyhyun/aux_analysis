@@ -1,5 +1,6 @@
 function events = detect_events_interactively(trace_orig, varargin)
 
+use_filter = true;
 fps = 30;
 for i = 1:length(varargin)
     vararg = varargin{i};
@@ -7,6 +8,8 @@ for i = 1:length(varargin)
         switch lower(vararg)
             case 'fps'
                 fps = varargin{i+1};
+            case 'nofilter'
+                use_filter = false;
         end
     end
 end
@@ -15,7 +18,11 @@ end
 % Default parameters comes from cerebellar processing:
 %   - 30 Hz sampling frequency
 %   - 4 Hz cutoff frequency
-trace = filter_trace(trace_orig, 4/30*fps, fps);
+if use_filter
+    trace = filter_trace(trace_orig, 4/30*fps, fps);
+else
+    trace = trace_orig;
+end
 
 % Basic trace properties
 num_frames = length(trace);
@@ -181,7 +188,7 @@ end % Main interaction loop
             x = round(e.IntersectionPoint(1));
             if ((state.x_anchor<=x)&&(x<=state.x_anchor+state.x_range))
                 if ((1<=x)&&(x<=gui.num_frames))                  
-                    x = localmax(x, trace);
+                    x = seek_localmax(x, trace);
                     set(gui.local_bar,'XData',x*[1 1]);
                     set(gui.local_dot,'XData',x,'YData',trace(x));
                 end
@@ -296,34 +303,6 @@ end % Main interaction loop
     end % local_plot_handler
 
 end % detect_events_interactively
-
-function x = localmax(x, trace)
-    iter = 0;
-    while (iter < 100) % Hard brake to prevent long/infinite loops
-        if x == 1
-            delta_left = -Inf;
-        else
-            delta_left = trace(x-1) - trace(x);
-        end
-
-        if x == length(trace)
-            delta_right = -Inf; 
-        else
-            delta_right = trace(x+1) - trace(x);
-        end
-
-        if max([delta_left delta_right]) <= 0
-            break;
-        else
-            if delta_left > delta_right
-                x = x - 1;
-            else
-                x = x + 1;
-            end
-        end
-        iter = iter + 1;
-    end
-end % localmax
 
 function thresh = estimate_threshold(trace, stats)
     tr_lower = trace(trace <= stats.mode);
