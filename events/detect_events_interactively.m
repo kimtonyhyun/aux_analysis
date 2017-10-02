@@ -34,6 +34,7 @@ stats = compute_trace_stats(trace);
 state.x_anchor = 1;
 state.x_range = min(1000, num_frames);
 state.show_raw = true;
+state.show_dots = false;
 
 events.threshold = estimate_threshold(trace, stats);
 events.auto = find_events(trace, events.threshold);
@@ -56,11 +57,6 @@ while (1)
         switch (resp)
             case 'q' % "quit"
                 close(hfig);
-                
-                % Look for duplicates and sort
-                events.auto = sort(unique(events.auto));
-                events.manual = sort(unique(events.manual));
-                events.manual = setdiff(events.manual, events.auto);
                 break;
 
             case 'z' % zoom in
@@ -78,6 +74,15 @@ while (1)
                 else
                     set(gui.local_raw, 'Visible', 'off');
                 end
+                
+            case 'd' % show dots
+                state.show_dots = ~state.show_dots;
+                if (state.show_dots)
+                    set(gui.local_dots, 'Visible', 'on');
+                else
+                    set(gui.local_dots, 'Visible', 'off');
+                end
+                
             case 'x' % erase last event
                 num_events = length(events.manual);
                 if (num_events > 0)
@@ -157,10 +162,16 @@ end % Main interaction loop
         gui.local_raw = plot(trace_orig, 'Color', 0.6*[1 1 1], 'HitTest', 'off');
         hold on;
         plot(trace, 'k', 'HitTest', 'off');
+        gui.local_dots = plot(trace, 'k.', 'HitTest', 'off');
         if state.show_raw
             set(gui.local_raw, 'Visible', 'on');
         else
             set(gui.local_raw, 'Visible', 'off');
+        end
+        if state.show_dots
+            set(gui.local_dots, 'Visible', 'on');
+        else
+            set(gui.local_dots, 'Visible', 'off');
         end
         gui.local_dot = plot(-1,trace(1),'ro',...
             'MarkerFaceColor','r',...
@@ -219,15 +230,16 @@ end % Main interaction loop
 
     function redraw_threshold(gui)        
         set(gui.global_thresh, 'YData', events.threshold*[1 1]);
-        set(gui.global_auto, 'XData', events.auto, 'YData', trace(events.auto));
+        auto_peaks = events.auto(:,2)';
+        set(gui.global_auto, 'XData', auto_peaks, 'YData', trace(auto_peaks));
         update_event_tally(gui);
         
         set(gui.histogram_thresh, 'XData', events.threshold*[1 1]);
         set(gui.local_thresh, 'YData', events.threshold*[1 1]);
         
         % Note: NaN's break connections between line segments
-        X = kron(events.auto, [1 1 NaN]);
-        Y = repmat([gui.trace_range NaN], 1, length(events.auto));
+        X = kron(auto_peaks, [1 1 NaN]);
+        Y = repmat([gui.trace_range NaN], 1, size(events.auto,1));
         set(gui.local_auto, 'XData', X, 'YData', Y);
     end % redraw_threshold
 
@@ -242,7 +254,7 @@ end % Main interaction loop
     end % redraw_manual_events
 
     function update_event_tally(gui)
-        num_auto = length(events.auto);
+        num_auto = size(events.auto,1);
         num_manual = length(events.manual);
         
         subplot(gui.global);
@@ -287,9 +299,10 @@ end % Main interaction loop
             case 1 % Left click
                 x = round(e.IntersectionPoint(1));
                 if ((1<=x) && (x<=gui.num_frames))
-                    x = localmax(x, trace);
+                    x = seek_localmax(trace,x);
                     % Don't make duplicate events
-                    if ~ismember(x, events.auto) && ~ismember(x, events.manual)
+                    auto_peaks = events.auto(:,2);
+                    if ~ismember(x, auto_peaks) && ~ismember(x, events.manual)
                         events.manual = [events.manual x];
                         redraw_manual_events(gui);
                     end
