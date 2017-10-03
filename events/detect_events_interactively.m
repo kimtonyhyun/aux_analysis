@@ -2,12 +2,15 @@ function events = detect_events_interactively(trace_orig, varargin)
 
 use_filter = true;
 fps = 30;
+cutoff_freq = [];
 for i = 1:length(varargin)
     vararg = varargin{i};
     if ischar(vararg)
         switch lower(vararg)
             case 'fps'
                 fps = varargin{i+1};
+            case 'cutoff'
+                cutoff_freq = varargin{i+1};
             case 'nofilter'
                 use_filter = false;
         end
@@ -15,11 +18,15 @@ for i = 1:length(varargin)
 end
 
 % We'll for events in a smoothed version of the trace
-% Default parameters comes from cerebellar processing:
+% Default parameters comes from cerebellar processing, where we used
 %   - 30 Hz sampling frequency
 %   - 4 Hz cutoff frequency
+if isempty(cutoff_freq)
+    cutoff_freq = 4/30 * fps;
+end
 if use_filter
-    trace = filter_trace(trace_orig, 4/30*fps, fps);
+    fprintf('Applying LPF (fc=%.1f Hz) to trace...\n', cutoff_freq);
+    trace = filter_trace(trace_orig, cutoff_freq, fps);
 else
     trace = trace_orig;
 end
