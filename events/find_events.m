@@ -1,6 +1,8 @@
 function events = find_events(trace, threshold)
 % Find segments of 'trace' above the specified 'threshold'. Every local
-% maximum within those segments are identified as events.
+% maximum within those segments are identified as events. This approach to
+% event detection tends to work well with smoothed (e.g. low-pass filtered)
+% versions of calcium traces.
 %
 % Returns:
 %   events: [num_events x 3] where

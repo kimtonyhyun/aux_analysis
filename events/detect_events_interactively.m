@@ -28,7 +28,6 @@ end
 num_frames = length(trace);
 trace_range = [min(trace) max(trace)];
 trace_range = trace_range + 0.1*diff(trace_range)*[-1 1];
-stats = compute_trace_stats(trace);
 
 % Application state
 state.x_anchor = 1;
@@ -36,7 +35,7 @@ state.x_range = min(1000, num_frames);
 state.show_raw = true;
 state.show_dots = false;
 
-events.threshold = estimate_threshold(trace, stats);
+[events.threshold, stats] = estimate_baseline_threshold(trace);
 events.auto = find_events(trace, events.threshold);
 events.manual = [];
 
@@ -325,13 +324,3 @@ end % Main interaction loop
     end % local_plot_handler
 
 end % detect_events_interactively
-
-function thresh = estimate_threshold(trace, stats)
-    tr_lower = trace(trace <= stats.mode);
-    sigma = std(tr_lower - stats.mode);
-    
-    % Convert standard deviation of the half-normal distribution 
-    % to that of the normal distribution
-    sigma = sigma / (1 - 2/pi);
-    thresh = stats.mode + 3*sigma;
-end % estimate_threshold
