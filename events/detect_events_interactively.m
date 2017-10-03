@@ -254,7 +254,7 @@ end % Main interaction loop
     function redraw_manual_events(gui)
         set(gui.global_manual, 'XData', events.manual, 'YData', trace(events.manual));
         
-        X = kron(events.manual, [1 1 NaN]);
+        X = kron(events.manual', [1 1 NaN]);
         Y = repmat([gui.trace_range NaN], 1, length(events.manual));
         set(gui.local_manual, 'XData', X, 'YData', Y);
         
@@ -311,7 +311,7 @@ end % Main interaction loop
                     % Don't make duplicate events
                     auto_peaks = events.auto(:,2);
                     if ~ismember(x, auto_peaks) && ~ismember(x, events.manual)
-                        events.manual = [events.manual x];
+                        events.manual = [events.manual; x];
                         redraw_manual_events(gui);
                     end
                 else
