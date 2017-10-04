@@ -172,14 +172,16 @@ end % Main interaction loop
         hold off;
 %         view([90 90]);
 %         set(gui.histogram, 'XDir', 'Reverse');
+        xlabel('Fluorescence');
         ylabel('Trace histogram');
 
         % Setup the event amplitude CDF
         gui.event_amp_cdf = subplot(4,4,8);
         gui.cdf = plot(-1, -1, 'm.-');
-        xlim(trace_range);
-        ylim([-0.05 1.05]);
+        xlim([0 1]);
+        ylim([0 1]);
         grid on;
+        xlabel('Norm amplitude');
         ylabel('Event amplitude CDF');
         
         % Setup the LOCAL trace plot
@@ -263,7 +265,7 @@ end % Main interaction loop
         set(gui.histogram_thresh, 'XData', events.threshold*[1 1]);
         
         [f,x] = ecdf(events.auto(:,3)); % Empirical CDF of event amplitudes
-        set(gui.cdf, 'XData', x, 'YData', f);
+        set(gui.cdf, 'XData', x/max(x), 'YData', f);
         
         set(gui.local_thresh, 'YData', events.threshold*[1 1]);
         
