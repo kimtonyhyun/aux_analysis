@@ -35,6 +35,7 @@ end
 num_frames = length(trace);
 trace_range = [min(trace) max(trace)];
 trace_range = trace_range + 0.1*diff(trace_range)*[-1 1];
+[init_threshold, stats] = estimate_baseline_threshold(trace);
 
 % Application state
 state.x_anchor = 1;
@@ -42,7 +43,7 @@ state.x_range = min(1000, num_frames);
 state.show_raw = true;
 state.show_dots = false;
 
-[events.threshold, stats] = estimate_baseline_threshold(trace);
+events.threshold = init_threshold;
 events.auto = find_events(trace, events.threshold);
 events.manual = [];
 
@@ -93,6 +94,11 @@ while (1)
                     set(gui.local_dots, 'Visible', 'off');
                 end
                 
+            case 't' % reset threshold
+                events.threshold = init_threshold;
+                events.auto = find_events(trace, events.threshold);
+                redraw_threshold(gui);
+                
             case 'x' % erase last event
                 num_events = length(events.manual);
                 if (num_events > 0)
@@ -135,7 +141,7 @@ end % Main interaction loop
         gui.trace_range = trace_range;
         
         % Setup the GLOBAL trace plot
-        gui.global = subplot(2,5,1:4);
+        gui.global = subplot(2,4,1:3);
         gui.global_rect = rectangle('Position',[state.x_anchor trace_range(1) state.x_range diff(trace_range)],...
                   'EdgeColor', 'none',...
                   'FaceColor', 'c', 'HitTest', 'off');
@@ -152,7 +158,7 @@ end % Main interaction loop
         ylabel('Fluorescence');
         
         % Setup the HISTOGRAM plot
-        gui.histogram = subplot(2,5,5);
+        gui.histogram = subplot(4,4,4);
         semilogy(trace_stats.hist_centers, trace_stats.hist_counts, 'k.', 'HitTest', 'off');
         xlim(trace_range);
         hold on;
@@ -164,10 +170,18 @@ end % Main interaction loop
         end
         gui.histogram_thresh = plot(events.threshold*[1 1], count_range, 'm--', 'HitTest', 'off');
         hold off;
-        view([90 90]);
-        set(gui.histogram, 'XDir', 'Reverse');
-        ylabel('Counts');
+%         view([90 90]);
+%         set(gui.histogram, 'XDir', 'Reverse');
+        ylabel('Trace histogram');
 
+        % Setup the event amplitude CDF
+        gui.event_amp_cdf = subplot(4,4,8);
+        gui.cdf = plot(-1, -1, 'm.-');
+        xlim(trace_range);
+        ylim([-0.05 1.05]);
+        grid on;
+        ylabel('Event amplitude CDF');
+        
         % Setup the LOCAL trace plot
         gui.local = subplot(2,1,2);
         gui.local_raw = plot(trace_orig, 'Color', 0.6*[1 1 1], 'HitTest', 'off');
@@ -247,6 +261,10 @@ end % Main interaction loop
         update_event_tally(gui);
         
         set(gui.histogram_thresh, 'XData', events.threshold*[1 1]);
+        
+        [f,x] = ecdf(events.auto(:,3)); % Empirical CDF of event amplitudes
+        set(gui.cdf, 'XData', x, 'YData', f);
+        
         set(gui.local_thresh, 'YData', events.threshold*[1 1]);
         
         % Note: NaN's break connections between line segments
