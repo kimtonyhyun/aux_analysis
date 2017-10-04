@@ -66,11 +66,15 @@ while (1)
                 break;
 
             case 'z' % zoom in
+                x_center = state.x_anchor + 1/2 * state.x_range;
                 state.x_range = 0.5*state.x_range;
+                state.x_anchor = x_center - 1/2 * state.x_range;
                 redraw_local_window(gui);
                 
-            case {'u', 'o'} % zoom out
+            case 'o' % zoom out
+                x_center = state.x_anchor + 1/2 * state.x_range;
                 state.x_range = 2*state.x_range;
+                state.x_anchor = x_center - 1/2 * state.x_range;
                 redraw_local_window(gui);
                 
             case 'r' % toggle raw trace
