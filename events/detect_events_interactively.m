@@ -177,7 +177,7 @@ end % Main interaction loop
 
         % Setup the event amplitude CDF
         gui.event_amp_cdf = subplot(4,4,8);
-        gui.cdf = plot(-1, -1, 'm.-');
+        gui.cdf = plot(-1, -1, 'm.-', 'HitTest', 'off');
         xlim([0 1]);
         ylim([0 1]);
         grid on;
@@ -205,7 +205,7 @@ end % Main interaction loop
             'MarkerSize',6,'HitTest','off');
         gui.local_bar = plot(-Inf*[1 1], trace_range, 'k--', 'HitTest', 'off');
         gui.local_thresh = plot([1 num_frames], events.threshold*[1 1], 'm--', 'HitTest', 'off');
-        gui.local_auto = plot(-1, -1, 'm');
+        gui.local_auto = plot(-1, -1, 'm:');
         gui.local_auto_amps = plot(-1, -1, 'm', 'LineWidth', 2);
         gui.local_manual = plot(-1, -1, 'r');
         hold off;
@@ -219,6 +219,7 @@ end % Main interaction loop
         % Add GUI event listeners
         set(gui.global, 'ButtonDownFcn', {@global_plot_handler, gui});
         set(gui.histogram, 'ButtonDownFcn', {@histogram_handler, gui});
+        set(gui.event_amp_cdf, 'ButtonDownFcn', {@cdf_handler, gui});
         set(gui.local, 'ButtonDownFcn', {@local_plot_handler, gui});
         set(hf, 'WindowButtonMotionFcn', {@track_cursor, gui});
         set(hf, 'WindowScrollWheelFcn', {@scroll_plot, gui});
@@ -264,8 +265,8 @@ end % Main interaction loop
         
         set(gui.histogram_thresh, 'XData', events.threshold*[1 1]);
         
-        [f,x] = ecdf(events.auto(:,3)); % Empirical CDF of event amplitudes
-        set(gui.cdf, 'XData', x/max(x), 'YData', f);
+        [f,x] = ecdf(events.auto(:,3));
+        set(gui.cdf, 'XData', x(2:end)/max(x), 'YData', f(2:end));
         
         set(gui.local_thresh, 'YData', events.threshold*[1 1]);
         
@@ -333,6 +334,25 @@ end % Main interaction loop
                 
         end
     end % histogram_handler
+
+    function cdf_handler(~, e, gui)
+        switch e.Button
+            case 1 % Left click -- Jump to a particular event
+                x = e.IntersectionPoint(1);
+                
+                % Find the event with the nearest amplitude
+                event_amps = events.auto(:,3);
+                sel_amp = max(event_amps)*x;
+                delta_amp = abs(event_amps - sel_amp);
+                [~, eind] = min(delta_amp);
+                
+                sel_frame = events.auto(eind,2);
+                state.x_anchor = sel_frame - 1/2 * state.x_range;
+                redraw_local_window(gui);
+            case 3 % Right click
+                
+        end
+    end % cdf_handler
 
     function local_plot_handler(~, e, gui)
         switch e.Button

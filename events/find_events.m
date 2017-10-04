@@ -12,6 +12,12 @@ function events = find_events(trace, threshold)
 %
 
 above_thresh_frames = find(trace >= threshold);
+
+if ~any(above_thresh_frames)
+    events = [];
+    return;
+end
+
 segments = frame_list_to_segments(above_thresh_frames);
 num_segments = size(segments,1);
 
