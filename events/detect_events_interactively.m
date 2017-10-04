@@ -152,7 +152,8 @@ end % Main interaction loop
         semilogy(trace_stats.hist_centers, trace_stats.hist_counts, 'k.', 'HitTest', 'off');
         xlim(trace_range);
         hold on;
-        count_range = get(gui.histogram, 'YLim');
+        count_range = [1 10^ceil(log10(max(trace_stats.hist_counts)))]; % First power of 10 that exceeds the maximum count
+        ylim(count_range);
         for k = 1:size(trace_stats.percentiles,1)
             y = trace_stats.percentiles(k,2);
             plot(y*[1 1], count_range, 'Color', 0.5*[1 1 1], 'HitTest', 'off');
