@@ -49,6 +49,7 @@ state.x_anchor = 1;
 state.x_range = min(500, num_frames);
 state.show_orig = true;
 state.show_dots = false;
+state.show_trials = false;
 state.sel_event = 0;
 
 events = struct('threshold', [], 'auto', [], 'manual', []);
@@ -93,9 +94,13 @@ while (1)
                 state.show_dots = ~state.show_dots;
                 update_gui_state(gui, state);
                 
+            case 'b' % show trials
+                state.show_trials = ~state.show_trials;
+                update_gui_state(gui, state);
+                
             case 't' % reset threshold
                 set_threshold(init_threshold, gui);
-                
+                                
 %             case 'm' % toggle manual input -- DISABLED for now
 %                 state.allow_manual_events = ~state.allow_manual_events;
                 
@@ -225,6 +230,8 @@ end % Main interaction loop
         hold on;
         plot(trace, 'k', 'HitTest', 'off');
         gui.local_dots = plot(trace, 'k.', 'HitTest', 'off');
+        trial_starts = ds.trial_indices(:,1);
+        gui.local_trials = plot(trial_starts, trace(trial_starts), 'ko', 'HitTest', 'off');
         gui.local_cursor_dot = plot(-1,trace(1),'ro',...
             'MarkerFaceColor','r',...
             'MarkerSize',6,'HitTest','off');
@@ -282,10 +289,17 @@ end % Main interaction loop
         else
             set(gui.local_orig, 'Visible', 'off');
         end
+        
         if state.show_dots
             set(gui.local_dots, 'Visible', 'on');
         else
             set(gui.local_dots, 'Visible', 'off');
+        end
+        
+        if state.show_trials
+            set(gui.local_trials, 'Visible', 'on');
+        else
+            set(gui.local_trials, 'Visible', 'off');
         end
     end
 
