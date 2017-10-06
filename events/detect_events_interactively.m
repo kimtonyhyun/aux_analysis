@@ -42,6 +42,7 @@ state.x_anchor = 1;
 state.x_range = min(1000, num_frames);
 state.show_raw = true;
 state.show_dots = false;
+state.sel_event = 0;
 
 events.threshold = init_threshold;
 events.auto = find_events(trace, events.threshold);
@@ -170,14 +171,14 @@ end % Main interaction loop
         end
         gui.histogram_thresh = plot(events.threshold*[1 1], count_range, 'm--', 'HitTest', 'off');
         hold off;
-%         view([90 90]);
-%         set(gui.histogram, 'XDir', 'Reverse');
         xlabel('Fluorescence');
         ylabel('Trace histogram');
 
         % Setup the event amplitude CDF
         gui.event_amp_cdf = subplot(4,4,8);
         gui.cdf = plot(-1, -1, 'm.-', 'HitTest', 'off');
+        hold on;
+        gui.cdf_sel_event = plot([-1 -1], [0 1], 'm', 'HitTest', 'off');
         xlim([0 1]);
         ylim([0 1]);
         grid on;
@@ -206,6 +207,7 @@ end % Main interaction loop
         gui.local_bar = plot(-Inf*[1 1], trace_range, 'k--', 'HitTest', 'off');
         gui.local_thresh = plot([1 num_frames], events.threshold*[1 1], 'm--', 'HitTest', 'off');
         gui.local_auto = plot(-1, -1, 'm:');
+        gui.local_sel_event = plot([-1 -1], trace_range, 'm');
         gui.local_auto_amps = plot(-1, -1, 'm', 'LineWidth', 2);
         gui.local_manual = plot(-1, -1, 'r');
         hold off;
@@ -255,6 +257,8 @@ end % Main interaction loop
         
         subplot(gui.local);
         xlim([state.x_anchor, state.x_anchor+state.x_range-1]);
+        
+
     end % redraw_local_window
 
     function redraw_threshold(gui)        
@@ -337,17 +341,24 @@ end % Main interaction loop
 
     function cdf_handler(~, e, gui)
         switch e.Button
-            case 1 % Left click -- Jump to a particular event
+            case 1 % Left click -- "Select" a particular event
                 x = e.IntersectionPoint(1);
                 
                 % Find the event with the nearest amplitude
                 event_amps = events.auto(:,3);
-                sel_amp = max(event_amps)*x;
+                amp_scale = max(event_amps);
+                sel_amp = amp_scale*x;
                 delta_amp = abs(event_amps - sel_amp);
-                [~, eind] = min(delta_amp);
+                [~, se] = min(delta_amp);
                 
-                sel_frame = events.auto(eind,2);
+                sel_frame = events.auto(se,2);
                 state.x_anchor = sel_frame - 1/2 * state.x_range;
+                
+                state.sel_event = se;
+                if (1 <= se) && (se <= size(events.auto,1))
+                    set(gui.cdf_sel_event, 'XData', event_amps(se)/amp_scale*[1 1]);
+                    set(gui.local_sel_event, 'XData', sel_frame*[1 1]);
+                end
                 redraw_local_window(gui);
             case 3 % Right click
                 
