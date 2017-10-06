@@ -193,6 +193,23 @@ end % Main interaction loop
         % Setup the LOCAL trace plot
         %------------------------------------------------------------
         if ~isempty(M) % Show movie
+            gui.movie = subplot(2,4,8);
+            gui.movie_frame = imagesc(ds.cells(cell_idx).im,...
+                compute_movie_scale(M));
+            axis image;
+            colormap gray;
+            hold on;
+            boundary = ds.cells(cell_idx).boundary;
+            plot(boundary(:,1), boundary(:,2), 'c', 'LineWidth', 2, 'HitTest', 'off');
+            com = ds.cells(cell_idx).com;
+            plot(com(1), com(2), 'b.');
+            hold off;
+            
+            [height, width, ~] = size(M);
+            zoom_half_width = min([height, width])/10;
+            xlim(com(1) + zoom_half_width*[-1 1]);
+            ylim(com(2) + zoom_half_width*[-1 1]);
+            
             gui.local = subplot(2,4,5:7);
         else
             gui.local = subplot(2,1,2);
@@ -229,6 +246,9 @@ end % Main interaction loop
             if ((1<=x)&&(x<=gui.num_frames))
                 if state.allow_manual_events
                     x = seek_localmax(trace, x);
+                end
+                if ~isempty(M)
+                    set(gui.movie_frame, 'CData', M(:,:,x));
                 end
                 set(gui.local_cursor_bar,'XData',x*[1 1]);
                 set(gui.local_cursor_dot,'XData',x,'YData',trace(x));
