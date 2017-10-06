@@ -71,13 +71,13 @@ while (1)
                 x_center = state.x_anchor + 1/2 * state.x_range;
                 state.x_range = 0.5*state.x_range;
                 state.x_anchor = x_center - 1/2 * state.x_range;
-                redraw_local_window(gui);
+                redraw_local_window(gui, state);
                 
             case 'o' % zoom out
                 x_center = state.x_anchor + 1/2 * state.x_range;
                 state.x_range = 2*state.x_range;
                 state.x_anchor = x_center - 1/2 * state.x_range;
-                redraw_local_window(gui);
+                redraw_local_window(gui, state);
                 
             case 'r' % toggle raw trace
                 state.show_orig = ~state.show_orig;
@@ -120,13 +120,13 @@ end % Main interaction loop
         end
 
         state.x_anchor = new_anchor;
-        redraw_local_window(gui);
+        redraw_local_window(gui, state);
     end % get_next_page
 
     function get_prev_page(gui)
         new_anchor = state.x_anchor - (0.1*state.x_range + 1);
         state.x_anchor = max(1, new_anchor);
-        redraw_local_window(gui);
+        redraw_local_window(gui, state);
     end % get_prev_page
 
     function gui = setup_gui(hf, num_frames, trace_display_range, stats, trace_orig)
@@ -234,7 +234,7 @@ end % Main interaction loop
     % Update the GUI
     %------------------------------------------------------------
     function update_gui_state(gui, state)
-        redraw_local_window(gui);
+        redraw_local_window(gui, state);
         
         if state.show_orig
             set(gui.local_orig, 'Visible', 'on');
@@ -248,7 +248,7 @@ end % Main interaction loop
         end
     end
 
-    function redraw_local_window(gui)
+    function redraw_local_window(gui, state)
         rect_pos = get(gui.global_rect, 'Position');
         rect_pos(1) = state.x_anchor;
         rect_pos(3) = state.x_range;
@@ -315,7 +315,7 @@ end % Main interaction loop
                 x = round(e.IntersectionPoint(1));
                 if ((1<=x) && (x<=gui.num_frames))
                     state.x_anchor = x - state.x_range/2;
-                    update_gui_state(gui, state);
+                    redraw_local_window(gui, state);
                 else
                     fprintf('\n  Not a valid frame for this trace!\n');
                 end
@@ -343,16 +343,15 @@ end % Main interaction loop
                 
                 % Find the event with the nearest amplitude
                 event_amps = events.auto(:,3);
-                amp_scale = max(event_amps);
-                sel_amp = amp_scale*x;
-                delta_amp = abs(event_amps - sel_amp);
+                delta_amp = abs(event_amps - max(event_amps)*x);
                 [~, se] = min(delta_amp);
                 
-                sel_frame = events.auto(se,2);
-                state.x_anchor = sel_frame - 1/2 * state.x_range;
-                
                 select_event(se, gui);
-                update_gui_state(gui, state);
+                
+                % Move the local window
+                sel_frame = events.auto(se,2);
+                state.x_anchor = sel_frame - 1/2 * state.x_range;             
+                redraw_local_window(gui, state);
             case 3 % Right click
                 
         end
