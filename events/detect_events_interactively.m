@@ -1,6 +1,7 @@
-function events = detect_events_interactively(trace_orig, varargin)
+function events = detect_events_interactively(ds, cell_idx, varargin)
 
 use_filter = true;
+M = [];
 fps = 30;
 cutoff_freq = [];
 for i = 1:length(varargin)
@@ -13,9 +14,13 @@ for i = 1:length(varargin)
                 cutoff_freq = varargin{i+1};
             case 'nofilter'
                 use_filter = false;
+            case {'m', 'movie'}
+                M = varargin{i+1};
         end
     end
 end
+
+trace_orig = ds.get_trace(cell_idx);
 
 % We'll for events in a smoothed version of the trace
 % Default parameters comes from cerebellar processing, where we used
@@ -187,7 +192,11 @@ end % Main interaction loop
         
         % Setup the LOCAL trace plot
         %------------------------------------------------------------
-        gui.local = subplot(2,1,2);
+        if ~isempty(M) % Show movie
+            gui.local = subplot(2,4,5:7);
+        else
+            gui.local = subplot(2,1,2);
+        end
         gui.local_orig = plot(trace_orig, 'Color', 0.6*[1 1 1], 'HitTest', 'off');
         hold on;
         plot(trace, 'k', 'HitTest', 'off');
@@ -217,8 +226,10 @@ end % Main interaction loop
         
         function track_cursor(~, e, gui)
             x = round(e.IntersectionPoint(1));
-            if ((1<=x)&&(x<=gui.num_frames))                  
-                x = seek_localmax(trace, x);
+            if ((1<=x)&&(x<=gui.num_frames))
+                if state.allow_manual_events
+                    x = seek_localmax(trace, x);
+                end
                 set(gui.local_cursor_bar,'XData',x*[1 1]);
                 set(gui.local_cursor_dot,'XData',x,'YData',trace(x));
             end
