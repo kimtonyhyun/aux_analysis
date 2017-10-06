@@ -176,8 +176,11 @@ end % Main interaction loop
         gui.cdf = plot(-1, -1, 'm.-', 'HitTest', 'off');
         hold on;
         gui.cdf_sel_event = plot([-1 -1], [0 1], 'm', 'HitTest', 'off');
+        hold off;
         xlim([0 1]);
         ylim([0 1]);
+        xticks(0:0.1:1);
+        yticks(0:0.1:1);
         grid on;
         xlabel('Norm event amplitude');
         ylabel('CDF');
@@ -361,22 +364,7 @@ end % Main interaction loop
         switch e.Button
             case 1 % Left click
                 x = round(e.IntersectionPoint(1));
-                if ((1<=x) && (x<=gui.num_frames))
-                    if state.allow_manual_events
-                        x = seek_localmax(trace,x);
-                        % Don't make duplicate events
-                        auto_peaks = events.auto(:,2);
-                        if ~ismember(x, auto_peaks) && ~ismember(x, events.manual)
-                            events.manual = [events.manual; x];
-                            redraw_manual_events(gui);
-                        end
-                    else
-
-                    end
-                else
-                    fprintf('\n  Not a valid event for this trace!\n');
-                end
-                
+                add_manual_event(x, gui);
             case 3 % Right click
                 
         end
@@ -384,6 +372,24 @@ end % Main interaction loop
 
     % Data processing
     %------------------------------------------------------------
+    function add_manual_event(x, gui)
+        if ((1<=x) && (x<=gui.num_frames))
+            if state.allow_manual_events
+                x = seek_localmax(trace, x);
+                % Don't make duplicate events
+                auto_peaks = events.auto(:,2);
+                if ~ismember(x, auto_peaks) && ~ismember(x, events.manual)
+                    events.manual = [events.manual; x];
+                    redraw_manual_events(gui);
+                end
+            else
+
+            end
+        else
+            fprintf('\n  Not a valid event for this trace!\n');
+        end
+    end % add_manual_event
+
     function set_threshold(t, gui)
         events.threshold = t;
         events.auto = find_events(trace, t);
@@ -405,5 +411,6 @@ end % Main interaction loop
             set(gui.cdf_sel_event, 'XData', sel_event_normamp*[1 1]);
             set(gui.local_sel_event, 'XData', sel_event_frame*[1 1]);
         end
-    end
+    end % select_event
+
 end % detect_events_interactively
