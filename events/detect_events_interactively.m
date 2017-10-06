@@ -4,6 +4,7 @@ use_filter = true;
 M = [];
 fps = 30;
 cutoff_freq = [];
+
 for i = 1:length(varargin)
     vararg = varargin{i};
     if ischar(vararg)
@@ -50,7 +51,7 @@ state.show_orig = true;
 state.show_dots = false;
 state.sel_event = 0;
 
-events = struct('threshold', [], 'auto', [], 'manual', []);
+events = struct('threshold', [], 'auto', [], 'auto_cdf', [], 'manual', []);
 
 hfig = figure;
 gui = setup_gui(hfig, num_frames, trace_display_range, stats, trace_orig);
@@ -84,7 +85,7 @@ while (1)
                 state.x_anchor = x_center - 1/2 * state.x_range;
                 redraw_local_window(gui, state);
                 
-            case 'r' % toggle raw trace
+            case 'r' % toggle "raw"/original trace
                 state.show_orig = ~state.show_orig;
                 update_gui_state(gui, state);
                 
@@ -95,8 +96,8 @@ while (1)
             case 't' % reset threshold
                 set_threshold(init_threshold, gui);
                 
-            case 'm' % toggle manual input
-                state.allow_manual_events = ~state.allow_manual_events;
+%             case 'm' % toggle manual input -- DISABLED for now
+%                 state.allow_manual_events = ~state.allow_manual_events;
                 
             case 'x' % erase last event
                 num_events = length(events.manual);
@@ -203,10 +204,16 @@ end % Main interaction loop
             plot(boundary(:,1), boundary(:,2), 'c', 'LineWidth', 2, 'HitTest', 'off');
             com = ds.cells(cell_idx).com;
             plot(com(1), com(2), 'b.');
+            num_neighbors = min(10, ds.num_classified_cells-1);
+            neighbor_inds = ds.get_nearest_sources(cell_idx, num_neighbors);
+            for n = neighbor_inds
+                boundary = ds.cells(n).boundary;
+                plot(boundary(:,1), boundary(:,2), 'w');
+            end
             hold off;
             
             [height, width, ~] = size(M);
-            zoom_half_width = min([height, width])/10;
+            zoom_half_width = min([height, width])/15;
             xlim(com(1) + zoom_half_width*[-1 1]);
             ylim(com(2) + zoom_half_width*[-1 1]);
             
@@ -223,9 +230,9 @@ end % Main interaction loop
             'MarkerSize',6,'HitTest','off');
         gui.local_cursor_bar = plot(-Inf*[1 1], trace_display_range, 'k--', 'HitTest', 'off');
         gui.local_thresh = plot([1 num_frames], -Inf*[1 1], 'm--', 'HitTest', 'off');
-        gui.local_auto = plot(-1, -1, 'm:');
-        gui.local_sel_event = plot([-1 -1], trace_display_range, 'm');
-        gui.local_auto_amps = plot(-1, -1, 'm', 'LineWidth', 2);
+        gui.local_auto = plot(-1, -1, 'm:', 'HitTest', 'off');
+        gui.local_sel_event = plot([-1 -1], trace_display_range, 'm', 'HitTest', 'off');
+        gui.local_auto_amps = plot(-1, -1, 'm', 'LineWidth', 2, 'HitTest', 'off');
         gui.local_manual = plot(-1, -1, 'r');
         hold off;
         ylim(trace_display_range);
@@ -303,8 +310,9 @@ end % Main interaction loop
         set(gui.histogram_thresh, 'XData', events.threshold*[1 1]);
         
         % CDF subplot
-        [f,x] = ecdf(events.auto(:,3));
-        set(gui.cdf, 'XData', x(2:end)/max(x), 'YData', f(2:end));
+        event_amps = events.auto_cdf(:,1);
+        set(gui.cdf, 'XData', event_amps/max(event_amps),...
+                     'YData', events.auto_cdf(:,2));
         
         % LOCAL subplot
         set(gui.local_thresh, 'YData', events.threshold*[1 1]);
@@ -362,11 +370,11 @@ end % Main interaction loop
 
     function histogram_handler(~, e, gui)
         switch e.Button
-            case 1 % Left click -- Set threshold
+            case 1 % Left click
+                
+            case 3 % Right click -- Set threshold
                 t = e.IntersectionPoint(1);
                 set_threshold(t, gui);
-            case 3 % Right click
-                
         end
     end % histogram_handler
 
@@ -395,7 +403,16 @@ end % Main interaction loop
         switch e.Button
             case 1 % Left click
                 x = round(e.IntersectionPoint(1));
-                add_manual_event(x, gui);
+                if state.allow_manual_events
+                    add_manual_event(x, gui);
+                else
+                    % Find the nearest event
+                    event_times = events.auto(:,2);
+                    delta_times = abs(event_times - x);
+                    [~, se] = min(delta_times);
+                    
+                    select_event(se, gui);
+                end
             case 3 % Right click
                 
         end
@@ -405,16 +422,12 @@ end % Main interaction loop
     %------------------------------------------------------------
     function add_manual_event(x, gui)
         if ((1<=x) && (x<=gui.num_frames))
-            if state.allow_manual_events
-                x = seek_localmax(trace, x);
-                % Don't make duplicate events
-                auto_peaks = events.auto(:,2);
-                if ~ismember(x, auto_peaks) && ~ismember(x, events.manual)
-                    events.manual = [events.manual; x];
-                    redraw_manual_events(gui);
-                end
-            else
-
+            x = seek_localmax(trace, x);
+            % Don't make duplicate events
+            auto_peaks = events.auto(:,2);
+            if ~ismember(x, auto_peaks) && ~ismember(x, events.manual)
+                events.manual = [events.manual; x];
+                redraw_manual_events(gui);
             end
         else
             fprintf('\n  Not a valid event for this trace!\n');
@@ -424,17 +437,24 @@ end % Main interaction loop
     function set_threshold(t, gui)
         events.threshold = t;
         events.auto = find_events(trace, t);
+        
+        % CDF of event amplitudes
+        [F,x] = ecdf(events.auto(:,3));
+        events.auto_cdf = [x(2:end) F(2:end)];
+        
         select_event(0, gui);
         redraw_threshold(gui);
     end % set_threshold
 
-    function select_event(se, gui)
-        if (0 <= se) && (se <= size(events.auto,1))
-            state.sel_event = se;
-            if (se > 0)
+    function select_event(event_idx, gui)
+        % Event index refers to the row of 'events.auto'. An index of "0"
+        % corresponds to not selecting any event.
+        if (0 <= event_idx) && (event_idx <= size(events.auto,1))
+            state.sel_event = event_idx;
+            if (event_idx > 0)
                 event_amps = events.auto(:,3);
-                sel_event_frame = events.auto(se,2);
-                sel_event_normamp = event_amps(se)/max(event_amps);
+                sel_event_frame = events.auto(event_idx,2);
+                sel_event_normamp = event_amps(event_idx)/max(event_amps);
             else
                 sel_event_frame = -Inf;
                 sel_event_normamp = -Inf;
