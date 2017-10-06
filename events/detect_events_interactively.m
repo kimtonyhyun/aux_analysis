@@ -51,7 +51,7 @@ state.show_orig = true;
 state.show_dots = false;
 state.sel_event = 0;
 
-events = struct('threshold', [], 'auto', [], 'auto_cdf', [], 'manual', []);
+events = struct('threshold', [], 'auto', [], 'manual', []);
 
 hfig = figure;
 gui = setup_gui(hfig, num_frames, trace_display_range, stats, trace_orig);
@@ -99,14 +99,14 @@ while (1)
 %             case 'm' % toggle manual input -- DISABLED for now
 %                 state.allow_manual_events = ~state.allow_manual_events;
                 
-            case 'x' % erase last event
-                num_events = length(events.manual);
-                if (num_events > 0)
-                    events.manual = events.manual(1:num_events-1);
-                    redraw_manual_events(gui);
-                else
-                    fprintf('  No events to remove!\n');
-                end
+%             case 'x' % erase last event
+%                 num_events = length(events.manual);
+%                 if (num_events > 0)
+%                     events.manual = events.manual(1:num_events-1);
+%                     redraw_manual_events(gui);
+%                 else
+%                     fprintf('  No events to remove!\n');
+%                 end
 
             otherwise
                 fprintf('  Sorry, could not parse "%s"\n', resp);
@@ -181,7 +181,7 @@ end % Main interaction loop
         gui.event_amp_cdf = subplot(4,4,8);
         gui.cdf = plot(-1, -1, 'm.-', 'HitTest', 'off');
         hold on;
-        gui.cdf_sel_event = plot([-1 -1], [0 1], 'm', 'HitTest', 'off');
+        gui.cdf_sel_event = plot(-1, -1, 'mo', 'HitTest', 'off');
         hold off;
         xlim([0 1]);
         ylim([0 1]);
@@ -310,15 +310,15 @@ end % Main interaction loop
         set(gui.histogram_thresh, 'XData', events.threshold*[1 1]);
         
         % CDF subplot
-        event_amps = events.auto_cdf(:,1);
-        set(gui.cdf, 'XData', event_amps/max(event_amps),...
-                     'YData', events.auto_cdf(:,2));
+        num_auto_events = size(events.auto, 1);
+        max_amp = events.auto(end,3);
+        set(gui.cdf, 'XData', events.auto(:,3)/max_amp,...
+                     'YData', (1:num_auto_events)/num_auto_events);
         
         % LOCAL subplot
         set(gui.local_thresh, 'YData', events.threshold*[1 1]);
         
         % Note: NaN's break connections between line segments
-        num_auto_events = size(events.auto, 1);
         X = kron(auto_peaks, [1 1 NaN]);
         Y = repmat([gui.trace_display_range NaN], 1, num_auto_events);
         set(gui.local_auto, 'XData', X, 'YData', Y);
@@ -437,10 +437,7 @@ end % Main interaction loop
     function set_threshold(t, gui)
         events.threshold = t;
         events.auto = find_events(trace, t);
-        
-        % CDF of event amplitudes
-        [F,x] = ecdf(events.auto(:,3));
-        events.auto_cdf = [x(2:end) F(2:end)];
+        events.auto = sortrows(events.auto, 3); % Sort events by amplitude
         
         select_event(0, gui);
         redraw_threshold(gui);
@@ -449,17 +446,20 @@ end % Main interaction loop
     function select_event(event_idx, gui)
         % Event index refers to the row of 'events.auto'. An index of "0"
         % corresponds to not selecting any event.
-        if (0 <= event_idx) && (event_idx <= size(events.auto,1))
+        num_events = size(events.auto, 1);
+        if (0 <= event_idx) && (event_idx <= num_events)
             state.sel_event = event_idx;
             if (event_idx > 0)
                 event_amps = events.auto(:,3);
                 sel_event_frame = events.auto(event_idx,2);
                 sel_event_normamp = event_amps(event_idx)/max(event_amps);
+                sel_event_cdf = event_idx / num_events;
             else
                 sel_event_frame = -Inf;
                 sel_event_normamp = -Inf;
+                sel_event_cdf = -1;
             end
-            set(gui.cdf_sel_event, 'XData', sel_event_normamp*[1 1]);
+            set(gui.cdf_sel_event, 'XData', sel_event_normamp, 'YData', sel_event_cdf);
             set(gui.local_sel_event, 'XData', sel_event_frame*[1 1]);
         end
     end % select_event
