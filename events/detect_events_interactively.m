@@ -38,7 +38,13 @@ if isempty(cutoff_freq)
 end
 if use_filter
     fprintf('Applying LPF (fc=%.1f Hz) to trace...\n', cutoff_freq);
-    trace = filter_trace(trace_orig, cutoff_freq, fps);
+%     trace = filter_trace(trace_orig, cutoff_freq, fps);
+
+    filt_traces = cell(1,ds.num_trials);
+    for tidx = 1:ds.num_trials
+        filt_traces{tidx} = filter_trace(ds.get_trace(cell_idx,tidx), cutoff_freq, fps);
+    end
+    trace = cell2mat(filt_traces);
 else
     trace = trace_orig;
 end
