@@ -2,6 +2,7 @@ function events = detect_events_interactively(ds, cell_idx, varargin)
 
 use_filter = true;
 M = [];
+movie_clim = [];
 fps = 30;
 cutoff_freq = [];
 
@@ -17,11 +18,16 @@ for i = 1:length(varargin)
                 use_filter = false;
             case {'m', 'movie'}
                 M = varargin{i+1};
+            case {'clim', 'movie_clim'}
+                movie_clim = varargin{i+1};
         end
     end
 end
 
 trace_orig = ds.get_trace(cell_idx);
+if ~isempty(M) && isempty(movie_clim)
+    movie_clim = compute_movie_scale(M);
+end
 
 % We'll for events in a smoothed version of the trace
 % Default parameters comes from cerebellar processing, where we used
@@ -205,7 +211,7 @@ end % Main interaction loop
         if ~isempty(M) % Show movie
             gui.movie = subplot(2,4,8);
             gui.movie_frame = imagesc(ds.cells(cell_idx).im,...
-                compute_movie_scale(M));
+                movie_clim);
             axis image;
             colormap gray;
             hold on;
