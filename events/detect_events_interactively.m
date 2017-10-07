@@ -74,8 +74,12 @@ val = str2double(resp);
 while (1)
     if (~isnan(val)) % Is a number
         if (1 <= val) && (val <= ds.num_trials)
-            x_center = ds.trial_indices(val,1);
-            state.x_anchor = x_center - 1/2 * state.x_range;
+            trial_start = ds.trial_indices(val,1);
+            trial_end = ds.trial_indices(val,4);
+            trial_range = trial_end - trial_start + 1;
+            
+            state.x_anchor = trial_start - 0.25 * trial_range;
+            state.x_range = 1.5 * trial_range;
             redraw_local_window(gui, state);
         end
     else % Not a number
