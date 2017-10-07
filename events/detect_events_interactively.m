@@ -49,7 +49,7 @@ state.x_anchor = 1;
 state.x_range = min(500, num_frames);
 state.show_orig = true;
 state.show_dots = false;
-state.show_trials = false;
+state.show_trials = true;
 state.sel_event = 0;
 
 events = struct('threshold', [], 'auto', [], 'manual', []);
@@ -67,7 +67,11 @@ val = str2double(resp);
 
 while (1)
     if (~isnan(val)) % Is a number
-        fprintf('  Number input not handled!\n');
+        if (1 <= val) && (val <= ds.num_trials)
+            x_center = ds.trial_indices(val,1);
+            state.x_anchor = x_center - 1/2 * state.x_range;
+            redraw_local_window(gui, state);
+        end
     else % Not a number
         switch (resp)
             case 'q' % "quit"
@@ -232,6 +236,15 @@ end % Main interaction loop
         gui.local_dots = plot(trace, 'k.', 'HitTest', 'off');
         trial_starts = ds.trial_indices(:,1);
         gui.local_trials = plot(trial_starts, trace(trial_starts), 'ko', 'HitTest', 'off');
+        text_y = trace_display_range(1) + 0.05*diff(trace_display_range);
+        gui.local_trials_text = cell(ds.num_trials,1);
+        for k = 1:ds.num_trials
+            trial_start_k = double(trial_starts(k));
+            gui.local_trials_text{k} = text(trial_start_k, text_y,...
+                 sprintf('Trial %d', k),...
+                 'HorizontalAlignment', 'center',...
+                 'HitTest', 'off', 'Clipping', 'on');
+        end
         gui.local_cursor_dot = plot(-1,trace(1),'ro',...
             'MarkerFaceColor','r',...
             'MarkerSize',6,'HitTest','off');
@@ -297,9 +310,13 @@ end % Main interaction loop
         end
         
         if state.show_trials
-            set(gui.local_trials, 'Visible', 'on');
+            trials_vis = 'on';
         else
-            set(gui.local_trials, 'Visible', 'off');
+            trials_vis = 'off';
+        end
+        set(gui.local_trials, 'Visible', trials_vis);
+        for k = 1:ds.num_trials
+            set(gui.local_trials_text{k}, 'Visible', trials_vis);
         end
     end
 
