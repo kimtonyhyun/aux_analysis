@@ -234,6 +234,12 @@ end % Main interaction loop
             for n = neighbor_inds
                 boundary = ds.cells(n).boundary;
                 plot(boundary(:,1), boundary(:,2), 'w');
+                
+                ncom = ds.cells(n).com;
+                text(ncom(1), ncom(2), num2str(n),...
+                     'Color', 'w',...
+                     'HorizontalAlignment', 'center',...
+                     'HitTest', 'off', 'Clipping', 'on');
             end
             hold off;
             
