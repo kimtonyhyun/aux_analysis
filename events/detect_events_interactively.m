@@ -305,10 +305,24 @@ end % Main interaction loop
         end % track_cursor
         
         function scroll_plot(~, e, gui)
-            if (e.VerticalScrollCount < 0) % Scroll up
-                get_prev_page(gui);
-            else
-                get_next_page(gui);
+            if (state.show_trials && (ds.num_trials > 1)) % Scroll by trials
+                trial_idx = state.last_requested_trial;
+                if (e.VerticalScrollCount < 0) % Scroll up
+                    trial_idx = trial_idx - 1;
+                else
+                    trial_idx = trial_idx + 1;
+                end
+                
+                trial_idx = max(1, trial_idx); % Clamp
+                trial_idx = min(trial_idx, ds.num_trials);
+                set_trial(trial_idx, gui);
+                
+            else % Default scrolling
+                if (e.VerticalScrollCount < 0) % Scroll up
+                    get_prev_page(gui);
+                else
+                    get_next_page(gui);
+                end
             end
         end % scroll_plot
         
