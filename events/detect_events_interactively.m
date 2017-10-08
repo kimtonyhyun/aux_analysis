@@ -63,6 +63,7 @@ state.show_orig = true;
 state.show_dots = false;
 state.show_trials = true;
 state.sel_event = 0;
+state.last_requested_trial = 0;
 
 events = struct('threshold', [], 'auto', [], 'manual', []);
 
@@ -80,13 +81,7 @@ val = str2double(resp);
 while (1)
     if (~isnan(val)) % Is a number
         if (1 <= val) && (val <= ds.num_trials)
-            trial_start = ds.trial_indices(val,1);
-            trial_end = ds.trial_indices(val,4);
-            trial_range = trial_end - trial_start + 1;
-            
-            state.x_anchor = trial_start - 0.25 * trial_range;
-            state.x_range = 1.5 * trial_range;
-            redraw_local_window(gui, state);
+            set_trial(val, gui);
         end
     else % Not a number
         switch (resp)
@@ -117,6 +112,11 @@ while (1)
             case 'b' % show trials
                 state.show_trials = ~state.show_trials;
                 update_gui_state(gui, state);
+                
+            case {'', 'n'} % next trial
+                if state.last_requested_trial < ds.num_trials
+                    set_trial(state.last_requested_trial+1, gui);
+                end
                 
             case 't' % reset threshold
                 set_threshold(init_threshold, gui);
@@ -261,7 +261,7 @@ end % Main interaction loop
                  'HorizontalAlignment', 'center',...
                  'HitTest', 'off', 'Clipping', 'on');
         end
-        gui.local_cursor_dot = plot(-1,trace(1),'ro',...
+        gui.local_cursor_dot = plot(-Inf,trace(1),'ro',...
             'MarkerFaceColor','r',...
             'MarkerSize',6,'HitTest','off');
         gui.local_cursor_bar = plot(-Inf*[1 1], trace_display_range, 'k--', 'HitTest', 'off');
@@ -489,6 +489,17 @@ end % Main interaction loop
         select_event(0, gui);
         redraw_threshold(gui);
     end % set_threshold
+
+    function set_trial(trial_idx, gui)
+        trial_start = ds.trial_indices(trial_idx,1);
+        trial_end = ds.trial_indices(trial_idx,4);
+        trial_range = trial_end - trial_start + 1;
+
+        state.last_requested_trial = trial_idx;
+        state.x_anchor = trial_start - 0.25 * trial_range;
+        state.x_range = 1.5 * trial_range;
+        redraw_local_window(gui, state);
+    end % set_trial
 
     function select_event(event_idx, gui)
         % Event index refers to the row of 'events.auto'. An index of "0"
