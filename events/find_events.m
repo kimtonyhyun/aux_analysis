@@ -11,6 +11,10 @@ function events = find_events(trace, threshold)
 %     events(k,3): Amplitude difference between peak and trough
 %
 
+if (nargin < 2)
+    threshold = estimate_baseline_threshold(trace);
+end
+
 above_thresh_frames = find(trace >= threshold);
 
 if ~any(above_thresh_frames)
