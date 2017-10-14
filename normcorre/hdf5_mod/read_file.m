@@ -26,8 +26,8 @@ elseif strcmpi(ext,'.hdf5') || strcmpi(ext,'.h5');
 %     dims = info.GroupHierarchy.Datasets.Dims;
 %     name = info.GroupHierarchy.Datasets.Name;
     info = h5info(path_to_file);
-    dims = info.Datasets.Dataspace.Size;
-    name = info.Datasets.Name;    
+    name = '/Data/Images';
+    dims = get_dataset_info(path_to_file, name);
     if nargin < 3
         num2read = dims(end)-sframe+1;
     end
