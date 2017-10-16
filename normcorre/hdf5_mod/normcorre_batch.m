@@ -1,4 +1,4 @@
-function [M_final,shifts_g,template] = normcorre_batch(Y,options,template)
+function [M_final,shifts_g,template,options,col_shift] = normcorre_batch(Y,options,template)
 
 % online motion correction through DFT subpixel registration
 % Based on the dftregistration.m function from Manuel Guizar and Jim Fienup
@@ -28,11 +28,17 @@ if isa(Y,'char')
     elseif strcmpi(ext,'mat')
         filetype = 'mem';
         Y = matfile(Y,'Writable',true);
-        sizY = size(Y);
+        details = whos(Y);
+        var_sizes = [details.bytes];
+        [~,var_ind] = max(var_sizes);
+        var_name = details(var_ind).name;
+        sizY = size(Y,var_name);
         T = sizY(end);
     elseif strcmpi(ext,'hdf5') || strcmpi(ext,'h5');
         filetype = 'hdf5';
 %         fileinfo = hdf5info(Y);
+%         data_name = fileinfo.GroupHierarchy.Datasets.Name;
+%         sizY = fileinfo.GroupHierarchy.Datasets.Dims;
         data_name = '/Data/Images';
         sizY = get_dataset_info(Y, data_name);
         T = sizY(end);
@@ -52,7 +58,8 @@ if isa(Y,'char')
     end    
 elseif isobject(Y);
     filetype = 'mem';
-    sizY = size(Y,'Y');
+    var_name = 'Y';
+    sizY = size(Y,var_name);
     T = sizY(end);
 else % array loaded in memory
     filetype = 'mat';
@@ -95,6 +102,21 @@ while mod(T,bin_width) == 1
     bin_width = bin_width + 1;
 end
 
+%% first check for offset due to bi-directional scanning
+
+if options.correct_bidir
+    col_shift = correct_bidirectional_offset(Y,options.nFrames,options.bidir_us);
+    if col_shift
+        if strcmpi(options.shifts_method,'fft')
+            options.shifts_method = 'cubic';
+            fprintf('Offset %1.1f pixels due to bidirectional scanning detected. Cubic shifts will be applied. \n',col_shift); 
+        end
+    end
+else
+    col_shift = 0;
+end
+
+
 %% read initial batch and compute template
 
 init_batch = min(T,init_batch);
@@ -110,19 +132,34 @@ switch filetype
     case 'hdf5'
         Y_temp = bigread2(Y,1,init_batch);        
     case 'mem'
-        if nd == 2; Y_temp = Y.Y(:,:,1:init_batch); elseif nd == 3; Y_temp = Y.Y(:,:,:,1:init_batch); end
+        if nd == 2; Y_temp = Y.(var_name)(:,:,1:init_batch); elseif nd == 3; Y_temp = Y.(var_name)(:,:,:,1:init_batch); end
     case 'mat'
         if nd == 2; Y_temp = Y(:,:,perm); elseif nd == 3; Y_temp = Y(:,:,:,perm); end
     case 'raw'
          Y_temp = read_raw_file(Y,1,init_batch,FOV,bitsize);
 end
-data_type = class(Y_temp);
+% data_type = class(Y_temp);
+data_type = 'single';
 Y_temp = single(Y_temp);
 
 if nargin < 3 || isempty(template)
+    fprintf('Registering the first %i frames just to obtain a good template....',init_batch);
     template_in = median(Y_temp,nd+1)+add_value;
+    fftTemp = fftn(template_in);
+    for t = 1:size(Y_temp,nd+1);        
+        if nd == 2; 
+            [~,Greg] = dftregistration_min_max(fftTemp,fftn(Y_temp(:,:,t)),us_fac,-max_shift,max_shift,options.phase_flag);
+        end
+        if nd == 3; 
+            [~,Greg] = dftregistration_min_max_3d(fftTemp,fftn(Y_temp(:,:,:,t)),us_fac,-max_shift,max_shift,options.phase_flag); 
+        end
+        M_temp = real(ifftn(Greg));
+        template_in = template_in*(t-1)/t + M_temp/t;
+    end
+    template_in = template_in + add_value;
+    fprintf('..done. \n')
 else
-    template_in = template + add_value;
+    template_in = single(template + add_value);
 end
 
 [d1,d2,d3,~] = size(Y_temp);
@@ -179,7 +216,7 @@ end
 
 switch lower(options.output_type)
     case 'mat'
-        M_final = zeros([sizY,T]);
+        M_final = zeros([sizY,T],data_type);
     case 'memmap'
         M_final = matfile(filename,'Writable',true);
         if nd == 2; M_final.Y(d1,d2,T) = zeros(1,data_type); end
@@ -195,9 +232,9 @@ switch lower(options.output_type)
         end       
         M_final = options.h5_filename;
         if nd == 2
-            h5create(options.h5_filename,['/',options.h5_groupname],[d1,d2,Inf],'Chunksize',[d1,d2,options.mem_batch_size],'Datatype','single');
+            h5create(options.h5_filename,['/',options.h5_groupname],[d1,d2,Inf],'Chunksize',[d1,d2,options.mem_batch_size],'Datatype',data_type);
         elseif nd == 3
-            h5create(options.h5_filename,['/',options.h5_groupname],[d1,d2,d3,Inf],'Chunksize',[d1,d2,d3,options.mem_batch_size],'Datatype','single');
+            h5create(options.h5_filename,['/',options.h5_groupname],[d1,d2,d3,Inf],'Chunksize',[d1,d2,d3,options.mem_batch_size],'Datatype',data_type);
         end
     case {'tif','tiff'}
         M_final = ['motion corrected file has been saved as ', options.tiff_filename];
@@ -211,10 +248,10 @@ switch lower(options.output_type)
 end   
 
 cnt_buf = 0;
-fprintf('Template initialization complete. \n')
+fprintf('Template initialization complete.  Now registering all the frames with new template. \n')
 %%
 
-
+prevstr = [];
 for it = 1:iter
     for t = 1:bin_width:T
         switch filetype
@@ -226,8 +263,8 @@ for it = 1:iter
             case 'hdf5'
                 Ytm = single(h5read(Y,data_name,[ones(1,nd),t],[sizY(1:nd),min(t+bin_width-1,T)-t+1]));
             case 'mem'
-                if nd == 2; Ytm = single(Y.Y(:,:,t:min(t+bin_width-1,T))); end
-                if nd == 3; Ytm = single(Y.Y(:,:,:,t:min(t+bin_width-1,T))); end
+                if nd == 2; Ytm = single(Y.(var_name)(:,:,t:min(t+bin_width-1,T))); end
+                if nd == 3; Ytm = single(Y.(var_name)(:,:,:,t:min(t+bin_width-1,T))); end
             case 'mat'
                 if nd == 2; Ytm = single(Y(:,:,t:min(t+bin_width-1,T))); end
                 if nd == 3; Ytm = single(Y(:,:,:,t:min(t+bin_width-1,T))); end
@@ -281,58 +318,78 @@ for it = 1:iter
                             shifts_temp(i,j,k,3) = output(5);
                         end
                        
-                        %buffer{i,j,k,ii} = M_temp;
                         shifts_temp(i,j,k,1) = output(3);
                         shifts_temp(i,j,k,2) = output(4); 
                         diff_temp(i,j,k) = output(2);
-                        if all(mot_uf == 1)
-                            %M_temp = real(ifftn(Greg));
-                            %M_temp = remove_boundaries(M_temp,output(3:end),'none',template{i,j,k});                            
-                            %M_fin{i,j,k} = remove_boundaries(M_temp,output(3:end),'NaN',template{i,j,k},add_value);
+                        if all([length(xx_s),length(yy_s),length(zz_s)] == 1) && strcmpi(options.shifts_method,'fft');
                             M_fin{i,j,k} = shift_reconstruct(Yt,shifts_temp(i,j,k,:),diff_temp(i,j,k),us_fac,Nr{i,j,k},Nc{i,j,k},Np{i,j,k},options.boundary,add_value);
                         end                                               
                     end
                 end
             end            
             
-            shifts(ii).shifts = squeeze(shifts_temp);
+            shifts(ii).shifts = shifts_temp;
             shifts(ii).diff = diff_temp;
-        
-            if any(mot_uf > 1)
-                shifts_up = imresize(shifts_temp,[length(xx_uf),length(yy_uf)]);
-                diff_up = imresize(diff_temp,[length(xx_uf),length(yy_uf)]);
-
-                if mot_uf(3) > 1
-                    shifts_up = reshape(imresize(reshape(shifts_up,[length(xx_uf)*length(yy_uf),length(zz_f),nd]),[length(xx_uf)*length(yy_uf),length(zz_uf)]),[length(xx_uf),length(yy_uf),length(zz_uf),nd]);
-                end
-                shifts(ii).shifts_up = shifts_up;
-                shifts(ii).diff = diff_up;
-                for i = 1:length(xx_uf)
-                    for j = 1:length(yy_uf)
-                        for k = 1:length(zz_uf)
-                            extended_grid = [max(xx_us(i)-overlap_post(1),1),min(xx_uf(i)+overlap_post(1),d1),max(yy_us(j)-overlap_post(2),1),min(yy_uf(j)+overlap_post(2),d2),max(zz_us(k)-overlap_post(3),1),min(zz_uf(k)+overlap_post(3),d3)];
-                            I_temp = Yt(extended_grid(1):extended_grid(2),extended_grid(3):extended_grid(4),extended_grid(5):extended_grid(6));
-                            M_fin{i,j,k} = shift_reconstruct(I_temp,shifts_up(i,j,k,:),diff_up(i,j,k),us_fac,Nr{i,j,k},Nc{i,j,k},Np{i,j,k},options.boundary,add_value);
+            switch lower(options.shifts_method)
+                case 'fft'
+                    if any([length(xx_s),length(yy_s),length(zz_s)] > 1)          
+                        if mot_uf(3) > 1                
+                            tform = affine3d(diag([mot_uf(:);1]));
+                            diff_up = imwarp(diff_temp,tform,'OutputView',imref3d([length(xx_uf),length(yy_uf),length(zz_uf)]));
+                            shifts_up = zeros([size(diff_up),3]);
+                            for dm = 1:3; shifts_up(:,:,:,dm) = imwarp(shifts_temp(:,:,:,dm),tform,'OutputView',imref3d([length(xx_uf),length(yy_uf),length(zz_uf)])); end
+                        else                    
+                            shifts_up = imresize(shifts_temp,[length(xx_uf),length(yy_uf)]);
+                            diff_up = imresize(diff_temp,[length(xx_uf),length(yy_uf)]);                    
                         end
+                        shifts(ii).shifts_up = shifts_up;
+                        shifts(ii).diff = diff_up;
+                        for i = 1:length(xx_uf)
+                            for j = 1:length(yy_uf)
+                                for k = 1:length(zz_uf)
+                                    extended_grid = [max(xx_us(i)-overlap_post(1),1),min(xx_uf(i)+overlap_post(1),d1),max(yy_us(j)-overlap_post(2),1),min(yy_uf(j)+overlap_post(2),d2),max(zz_us(k)-overlap_post(3),1),min(zz_uf(k)+overlap_post(3),d3)];
+                                    I_temp = Yt(extended_grid(1):extended_grid(2),extended_grid(3):extended_grid(4),extended_grid(5):extended_grid(6));
+                                    M_fin{i,j,k} = shift_reconstruct(I_temp,shifts_up(i,j,k,:),diff_up(i,j,k),us_fac,Nr{i,j,k},Nc{i,j,k},Np{i,j,k},options.boundary,add_value);
+                                    %M_fin{i,j,k} = shift_reconstruct2(I_temp,shifts_up(i,j,k,:),'bilinear',diff_up(i,j,k),us_fac,Nr{i,j,k},Nc{i,j,k},Np{i,j,k},options.boundary,add_value);
+                                end
+                            end
+                        end
+                    else
+                        shifts_up = shifts_temp;
+                        shifts(ii).shifts_up = shifts(ii).shifts;
                     end
-                end
-            else
-                shifts_up = shifts_temp;
-                shifts(ii).shifts_up = shifts(ii).shifts;
-            end
-            %buf(ii).Mf = M_fin;
-            gx = max(abs(reshape(diff(shifts_up,[],1),[],1)));
-            gy = max(abs(reshape(diff(shifts_up,[],2),[],1)));
-            gz = max(abs(reshape(diff(shifts_up,[],3),[],1)));
-            flag_interp = max([gx;gy;gz;0])<0.5;      % detect possible smearing
+                    gx = max(abs(reshape(diff(shifts_up,[],1),[],1)));
+                    gy = max(abs(reshape(diff(shifts_up,[],2),[],1)));
+                    gz = max(abs(reshape(diff(shifts_up,[],3),[],1)));
+                    flag_interp = max([gx;gy;gz;0])<0.5;      % detect possible smearing
 
-            if flag_interp    
-                Mf{ii} = cell2mat_ov_sum(M_fin,xx_us,xx_uf,yy_us,yy_uf,zz_us,zz_uf,overlap_post,sizY,Bs) - add_value;
-            else            
-                Mf{ii} = cell2mat_ov(M_fin,xx_us,xx_uf,yy_us,yy_uf,zz_us,zz_uf,overlap_post,sizY) - add_value;
+                    if flag_interp    
+                        Mf{ii} = cell2mat_ov_sum(M_fin,xx_us,xx_uf,yy_us,yy_uf,zz_us,zz_uf,overlap_post,sizY,Bs) - add_value;
+                    else            
+                        Mf{ii} = cell2mat_ov(M_fin,xx_us,xx_uf,yy_us,yy_uf,zz_us,zz_uf,overlap_post,sizY) - add_value;
+                    end
+                    Mf{ii}(Mf{ii}<minY)=minY;
+                    Mf{ii}(Mf{ii}>maxY)=maxY;
+            
+                otherwise
+                    
+                    shifts(ii).shifts_up = shifts(ii).shifts;
+                    if nd == 3                
+                        shifts_up = zeros([options.d1,options.d2,options.d3,3]);
+                        if numel(shifts_temp) > 3
+                            tform = affine3d(diag([mot_uf(:);1]));
+                            for dm = 1:3; shifts_up(:,:,:,dm) = imwarp(shifts_temp(:,:,:,dm),tform,'OutputView',imref3d([options.d1,options.d2,options.d3])); end
+                        else
+                            for dm = 1:3; shifts_up(:,:,:,dm) = shifts_temp(dm); end
+                        end
+                        shifts_up(2:2:end,:,:,2) = shifts_up(2:2:end,:,:,2) + col_shift;
+                        Mf{ii} = imwarp(Yt,-cat(4,shifts_up(:,:,:,2),shifts_up(:,:,:,1),shifts_up(:,:,:,3)),options.shifts_method); 
+                    else
+                        shifts_up = imresize(shifts_temp,[options.d1,options.d2]);
+                        shifts_up(2:2:end,:,2) = shifts_up(2:2:end,:,2) + col_shift;
+                        Mf{ii} = imwarp(Yt,-cat(3,shifts_up(:,:,2),shifts_up(:,:,1)),options.shifts_method);  
+                    end   
             end
-            Mf{ii}(Mf{ii}<minY)=minY;
-            Mf{ii}(Mf{ii}>maxY)=maxY;
         end
 
         shifts_g(t:min(t+bin_width-1,T)) = shifts;
@@ -347,8 +404,8 @@ for it = 1:iter
         if it == iter
         switch lower(options.output_type)
             case 'mat'
-                if nd == 2; M_final(:,:,t:min(t+bin_width-1,T)) = Mf; end
-                if nd == 3; M_final(:,:,:,t:min(t+bin_width-1,T)) = Mf; end
+                if nd == 2; M_final(:,:,t:min(t+bin_width-1,T)) = cast(Mf,data_type); end
+                if nd == 3; M_final(:,:,:,t:min(t+bin_width-1,T)) = cast(Mf,data_type); end
             case 'memmap'
                 if rem_mem == options.mem_batch_size || t+lY-1 == T
                     if nd == 2; M_final.Y(:,:,t+lY-rem_mem:t+lY-1) = mem_buffer(:,:,1:rem_mem); end
@@ -367,8 +424,10 @@ for it = 1:iter
         end        
         end
         
+        str=[num2str(t+lY-1), ' out of ', num2str(T), ' frames registered, iteration ', num2str(it), ' out of ', num2str(iter), '..'];
+        refreshdisp(str, prevstr, t);
+        prevstr=str; 
         % update template
-        fprintf('%i out of %i frames registered, iteration %i out of %i \n',t+lY-1,T,it,iter)
         if upd_template
             cnt_buf = cnt_buf + 1;
             if nd == 2; buffer = mat2cell_ov(Mf,xx_s,xx_f,yy_s,yy_f,zz_s,zz_f,overlap_pre,sizY); end
