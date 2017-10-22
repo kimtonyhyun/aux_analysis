@@ -40,6 +40,9 @@ events = zeros(num_events, 3);
 for k = 1:num_events
     peak_frame = eventpeaks(k);
     trough_frame = seek_localmin(trace,peak_frame-1);
+    % FIXME: We need to handle the case that the peak and trough frames do
+    % not belong to the same segment, i.e. when they are actually
+    % discontinuous in real time!
     event_amp = trace(peak_frame) - trace(trough_frame);
     
     events(k,:) = [trough_frame peak_frame event_amp];
@@ -53,10 +56,11 @@ end
 end % find_events
 
 function events = find_all_localmax(seg, tr_seg)
-    % Note that the first and last points of the segment cannot be
+    % Whether the first and last points of the segment can be
     % identified as a local maximum
-    x1 = [false tr_seg(2:end)>tr_seg(1:end-1)];
-    x2 = [tr_seg(1:end-1)>tr_seg(2:end) false];
+    allow_ends = true;
+    x1 = [allow_ends tr_seg(2:end)>tr_seg(1:end-1)];
+    x2 = [tr_seg(1:end-1)>tr_seg(2:end) allow_ends];
 
     events = seg(x1 & x2);
 end % find_all_localmax
