@@ -392,8 +392,8 @@ end % Main interaction loop
         
         % Draw event amplitudes
         Y = zeros(3, num_auto_events);
-        Y(1,:) = trace(events.auto(:,2));
-        Y(2,:) = trace(events.auto(:,1));
+        Y(1,:) = trace(events.auto(:,2)); % Peak
+        Y(2,:) = Y(1,:) - events.auto(:,3)'; % Peak minus amplitude
         Y(3,:) = NaN;
         set(gui.local_auto_amps, 'XData', X, 'YData', Y(:));
     end % redraw_threshold
@@ -503,7 +503,8 @@ end % Main interaction loop
 
     function set_threshold(t, gui)
         events.threshold = t;
-        events.auto = find_events(trace, t);
+        es = find_events_in_trials(trace, ds.trial_indices, t, stats.mode);
+        events.auto = cell2mat(es);
         events.auto = sortrows(events.auto, 3); % Sort events by amplitude
         
         select_event(0, gui);

@@ -1,4 +1,4 @@
-function events = find_events(trace, threshold)
+function events = find_events(trace, threshold, baseline)
 % Find segments of 'trace' above the specified 'threshold'. Every local
 % maximum within those segments are identified as events. This approach to
 % event detection tends to work well with smoothed (e.g. low-pass filtered)
@@ -10,10 +10,6 @@ function events = find_events(trace, threshold)
 %     events(k,2): Frame corresponding to the peak of the k-th event
 %     events(k,3): Amplitude difference between peak and trough
 %
-
-if (nargin < 2)
-    threshold = estimate_baseline_threshold(trace);
-end
 
 above_thresh_frames = find(trace >= threshold);
 
@@ -39,11 +35,30 @@ num_events = length(eventpeaks);
 events = zeros(num_events, 3);
 for k = 1:num_events
     peak_frame = eventpeaks(k);
-    trough_frame = seek_localmin(trace,peak_frame-1);
-    % FIXME: We need to handle the case that the peak and trough frames do
-    % not belong to the same segment, i.e. when they are actually
-    % discontinuous in real time!
-    event_amp = trace(peak_frame) - trace(trough_frame);
+    
+    % Attempt to find the trough preceding the event peak. Note that there
+    % are cases where the trough cannot be found:
+    %   1) The peak is at the beginning of the trace
+    %   2) The trough is at the beginning of the trace -- which means that
+    %   it's possible that we didn't roll all the way down to the trough
+    trough_not_found = false;
+    if peak_frame == 1
+        trough_not_found = true;
+    else
+        trough_frame = seek_localmin(trace,peak_frame-1);
+        if (trough_frame == 1)
+            trough_not_found = true;
+        end
+    end
+    
+    % In the case that trough was not found, use the difference between the
+    % baseline and the event peak as the amplitude
+    if trough_not_found
+        trough_frame = -Inf; % Flag for indicating that trough wasn't found
+        event_amp = trace(peak_frame) - baseline;
+    else
+        event_amp = trace(peak_frame) - trace(trough_frame); 
+    end
     
     events(k,:) = [trough_frame peak_frame event_amp];
 end
