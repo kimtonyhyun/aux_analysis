@@ -503,7 +503,7 @@ end % Main interaction loop
 
     function set_threshold(t, gui)
         events.threshold = t;
-        events.auto = find_events(trace, t);
+        events.auto = find_events(trace, t, stats.mode);
         events.auto = sortrows(events.auto, 3); % Sort events by amplitude
         
         select_event(0, gui);
