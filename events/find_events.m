@@ -54,6 +54,7 @@ for k = 1:num_events
     % In the case that trough was not found, use the difference between the
     % baseline and the event peak as the amplitude
     if trough_not_found
+        trough_frame = -Inf; % Flag for indicating that trough wasn't found
         event_amp = trace(peak_frame) - baseline;
     else
         event_amp = trace(peak_frame) - trace(trough_frame); 
