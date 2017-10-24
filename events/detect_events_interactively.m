@@ -425,6 +425,10 @@ end % Main interaction loop
                 if ((1<=x) && (x<=gui.num_frames))
                     state.x_anchor = x - state.x_range/2;
                     redraw_local_window(gui, state);
+                    
+                    % To have consistent behavior with subsequent mouse
+                    % scrolls, set last_requested_trial
+                    state.last_requested_trial = find(x >= ds.trial_indices(:,1)', 1, 'last');
                 else
                     fprintf('\n  Not a valid frame for this trace!\n');
                 end
