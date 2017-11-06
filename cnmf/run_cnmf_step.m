@@ -37,7 +37,7 @@ Cn =  correlation_image(Y,8);
 tic;
 [A,C,b,f,center] = initialize_components(Y,K,tau,options,Pin);  % initialize
 t_init = toc;
-fprintf('Initialization took %.1f seconds\n', t_init);
+fprintf('Initialization took %.1f minutes\n', t_init / 60);
 
 % display centers of found components
 figure;imagesc(Cn);
