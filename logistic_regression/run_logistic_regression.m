@@ -1,4 +1,4 @@
-function run_logistic_regression(ds, cell_idx, modality)
+function [pre_features, post_features] = run_logistic_regression(ds, cell_idx, modality)
 
 trials = ds.get_switch_trials;
 
@@ -43,8 +43,8 @@ post_test = ~post_train;
 
 % Fit logistic regression to training data
 %------------------------------------------------------------
-f_train = [pre_features(pre_train) post_features(post_train)]';
-y_train = [zeros(1,num_pre_train) ones(1,num_post_train)]'; % Note: 0 <==> Pre, 1 <==> Post
+f_train = [pre_features(pre_train,:); post_features(post_train,:)];
+y_train = [zeros(num_pre_train,1); ones(num_post_train,1)]; % Note: 0 <==> Pre, 1 <==> Post
 w = fit_logistic_regression(f_train, y_train);
 
 % Decision boundary, for the special case of single feature
@@ -77,8 +77,8 @@ title('Sigmoid fit');
 
 % Evaluate on training data
 %------------------------------------------------------------
-f_test = [pre_features(pre_test) post_features(post_test)]';
-y_test = [zeros(1,num_pre_test) ones(1,num_post_test)]';
+f_test = [pre_features(pre_test,:); post_features(post_test,:)];
+y_test = [zeros(num_pre_test,1); ones(num_post_test,1)];
 n_test = length(y_test);
 
 y_pred = make_prediction(w, f_test);
