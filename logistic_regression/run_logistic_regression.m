@@ -62,11 +62,16 @@ title(sprintf('Training: %d (pre) + %d (post) = %d examples',...
 % Show the fitted sigmoid function as function of feature value
 subplot(3,4,8);
 f_cont = linspace(f_range(1), f_range(2));
-z = w(1)*f_cont + w(2);
-h = sigmoid(z);
-plot(h, f_cont, 'k');
+h = sigmoid(w(1)*f_cont + w(2));
+
+pred_pre = (h < 0.5);
+pred_post = (h >= 0.5);
+
+plot(h(pred_pre), f_cont(pred_pre), 'b');
 hold on;
+plot(h(pred_post), f_cont(pred_post), 'r');
 plot(0.5, f_db, 'k.', 'MarkerSize', 12);
+plot([0 1], f_db*[1 1], 'k--');
 hold off;
 grid on;
 ylim(f_range);
