@@ -86,7 +86,7 @@ corr = y_pred == y_test;
 n_corr = sum(corr);
 test_acc = n_corr / n_test;
 
-subplot(3,1,3);
+subplot(3,4,[9 10 11]);
 draw_stem(x0(pre_test), pre_features(pre_test),...
           x1(post_test), post_features(post_test));
 hold on;
@@ -102,7 +102,7 @@ for k = 1:n_test
     else
         corr_color = 'r';
     end
-    rectangle('Position', [x_test(k)-0.5 f_range(1) 1 0.1*diff(f_range)],...
+    rectangle('Position', [x_test(k)-0.5 f_range(1) 1 0.05*diff(f_range)],...
               'FaceColor', corr_color);
 end
 
