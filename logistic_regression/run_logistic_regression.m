@@ -1,5 +1,9 @@
 function [pre_features, post_features] = run_logistic_regression(ds, cell_idx, modality)
 
+if nargin < 3
+    modality = 'mean_fluorescence';
+end
+
 trials = ds.get_switch_trials;
 
 pre_trials = trials.constant_pre;
