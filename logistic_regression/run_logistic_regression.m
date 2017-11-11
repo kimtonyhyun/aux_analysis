@@ -89,7 +89,6 @@ pred_post = (h >= 0.5);
 plot(h(pred_pre), f_cont(pred_pre), 'b');
 hold on;
 plot(h(pred_post), f_cont(pred_post), 'r');
-plot(0.5, f_db, 'k.', 'MarkerSize', 12);
 plot([0 1], f_db*[1 1], 'k--');
 % Show how the training data fall on the sigmoid
 h_train_pre = sigmoid(w(1)*f_train_pre + w(2));
@@ -101,8 +100,7 @@ grid on;
 ylim(f_range);
 xlim([0 1]);
 xlabel('P(post|x,w)');
-% ylabel(modality, 'Interpreter', 'none');
-title(sprintf('Sigmoid fit: Train acc = %.1f%%', train_acc*100));
+title(sprintf('Train acc = %.1f%%', train_acc*100));
 
 % Evaluate on training data
 %------------------------------------------------------------
