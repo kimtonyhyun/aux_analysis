@@ -27,10 +27,17 @@ tick_inds = x_range(1):5:x_range(end);
 
 % Draw all data
 %------------------------------------------------------------
-subplot(3,1,1);
+subplot(3,4,[1 2 3]);
 draw_stem(x0, pre_features, x1, post_features);
 title(sprintf('Cell %d: %d (pre) + %d (post) = %d examples',...
         cell_idx, num_pre, num_post, num_pre + num_post));
+
+subplot(3,4,4);
+grouping = false(num_pre+num_post,1); grouping(num_pre+1:end) = true;
+boxplot([pre_features; post_features], grouping);
+ylim(f_range);
+grid on;
+xticklabels({'Pre', 'Post'});
     
 % Select and show training data
 %------------------------------------------------------------
@@ -47,9 +54,17 @@ post_test = ~post_train;
 
 % Fit logistic regression to training data
 %------------------------------------------------------------
-f_train = [pre_features(pre_train,:); post_features(post_train,:)];
+f_train_pre = pre_features(pre_train,:);
+f_train_post = post_features(post_train,:);
+f_train = [f_train_pre; f_train_post];
 y_train = [zeros(num_pre_train,1); ones(num_post_train,1)]; % Note: 0 <==> Pre, 1 <==> Post
+n_train = length(y_train);
+
 w = fit_logistic_regression(f_train, y_train);
+
+% Evaluate training accuracy
+y_train_pred = make_prediction(w, f_train);
+train_acc = sum(y_train_pred == y_train) / n_train;
 
 % Decision boundary, for the special case of single feature
 f_db = -w(2)/w(1);
@@ -76,13 +91,18 @@ hold on;
 plot(h(pred_post), f_cont(pred_post), 'r');
 plot(0.5, f_db, 'k.', 'MarkerSize', 12);
 plot([0 1], f_db*[1 1], 'k--');
+% Show how the training data fall on the sigmoid
+h_train_pre = sigmoid(w(1)*f_train_pre + w(2));
+plot(h_train_pre, f_train_pre, 'b.');
+h_train_post = sigmoid(w(1)*f_train_post + w(2));
+plot(h_train_post, f_train_post, 'r.');
 hold off;
 grid on;
 ylim(f_range);
 xlim([0 1]);
-xlabel('P(y=1|x,w)');
-ylabel(modality, 'Interpreter', 'none');
-title('Sigmoid fit');
+xlabel('P(post|x,w)');
+% ylabel(modality, 'Interpreter', 'none');
+title(sprintf('Sigmoid fit: Train acc = %.1f%%', train_acc*100));
 
 % Evaluate on training data
 %------------------------------------------------------------
