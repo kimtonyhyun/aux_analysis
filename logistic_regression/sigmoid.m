@@ -1,3 +1,3 @@
-function s = sigmoid(z)
+function h = sigmoid(z)
 
-s = 1./(1+exp(-z));
+h = 1./(1+exp(-z));
