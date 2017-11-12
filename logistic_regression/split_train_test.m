@@ -1,4 +1,4 @@
-function [train, test] = split_train_test(pre_features, post_features, training_frac)
+function [train, test, inds] = split_train_test(pre_features, post_features, training_frac)
 % Split the data into training and testing sets at the desired training
 % fraction. Sample uniformly from PRE and POST examples.
 %
@@ -30,3 +30,8 @@ test = struct(...
     'X', [pre_features(pre_test,:); post_features(post_test,:)],...
     'y', [zeros(num_pre_test,1); ones(num_post_test,1)],...
     'n', num_pre_test + num_post_test);
+
+inds.pre.train = pre_train;
+inds.pre.test = pre_test;
+inds.post.train = post_train;
+inds.post.test = post_test;
