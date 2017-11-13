@@ -9,7 +9,7 @@ function w = fit_logistic_regression(f_train, y_train)
 [num_examples, num_features] = size(f_train);
 f = [f_train ones(num_examples,1)]; % Add bias term
 
-w0 = randn(1, num_features+1);
+w0 = 0.001*randn(1, num_features+1);
 cost_fun = @(w) cost(w, f, y_train);
 
 options = optimoptions('fminunc',...
@@ -17,7 +17,14 @@ options = optimoptions('fminunc',...
     'SpecifyObjectiveGradient', true,...
     'Display', 'off');
 
-w = fminunc(cost_fun, w0, options);
+try
+    w = fminunc(cost_fun, w0, options);
+catch e
+    % Dump info to console
+    e
+    w0
+    cost_fun(w0)
+end
 
 end % fit_logistic_regression
 

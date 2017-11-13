@@ -6,7 +6,7 @@ function test_scores = compute_logistic_test_scores(pre_features, post_features)
 %   post_features: [num_examples x num_features]
 %
 
-num_runs = 10;
+num_runs = 20;
 training_frac = 0.7;
 
 test_scores = zeros(num_runs,1);
