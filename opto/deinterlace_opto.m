@@ -1,6 +1,5 @@
 function [M, info] = deinterlace_opto(movie_source, sync_source)
 % TODO:
-%   - Clean up code into subfunctions (e.g. N-way deinterlace logic)
 %   - Line-level correction of the slave movie
 
 % Data format: [Time(s) FrameClk OptoEnabled]
@@ -55,15 +54,19 @@ for k = 1:num_segments
     
     num_composite_frames = size(frames,1);
     for m = 1:num_composite_frames
-        A1 = M(:,:,frames(m,1)); % Subfield 1, 3, 5
-        A2 = M(:,:,frames(m,2)); % Subfield 2, 4
+        A1 = M(:,:,frames(m,1));
+        A2 = M(:,:,frames(m,2));
         
         % Form composite image
+%         deint_lines = [103:204 307:408]; % N=5 subfields
+        deint_lines = [47:92 139:184 231:276 323:368 415:460]; % N=11
         Ac = A1;
-        Ac([103:204 307:408],:) = A2([103:204 307:408],:);
-        
+        Ac(deint_lines,:) = A2(deint_lines,:);
+    
         % Stick back into original movie
         M(:,:,frames(m,1)) = Ac;
         M(:,:,frames(m,2)) = Ac;
     end
 end
+
+end % deinterlace_opto
