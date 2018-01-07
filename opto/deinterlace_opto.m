@@ -1,37 +1,33 @@
-function [M, info] = deinterlace_opto(movie_source, sync_source)
+function [M, info] = deinterlace_opto(movie_source, varargin)
 % TODO:
 %   - Line-level correction of the slave movie
 
-% Data format: [Time(s) FrameClk OptoEnabled]
-%------------------------------------------------------------
-sync = csvread(sync_source, 1, 0); % Skip first line (header)
-num_rows = size(sync, 1);
-
-frame_clk_col = 2;
-opto_col = 3;
-
-% Detect opto frames
-%------------------------------------------------------------
-opto_frame = zeros(num_rows, 1); % Preallocate
-
-frame_idx = 0;
-frame = sync(1,frame_clk_col);
-for k = 2:num_rows
-    prev_frame = frame;
-    frame = sync(k,frame_clk_col);
-    if (~prev_frame && frame) % Positive edge
-        frame_idx = frame_idx + 1;
-        if sync(k,opto_col)
-            opto_frame(frame_idx) = 1;
+csv_source = '';
+laser_on = [];
+for i = 1:length(varargin)
+    vararg = varargin{i};
+    if ischar(vararg)
+        switch lower(vararg)
+            case 'csv' % Saleae CSV export
+                csv_source = varargin{i+1};
+            case {'laser', 'laser_on'} % Explicitly provide laser-on frames
+                laser_on = varargin{i+1};
         end
     end
 end
-opto_frame = opto_frame(1:frame_idx,:);
-laser_on = find(opto_frame)';
-opto_segments = frame_list_to_segments(laser_on);
 
+if isempty(laser_on)
+    if ~isempty(csv_source)
+        fprintf('Reading opto frames from CSV file (%s)...\n', csv_source);
+        laser_on = parse_saleae_csv(csv_source);
+    else
+        error('No opto frame source provided!');
+    end
+end
+
+movie_size = get_movie_info(movie_source);
 info.laser_on = laser_on;
-info.laser_off = setdiff(1:frame_idx, laser_on);
+info.laser_off = setdiff(1:movie_size(3), laser_on);
 
 % Load movie
 %------------------------------------------------------------
@@ -40,6 +36,7 @@ M = load_movie(movie_source);
 
 % Splice opto frames together
 %------------------------------------------------------------
+opto_segments = frame_list_to_segments(laser_on);
 num_segments = size(opto_segments,1);
 
 for k = 1:num_segments
@@ -70,3 +67,32 @@ for k = 1:num_segments
 end
 
 end % deinterlace_opto
+
+function laser_on = parse_saleae_csv(sync_source)
+    
+    % Data format: [Time(s) FrameClk OptoEnabled]
+    sync = csvread(sync_source, 1, 0); % Skip first line (header)
+    num_rows = size(sync, 1);
+
+    frame_clk_col = 2;
+    opto_col = 3;
+
+    % Detect opto frames
+    opto_frame = zeros(num_rows, 1); % Preallocate
+
+    frame_idx = 0;
+    frame = sync(1,frame_clk_col);
+    for k = 2:num_rows
+        prev_frame = frame;
+        frame = sync(k,frame_clk_col);
+        if (~prev_frame && frame) % Positive edge
+            frame_idx = frame_idx + 1;
+            if sync(k,opto_col)
+                opto_frame(frame_idx) = 1;
+            end
+        end
+    end
+    opto_frame = opto_frame(1:frame_idx,:);
+    laser_on = find(opto_frame)';
+
+end % parse_saelae_csv
