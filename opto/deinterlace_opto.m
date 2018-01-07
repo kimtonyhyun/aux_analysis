@@ -25,14 +25,21 @@ if isempty(laser_on)
     end
 end
 
-movie_size = get_movie_info(movie_source);
-info.laser_on = laser_on;
-info.laser_off = setdiff(1:movie_size(3), laser_on);
-
 % Load movie
 %------------------------------------------------------------
 fprintf('Loading movie...\n');
-M = load_movie(movie_source);
+[~, ~, ext] = fileparts(movie_source);
+switch lower(ext)
+    case '.hdf5'
+        M = load_movie(movie_source);
+    case '.tif'
+        M = load_scanimage_tif(movie_source);
+end
+
+num_frames = size(M,3);
+
+info.laser_on = laser_on;
+info.laser_off = setdiff(1:num_frames, laser_on);
 
 % Splice opto frames together
 %------------------------------------------------------------
