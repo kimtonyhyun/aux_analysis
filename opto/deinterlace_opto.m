@@ -1,9 +1,8 @@
 function [M, info] = deinterlace_opto(movie_source, varargin)
-% TODO:
-%   - Line-level correction of the slave movie
 
 csv_source = '';
 laser_on = [];
+lag = [];
 for i = 1:length(varargin)
     vararg = varargin{i};
     if ischar(vararg)
@@ -12,6 +11,8 @@ for i = 1:length(varargin)
                 csv_source = varargin{i+1};
             case {'laser', 'laser_on'} % Explicitly provide laser-on frames
                 laser_on = varargin{i+1};
+            case 'lag' % Explicitly account for frame lags
+                lag = varargin{i+1};
         end
     end
 end
@@ -58,14 +59,24 @@ for k = 1:num_segments
     
     num_composite_frames = size(frames,1);
     for m = 1:num_composite_frames
-        A1 = M(:,:,frames(m,1));
-        A2 = M(:,:,frames(m,2));
+        f1 = frames(m,1);
+        f2 = frames(m,2);
+        A1 = M(:,:,f1);
+        A2 = M(:,:,f2);
+        
+        % Compute line lags
+        lag1 = 0;
+        lag2 = 0;
+        if ~isempty(lag)
+            lag1 = lag(f1);
+            lag2 = lag(f2);
+        end
         
         % Form composite image
 %         deint_lines = [103:204 307:408]; % N=5 subfields
         deint_lines = [47:92 139:184 231:276 323:368 415:460]; % N=11
         Ac = A1;
-        Ac(deint_lines,:) = A2(deint_lines,:);
+        Ac(deint_lines - lag1,:) = A2(deint_lines - lag2,:);
     
         % Stick back into original movie
         M(:,:,frames(m,1)) = Ac;
