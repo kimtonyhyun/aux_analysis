@@ -8,10 +8,10 @@
 % Note: We need to offset 2 for: Matlab 1-indexing, and Time column
 master_frame_clock_col = 2 + 0; % Ch0
 master_line_clock_col = 2 + 1;
-slave_frame_clock_col = 2 + 4;
-slave_line_clock_col = 2 + 5;
+slave_frame_clock_col = 2 + 2;
+slave_line_clock_col = 2 + 3;
 
-sync_source = 'sync_full.csv';
+sync_source = 'lines.csv';
 sync = csvread(sync_source, 1, 0); % Skip first line (header)
 num_rows = size(sync, 1);
 

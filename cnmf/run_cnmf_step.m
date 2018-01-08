@@ -1,7 +1,7 @@
 clear;
 %% load file
 
-movie_source = 'cbl_nc_ti8_uc_zsc.hdf5';
+movie_source = 'cbl_deint_nc_ti8_uc_zsc.hdf5';
 Y = load_movie(movie_source);
 
 if ~isa(Y,'double');    Y = double(Y);  end         % convert to single
@@ -11,7 +11,7 @@ d = d1*d2;                                          % total number of pixels
 
 %% Set parameters
 
-K = 75;                                           % number of components to be found
+K = 100;                                           % number of components to be found
 tau = 7;                                          % std of gaussian kernel (size of neuron) 
 p = 2;                                            % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
 merge_thr = 1;                                  % merging threshold
@@ -35,9 +35,10 @@ Cn =  correlation_image(Y,8);
 
 %% fast initialization of spatial components using greedyROI and HALS
 tic;
+fprintf('%s: Begin initialization...\n', datestr(now));
 [A,C,b,f,center] = initialize_components(Y,K,tau,options,Pin);  % initialize
 t_init = toc;
-fprintf('Initialization took %.1f minutes\n', t_init / 60);
+fprintf('%s: Initialization took %.1f minutes\n', datestr(now), t_init / 60);
 
 % display centers of found components
 figure;imagesc(Cn);

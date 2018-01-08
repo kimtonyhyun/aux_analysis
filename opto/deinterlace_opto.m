@@ -42,6 +42,18 @@ num_frames = size(M,3);
 info.laser_on = laser_on;
 info.laser_off = setdiff(1:num_frames, laser_on);
 
+% Deinterlacing parameters for N=11
+%------------------------------------------------------------
+deint_segments = [47 92;
+                  139 184;
+                  231 276;
+                  323 368;
+                  415 460];
+buf = 0;
+deint_segments(:,1) = deint_segments(:,1)-buf;
+deint_segments(:,2) = deint_segments(:,2)+buf;
+deint_lines = frame_segments_to_list(deint_segments);
+
 % Splice opto frames together
 %------------------------------------------------------------
 opto_segments = frame_list_to_segments(laser_on);
@@ -68,13 +80,11 @@ for k = 1:num_segments
         lag1 = 0;
         lag2 = 0;
         if ~isempty(lag)
-            lag1 = lag(f1);
-            lag2 = lag(f2);
+            lag1 = max([0 lag(f1)]);
+            lag2 = max([0 lag(f2)]);
         end
         
         % Form composite image
-%         deint_lines = [103:204 307:408]; % N=5 subfields
-        deint_lines = [47:92 139:184 231:276 323:368 415:460]; % N=11
         Ac = A1;
         Ac(deint_lines - lag1,:) = A2(deint_lines - lag2,:);
     
