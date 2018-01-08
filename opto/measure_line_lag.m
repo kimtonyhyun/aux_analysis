@@ -1,21 +1,18 @@
-%% Load synchronization data
+function lag = measure_line_lag(lines_source)
 
-% Format:
-%   Ch0: Master frame clock
-%   Ch1: Master line clock
-%   Ch4: Slave frame clock
-%   Ch5: Slave line clock
+% Load synchronization data
 % Note: We need to offset 2 for: Matlab 1-indexing, and Time column
 master_frame_clock_col = 2 + 0; % Ch0
 master_line_clock_col = 2 + 1;
 slave_frame_clock_col = 2 + 2;
 slave_line_clock_col = 2 + 3;
 
-sync_source = 'lines.csv';
-sync = csvread(sync_source, 1, 0); % Skip first line (header)
+fprintf('%s: Reading from %s...\n', datestr(now), lines_source);
+sync = csvread(lines_source, 1, 0); % Skip first line (header)
 num_rows = size(sync, 1);
+fprintf('%s: Done!\n', datestr(now));
 
-%% Read through data
+% Read through data
 
 % Preallocate scratch pad
 % Format: [master_frame_count slave_frame_count slave_line_lag]
@@ -77,4 +74,4 @@ for k = 2:num_rows
     prev_slave_line_clk = slave_line_clk;
 end
 
-lag = lag(1:slave_frame_counter-1,:);
+lag = lag(1:slave_frame_counter-1,3);
