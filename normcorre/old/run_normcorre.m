@@ -19,7 +19,8 @@ switch lower(ext)
         [movie_size, ~] = get_dataset_info(movie_in, '/Data/Images');
 end
 
-options_nonrigid = NoRMCorreSetParms('d1',movie_size(1),'d2',movie_size(2),...
+% Non-rigid settings
+options = NoRMCorreSetParms('d1',movie_size(1),'d2',movie_size(2),...
                     'grid_size',2*[64,64],...
                     'mot_uf',4,'bin_width',50,...
                     'max_shift',50,'max_dev',3,'us_fac',50,...
@@ -36,6 +37,15 @@ options_nonrigid = NoRMCorreSetParms('d1',movie_size(1),'d2',movie_size(2),...
 %                     'h5_groupname', 'Data/Images',...
 %                     'h5_filename', movie_out);
 tic;
-[~, shifts] = normcorre_batch(movie_in, options_nonrigid);
+[~, shifts] = normcorre_batch(movie_in, options);
 t = toc;
 fprintf('run_normcorre: Finished in %.1f minutes!\n', t/60);
+
+% Save correction parameters to a separate file
+info.movie_in = movie_in;
+info.movie_out = movie_out;
+info.nc_options = options;
+info.nc_runtime = t;
+
+save_name = sprintf('%s_nc.mat', name);
+save(save_name, 'info', 'shifts', '-v7.3');
