@@ -1,7 +1,7 @@
 clear;
 %% load file
 
-movie_source = 'cbl_nc_ti8_uc_zsc.hdf5';
+movie_source = 'ctx_nc_uc_ti8_zsc.hdf5';
 Y = load_movie(movie_source);
 
 if ~isa(Y,'double');    Y = double(Y);  end         % convert to single
@@ -35,9 +35,10 @@ Cn =  correlation_image(Y,8);
 
 %% fast initialization of spatial components using greedyROI and HALS
 tic;
+fprintf('%s: Begin initialization...\n', datestr(now));
 [A,C,b,f,center] = initialize_components(Y,K,tau,options,Pin);  % initialize
 t_init = toc;
-fprintf('Initialization took %.1f minutes\n', t_init / 60);
+fprintf('%s: Initialization took %.1f minutes\n', datestr(now), t_init / 60);
 
 % display centers of found components
 figure;imagesc(Cn);
