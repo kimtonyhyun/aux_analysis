@@ -1,7 +1,7 @@
 clear;
 %% load file
 
-movie_source = 'ctx_nc_uc_ti8_zsc.hdf5';
+movie_source = 'cbl_nc_uc_ti8_zsc.hdf5';
 Y = load_movie(movie_source);
 
 if ~isa(Y,'double');    Y = double(Y);  end         % convert to single
@@ -11,7 +11,7 @@ d = d1*d2;                                          % total number of pixels
 
 %% Set parameters
 
-K = 75;                                           % number of components to be found
+K = 80;                                           % number of components to be found
 tau = 7;                                          % std of gaussian kernel (size of neuron) 
 p = 2;                                            % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
 merge_thr = 1;                                  % merging threshold
@@ -73,6 +73,6 @@ if exist('poi', 'var')
     end
     center = fliplr(center);
     tau = options.gSig;
-    [A, C] = manually_refine_components2(Y,A,C,center,Cn,tau,options,poi);
+    [A, C] = manually_refine_components2(Y,A,C,center,Cn,tau,options,poi(:,1:2));
 end
 clear poi;

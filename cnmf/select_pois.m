@@ -12,9 +12,10 @@ function h = select_pois(Cn, ds, old_pois)
 figure;
 h = imagesc(Cn);
 axis image;
+% colormap gray;
 hold on;
 plot_boundaries_with_transform(ds, 'g');
-plot(old_pois(:,1), old_pois(:,2), 'm*', 'HitTest', 'off');
+plot(old_pois(:,1), old_pois(:,2), 'r*', 'HitTest', 'off');
 
 set(h, 'ButtonDownFcn', @add_poi);
 
@@ -24,7 +25,7 @@ function add_poi(h, e)
     coord = e.IntersectionPoint(1:2);
     
     % Provide immediate visual feedback
-    plot(coord(1), coord(2), 'r*');
+    plot(coord(1), coord(2), 'm*');
     
     % Add to persistent list
     h.UserData = [h.UserData; coord];
