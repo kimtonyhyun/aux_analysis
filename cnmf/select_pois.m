@@ -4,10 +4,13 @@ function h = select_pois(Cn, ds, old_pois)
 % responsive than Matlab's built-in 'ginput'.
 %
 % Retrieve selected POIs via:
-%   h.UserData
+%   pois = h.UserData
 % Note that h is handle to the figure, and hence its property needs to be
 % retrieved before the figure is closed!
 %
+if (nargin < 3)
+    old_pois = [];
+end
 
 figure;
 h = imagesc(Cn);
@@ -15,7 +18,9 @@ axis image;
 % colormap gray;
 hold on;
 plot_boundaries_with_transform(ds, 'g');
-plot(old_pois(:,1), old_pois(:,2), 'r*', 'HitTest', 'off');
+if ~isempty(old_pois)
+    plot(old_pois(:,1), old_pois(:,2), 'r*', 'HitTest', 'off');
+end
 
 set(h, 'ButtonDownFcn', @add_poi);
 

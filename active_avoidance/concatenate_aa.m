@@ -50,7 +50,7 @@ subplot(223); imagesc(A3); axis image; title('Slice 3');
 subplot(224); imagesc(A4); axis image; title('Slice 4');
 
 %% Save sub-movies to file
-stem = 'f761-0908-tdt';
+stem = 'f761-0909-tdt';
 
 % save_movie_to_hdf5(M(:,:,1:4:end), sprintf('%s-sl1.hdf5', stem));
 save_movie_to_hdf5(M(:,:,2:4:end), sprintf('%s-sl2.hdf5', stem));
