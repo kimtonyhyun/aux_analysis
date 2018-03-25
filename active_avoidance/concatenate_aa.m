@@ -21,6 +21,31 @@ end
 
 clear filename idx k M_baseline M_trial;
 
+%% Shock response sessions
+
+% Expected number of frames:
+%   - 8000 baseline frames prior to trials
+%   - i=0.1 mA: 600 frames per trial, 10 trials
+%   - i=0.3 mA: 600 frames per trial, 10 trials
+%   - i=0.5 mA: 600 frames per trial, 10 trials
+M = zeros(512,512,8000+600*10*3,'int16');
+
+M_baseline = load_scanimage_tif('baseline_00001.tif');
+M(:,:,1:8000) = M_baseline;
+
+shockdirs = {'i0-1', 'i0-3', 'i0-5'};
+idx = 8001;
+for m = 1:3
+    shockdir = shockdirs{m};
+    for k = 1:10
+        fprintf('Loading %s, Trial %d...\n', shockdir, k);
+        filename = sprintf('%s\\trial_%05d.tif', shockdir, k);
+        M_trial = load_scanimage_tif(filename);
+        M(:,:,idx:(idx+599)) = M_trial;
+        idx = idx + 600;
+    end
+end
+
 %% Alternatively, load tdTomato data
 M = load_scanimage_tif('tdt_00001.tif');
 
@@ -50,9 +75,9 @@ subplot(223); imagesc(A3); axis image; title('Slice 3');
 subplot(224); imagesc(A4); axis image; title('Slice 4');
 
 %% Save sub-movies to file
-stem = 'f761-0909-tdt';
+stem = 'm761-1019';
 
-% save_movie_to_hdf5(M(:,:,1:4:end), sprintf('%s-sl1.hdf5', stem));
+save_movie_to_hdf5(M(:,:,1:4:end), sprintf('%s-sl1.hdf5', stem));
 save_movie_to_hdf5(M(:,:,2:4:end), sprintf('%s-sl2.hdf5', stem));
 save_movie_to_hdf5(M(:,:,3:4:end), sprintf('%s-sl3.hdf5', stem));
-save_movie_to_hdf5(M(:,:,4:4:end), sprintf('%s-sl4.hdf5', stem));
+% save_movie_to_hdf5(M(:,:,4:4:end), sprintf('%s-sl4.hdf5', stem));

@@ -1,6 +1,6 @@
-stem = 'f761-0909-tdt';
+stem = 'f761-1019';
 
-slices = [2 3 4];
+slices = [1 2 3];
 num_slices = length(slices);
 
 for sl = slices
