@@ -49,10 +49,8 @@ deint_segments = [48 94;
                   232 278;
                   324 370;
                   416 462];
-% buf = 0; % Experimental! Modify with caution!
-% deint_segments(:,1) = deint_segments(:,1)-buf;
-% deint_segments(:,2) = deint_segments(:,2)+buf;
 deint_lines = frame_segments_to_list(deint_segments);
+info.deint_segments = deint_segments;
 
 % Splice opto frames together
 %------------------------------------------------------------
