@@ -35,11 +35,13 @@ switch lower(ext)
 end
 
 % Some common parameters
-max_shift = 100;
+max_shift = 50;
 
 if use_nonrigid
     % Non-rigid settings
     grid_size = 2*[64, 64];
+    fprintf('%s: Nonrigid NC grid size is [%d %d] px, with max shift of %d px\n',...
+        movie_in, grid_size(1), grid_size(2), max_shift);
     options = NoRMCorreSetParms('d1',movie_size(1),'d2',movie_size(2),...
                         'grid_size',grid_size,...
                         'mot_uf',4,'bin_width',50,...
