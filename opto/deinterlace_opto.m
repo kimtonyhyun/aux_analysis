@@ -44,11 +44,12 @@ info.laser_off = setdiff(1:num_frames, laser_on);
 
 % Deinterlacing parameters for N=11
 %------------------------------------------------------------
-deint_segments = [48 94;
-                  140 186;
-                  232 278;
-                  324 370;
-                  416 462];
+deint_segments = [48 93;
+                  140 185;
+                  232 277;
+                  324 369;
+                  416 461];
+
 deint_lines = frame_segments_to_list(deint_segments);
 info.deint_segments = deint_segments;
 
