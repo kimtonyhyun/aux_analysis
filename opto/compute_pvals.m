@@ -6,10 +6,10 @@ pvals = zeros(num_cells, 1);
 num_events = zeros(num_cells, 1);
 
 for k = 1:num_cells
-    event_peaks = events(k).auto(:,2);
-    num_events(k) = length(event_peaks);
+    events = ds.get_events_full(k);
+    num_events(k) = size(events,1);
     
-    [p1, p2] = count_opto_events(event_peaks, laser_on, laser_off);
+    [p1, p2] = count_opto_events(events(:,2), laser_on, laser_off);
     pvals(k) = min([p1, p2]);
 end
 
