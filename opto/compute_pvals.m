@@ -13,7 +13,6 @@ for k = 1:num_cells
     pvals(k) = min([p1, p2]);
 end
 
-%% Sort by p-value
-
+% Sort by p-value
 [sorted_pvals, sorted_inds] = sort(pvals);
 stats = [sorted_pvals, sorted_inds, num_events(sorted_inds)];

@@ -4,6 +4,8 @@ function plot_opto_cell(ds, cell_indices, laser_off, laser_on)
 % events.
 
 num_cells = length(cell_indices);
+num_events_per_cell = zeros(num_cells,2); % [Laser-off Laser-on]
+
 for j = 1:num_cells
     cell_idx = cell_indices(j);
     
@@ -12,7 +14,6 @@ for j = 1:num_cells
     M = max(trace);
     trace = (trace-m)/(M-m); % Normalize to [0 1]
     
-    hold on;
     trace_offset = j-1;
     plot_opto_trace(trace+trace_offset, laser_off, laser_on);
 
@@ -22,22 +23,30 @@ for j = 1:num_cells
 
         laser_off_events = intersect(laser_off, event_times);
         laser_on_events = intersect(laser_on, event_times);
-
+        
         hold on;
         y_offset = trace_offset + 0.05;
         plot(laser_off_events, trace(laser_off_events) + y_offset, 'k*');
         plot(laser_on_events, trace(laser_on_events) + y_offset, 'r*');
         
-        if (num_cells == 1)
-            % Provide extra diagnostics if only one cell is plotted
-            num_laser_off_events = length(laser_off_events);
-            num_laser_on_events = length(laser_on_events);
-            title(sprintf('Cell %d events: %d (laser OFF) vs. %d (laser ON)',...
-                cell_idx, num_laser_off_events, num_laser_on_events));
-        end
+        num_events_per_cell(j,1) = length(laser_off_events);
+        num_events_per_cell(j,2) = length(laser_on_events);
     end
 end
+
+% Formatting
+if num_cells > 1
+    grid off;
+end
+xticks([]);
 xlabel('Frame');
-ylabel('Fluorescence (norm.)');
-ylim([0 num_cells]);
+% ylabel('Fluorescence (norm.)');
+ylim([-0.5 num_cells+0.5]);
+yticks(0:(num_cells-1));
+cell_labels = cell(1, num_cells);
+for k = 1:num_cells
+    cell_labels{k} = sprintf('Cell %d (Evt off/on: %d/%d)',...
+        cell_indices(k), num_events_per_cell(k,1), num_events_per_cell(k,2));
+end
+yticklabels(cell_labels);
 hold off;
