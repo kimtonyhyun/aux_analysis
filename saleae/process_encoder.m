@@ -4,9 +4,18 @@ counter = count_enc_position(saleae_file, encA_ch, encB_ch);
 frame_clk = find_edges(saleae_file, frame_clk_ch);
 
 % Interpolate position at frame clock times
-pos = interp1(counter(:,1), counter(:,2), frame_clk);
+%------------------------------------------------------------
+dt = 1; % Used for velocity estimation
 
-dt = 1;
+% A quirk of Matlab's 'interp1' is that if the query point Xq is out of
+% range of the observed X, then interpolation returns NaN. Below, we pad
+% X so that the range always contains Xq.
+max_frame_time = max(frame_clk);
+if (max_frame_time > counter(end,1))
+    counter = [counter; max_frame_time+dt+1 counter(end,2)];
+end
+
+pos = interp1(counter(:,1), counter(:,2), frame_clk);
 pos_next = interp1(counter(:,1), counter(:,2), frame_clk + dt);
 pos_prev = interp1(counter(:,1), counter(:,2), frame_clk - dt);
 
