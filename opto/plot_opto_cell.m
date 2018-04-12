@@ -39,7 +39,7 @@ if num_cells > 1
     grid off;
 end
 xticks([]);
-xlabel('Frame');
+xlabel(sprintf('Frame (%d total)', length(trace)));
 % ylabel('Fluorescence (norm.)');
 ylim([-0.5 num_cells+0.5]);
 yticks(0:(num_cells-1));
