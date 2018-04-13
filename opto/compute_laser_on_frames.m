@@ -1,4 +1,4 @@
-function [laser_on, laser_off] = compute_laser_on_frames(saleae_file, frame_clk_col, opto_en_col)
+function [laser_off, laser_on] = compute_laser_on_frames(saleae_file, frame_clk_col, opto_en_col)
 % Compute a list of laser-on frames based on Saleae export
 
 data = csvread(saleae_file);
