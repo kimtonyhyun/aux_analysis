@@ -16,7 +16,8 @@ for j = 1:num_cells
     
     trace_offset = j-1;
     plot_opto_trace(trace+trace_offset, laser_off, laser_on);
-
+    hold on;
+    
     if ds.is_eventdata_loaded
         events = ds.get_events_full(cell_idx);
         event_times = events(:,2); % Note: using peak frames
@@ -24,7 +25,6 @@ for j = 1:num_cells
         laser_off_events = intersect(laser_off, event_times);
         laser_on_events = intersect(laser_on, event_times);
         
-        hold on;
         y_offset = trace_offset + 0.05;
         plot(laser_off_events, trace(laser_off_events) + y_offset, 'k*');
         plot(laser_on_events, trace(laser_on_events) + y_offset, 'r*');
