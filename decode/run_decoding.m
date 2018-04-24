@@ -1,41 +1,41 @@
 clear;
 
-%%
+%% Load data
+
 sources = data_sources;
 
 ds_prl = DaySummary(sources, 'prl_cm01_fix');
 ds_hpc = DaySummary(sources, 'hpc_cm01_fix');
 
-%%
-trials = ds_prl.filter_trials('start', 'west');
-trial_inds = find(trials);
-target = {ds_prl.trials.end};
-fill_type = 'traces';
+%% Decoder params
 
 pos = 0.1:0.1:0.9;
 
-l1_reg = 0.1;
-alg = my_algs('linsvm', l1_reg);
+% - traces: Raw fluorescence trace
+% - copy: Trace value if event, 0 if no event
+% - copy_zeroed:
+% - box: Event amplitude if event, 0 if no event (acausal)
+% - binary: 1 if event, 0 if no event (acausal)
+fill_type = 'traces';
+
+alg = my_algs('linsvm', 0.1); % L1 reg
 num_runs = 512;
 
-%%
-fprintf('Decoding PrL neurons (N=%d)...\n', ds_prl.num_classified_cells);
-[prl_test_error, prl_train_error] = decode_end(alg, ds_prl, pos, trials, fill_type, num_runs);
+%% END decode
 
-%%
+trials = ds_prl.filter_trials('start', 'west'); % Select changing path
+trial_inds = find(trials);
+target = {ds_prl.trials.end};
+
+fprintf('Decoding PrL neurons (N=%d)...\n', ds_prl.num_classified_cells);
+[prl_test_error, prl_train_error, baseline_error] = decode_end(alg, ds_prl, pos, trials, fill_type, num_runs);
+
 fprintf('Decoding HPC neurons (N=%d) ...\n', ds_hpc.num_classified_cells);
 [hpc_test_error, hpc_train_error] = decode_end(alg, ds_hpc, pos, trials, fill_type, num_runs);
 
-%% Baseline performance by guessing one outcome
-trial_targets = target(trials);
-north_end_trials = strcmp(trial_targets, 'north');
-north_frac = sum(north_end_trials)/sum(trials);
+%% END decode visualization
 
-baseline_perf = min(north_frac, 1-north_frac);
-
-%%
-
-plot(pos([1 end]), baseline_perf*[1 1], 'k--');
+plot(pos([1 end]), baseline_error*[1 1], 'k--');
 hold on;
 errorbar(pos, prl_test_error(:,1), prl_test_error(:,2)/sqrt(num_runs), 'b');
 errorbar(pos, prl_train_error(:,1), prl_train_error(:,2)/sqrt(num_runs), 'b--');
@@ -51,6 +51,39 @@ legend('Baseline', 'PRL (test)', 'PRL (train)',...
        'HPC (test)', 'HPC (train)',...
        'Location', 'NorthEast');
 title(sprintf('c14m6d10 End arm decoding (fill=%s, alg=%s)',...
+    strrep(fill_type,'_','\_'), alg.name));
+
+%% ERROR decode
+
+% trials = ds_prl.filter_trials('start', 'west', 'end', 'north');
+trials = true(1, ds_prl.num_trials);
+trial_inds = find(trials);
+target = ~cell2mat({ds_prl.trials.correct});
+
+fprintf('Decoding PrL neurons (N=%d)...\n', ds_prl.num_classified_cells);
+[prl_test_error, prl_train_error, info] = decode_error(alg, ds_prl, pos, trials, fill_type, num_runs);
+
+fprintf('Decoding HPC neurons (N=%d) ...\n', ds_hpc.num_classified_cells);
+[hpc_test_error, hpc_train_error] = decode_error(alg, ds_hpc, pos, trials, fill_type, num_runs);
+
+%% ERROR decode visualization
+
+plot(pos([1 end]), info.baseline_error*[1 1], 'k--');
+hold on;
+errorbar(pos, prl_test_error(:,1), prl_test_error(:,2)/sqrt(num_runs), 'b');
+errorbar(pos, prl_train_error(:,1), prl_train_error(:,2)/sqrt(num_runs), 'b--');
+errorbar(pos, hpc_test_error(:,1), hpc_test_error(:,2)/sqrt(num_runs), 'r');
+errorbar(pos, hpc_train_error(:,1), hpc_train_error(:,2)/sqrt(num_runs), 'r--');
+hold off;
+xlim([0 1]);
+ylim([0 0.5]);
+grid on;
+xlabel('Position in trial (normalized');
+ylabel('Decoder error (mean \pm s.e.m.)');
+legend('Baseline', 'PRL (test)', 'PRL (train)',...
+       'HPC (test)', 'HPC (train)',...
+       'Location', 'NorthWest');
+title(sprintf('c14m6d10 Incorrect trial decoding (fill=%s, alg=%s)',...
     strrep(fill_type,'_','\_'), alg.name));
 
 %% Evaluate a specific position in detail

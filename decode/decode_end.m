@@ -1,4 +1,4 @@
-function [test_error, train_error] = decode_end(alg, ds, positions, trials, fill_type, num_runs)
+function [test_error, train_error, baseline_error] = decode_end(alg, ds, positions, trials, fill_type, num_runs)
 
 num_pos = length(positions);
 target = {ds.trials.end};
@@ -22,3 +22,9 @@ for k = 1:num_pos
     train_error(k,:) = [mean(tr) std(tr)];
     test_error(k,:) = [mean(te) std(te)];
 end
+
+% Baseline error by guessing one outcome
+north_end_trials = strcmp(target(trials), 'north');
+north_frac = sum(north_end_trials)/sum(trials);
+
+baseline_error = min(north_frac, 1-north_frac);
