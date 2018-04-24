@@ -16,7 +16,7 @@ pos = 0.1:0.1:0.9;
 % - copy_zeroed:
 % - box: Event amplitude if event, 0 if no event (acausal)
 % - binary: 1 if event, 0 if no event (acausal)
-fill_type = 'traces';
+fill_type = 'copy_zeroed';
 
 alg = my_algs('linsvm', 0.1); % L1 reg
 num_runs = 512;
@@ -56,7 +56,7 @@ title(sprintf('c14m6d10 End arm decoding (fill=%s, alg=%s)',...
 %% ERROR decode
 
 % trials = ds_prl.filter_trials('start', 'west', 'end', 'north');
-trials = true(1, ds_prl.num_trials);
+trials = ds_prl.filter_trials();
 trial_inds = find(trials);
 target = ~cell2mat({ds_prl.trials.correct});
 
