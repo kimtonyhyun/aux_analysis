@@ -1,6 +1,7 @@
-function [test_error, train_error] = decode_end(alg, ds, positions, trials, target, fill_type, num_runs)
+function [test_error, train_error] = decode_end(alg, ds, positions, trials, fill_type, num_runs)
 
 num_pos = length(positions);
+target = {ds.trials.end};
 
 train_error = zeros(num_pos,2); % Format: [mean std]
 test_error = zeros(num_pos,2);

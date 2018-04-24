@@ -8,6 +8,7 @@ ds_hpc = DaySummary(sources, 'hpc_cm01_fix');
 
 %%
 trials = ds_prl.filter_trials('start', 'west');
+trial_inds = find(trials);
 target = {ds_prl.trials.end};
 fill_type = 'traces';
 
@@ -19,11 +20,11 @@ num_runs = 512;
 
 %%
 fprintf('Decoding PrL neurons (N=%d)...\n', ds_prl.num_classified_cells);
-[prl_test_error, prl_train_error] = decode_end(alg, ds_prl, pos, trials, target, fill_type, num_runs);
+[prl_test_error, prl_train_error] = decode_end(alg, ds_prl, pos, trials, fill_type, num_runs);
 
 %%
 fprintf('Decoding HPC neurons (N=%d) ...\n', ds_hpc.num_classified_cells);
-[hpc_test_error, hpc_train_error] = decode_end(alg, ds_hpc, pos, trials, target, fill_type, num_runs);
+[hpc_test_error, hpc_train_error] = decode_end(alg, ds_hpc, pos, trials, fill_type, num_runs);
 
 %% Baseline performance by guessing one outcome
 trial_targets = target(trials);
@@ -53,9 +54,10 @@ title(sprintf('c14m6d10 End arm decoding (fill=%s, alg=%s)',...
     strrep(fill_type,'_','\_'), alg.name));
 
 %% Evaluate a specific position in detail
-position_to_eval = 1.0;
+ds = ds_prl;
+position_to_eval = 0.3;
 
-[X, ks, ~, sampled_frames] = ds_dataset(ds_prl,...
+[X, ks, ~, sampled_frames] = ds_dataset(ds,...
     'selection', position_to_eval,...
     'filling', fill_type,...
     'trials', trials,...
@@ -63,11 +65,10 @@ position_to_eval = 1.0;
 
 sampled_frames = sampled_frames(trials);
 
-%%
-trial_inds = find(trials);
+%% Display mouse position
 
 figure;
-imagesc(ds_prl.get_behavior_trial_frame(trial_inds(1), sampled_frames(1)));
+imagesc(ds.get_behavior_trial_frame(trial_inds(1), sampled_frames(1)));
 axis image;
 colormap gray;
 hold on;
@@ -75,8 +76,8 @@ hold on;
 for k = 1:length(trial_inds)
     trial_ind = trial_inds(k);
     sampled_frame = sampled_frames(k);
-    centroid = ds_prl.trials(trial_ind).centroids(sampled_frame,:);
-    if strcmp(ds_prl.trials(trial_ind).end, 'north')
+    centroid = ds.trials(trial_ind).centroids(sampled_frame,:);
+    if strcmp(ds.trials(trial_ind).end, 'north')
         color = 'r';
     else
         color = 'y';
@@ -84,3 +85,59 @@ for k = 1:length(trial_inds)
     plot(centroid(1), centroid(2), '.', 'Color', color);
 end
 title(sprintf('c14m6d10 Actual positions for x=%.2f', position_to_eval));
+
+%% Show traces aligned to position
+num_cells = ds.num_classified_cells;
+c = 1:num_cells;
+
+X2 = zeros(75, num_cells);
+
+for k = 1:75
+    trial_idx = trial_inds(k);
+    trial_target = trial_targets{k};
+    sampled_frame = sampled_frames(k);
+
+    traces = ds.get_trial(trial_idx,'norm');
+    traces_pos = traces(:,sampled_frame);
+    num_frames = size(traces,2);
+    t = (1:num_frames)-sampled_frame;
+    
+    X2(k,:) = traces_pos';
+    
+    % % Sort cells by amplitude
+    % [traces_pos, sort_inds] = sort(traces_pos, 'descend');
+    % traces = traces(sort_inds,:);
+
+    subplot(1,3,[1 2]);
+    surf(t,c,traces);
+    hold on;
+    plot3(zeros(1,num_cells), c, traces_pos, 'k');
+    hold off;
+    shading interp;
+    xlabel(sprintf('Frame (aligned to pos=%.2f)', position_to_eval));
+    ylabel('Cell');
+    zlabel('Fluorescence (norm)');
+    title(sprintf('Trial %d - %s end', trial_idx, trial_target));
+    xlim([-100 100]);
+    ylim([1 num_cells]);
+    set(gca,'YDir','Reverse');
+    view([-8 86]);
+
+    subplot(1,3,3);
+    if strcmp(trial_target, 'north')
+        color = 'r';
+    else
+        color = 'b';
+    end
+    plot(traces_pos,c,'.-','Color',color);
+    xlim([0 1]);
+    ylim([1 num_cells]);
+    set(gca,'YDir','Reverse');
+    grid on;
+    xlabel('Fluorescence');
+    ylabel('Cell');
+    title(sprintf('F@pos=%.2f', position_to_eval));
+    
+    drawnow;
+%     print('-dpng',sprintf('c14m6d10-trial%03d.png', trial_idx));
+end
