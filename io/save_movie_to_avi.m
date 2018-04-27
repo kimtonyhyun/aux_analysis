@@ -5,7 +5,7 @@ switch class(M)
         scale = [0 0.9*max(M(:))];
     case {'single'}
 %         scale = compute_movie_scale(M);
-        scale = [0 7/8*4096];
+        scale = [0 3500];
 end
 
 writerObj = VideoWriter('out.avi', 'Uncompressed AVI');
