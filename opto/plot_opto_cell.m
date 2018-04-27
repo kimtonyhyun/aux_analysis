@@ -9,10 +9,7 @@ num_events_per_cell = zeros(num_cells,2); % [Laser-off Laser-on]
 for j = 1:num_cells
     cell_idx = cell_indices(j);
     
-    trace = ds.get_trace(cell_idx);
-    m = min(trace);
-    M = max(trace);
-    trace = (trace-m)/(M-m); % Normalize to [0 1]
+    trace = ds.get_trace(cell_idx, 'norm');
     
     trace_offset = j-1;
     plot_opto_trace(trace+trace_offset, laser_off, laser_on);
