@@ -3,8 +3,17 @@ function plot_opto_cell(ds, cell_indices, laser_off, laser_on)
 % trace itself. The use of DS allows for additional visualization, e.g.
 % events.
 
+if ~iscell(laser_on) % Allow for "multiple" lasers
+    laser_on = {laser_on};
+end
+
+laser_colors = 'rmg';
+num_lasers = length(laser_on);
+
+cell_indices = flip(cell_indices); % Minor convenience
+
 num_cells = length(cell_indices);
-num_events_per_cell = zeros(num_cells,2); % [Laser-off Laser-on]
+num_events_per_cell = zeros(num_cells,1+num_lasers); % [Laser-off Laser-on]
 
 for j = 1:num_cells
     cell_idx = cell_indices(j);
@@ -19,15 +28,18 @@ for j = 1:num_cells
         events = ds.get_events_full(cell_idx);
         event_times = events(:,2); % Note: using peak frames
 
-        laser_off_events = intersect(laser_off, event_times);
-        laser_on_events = intersect(laser_on, event_times);
-        
         y_offset = trace_offset + 0.05;
-        plot(laser_off_events, trace(laser_off_events) + y_offset, 'k*');
-        plot(laser_on_events, trace(laser_on_events) + y_offset, 'r*');
         
+        laser_off_events = intersect(event_times, laser_off);
+        plot(laser_off_events, trace(laser_off_events) + y_offset, 'k.');
         num_events_per_cell(j,1) = length(laser_off_events);
-        num_events_per_cell(j,2) = length(laser_on_events);
+        
+        for l = 1:num_lasers
+            laser_on_events = intersect(event_times, laser_on{l});
+            plot(laser_on_events, trace(laser_on_events) + y_offset,...
+                 '.', 'Color', laser_colors(l));      
+            num_events_per_cell(j,1+l) = length(laser_on_events);
+        end
     end
 end
 
@@ -37,13 +49,13 @@ if num_cells > 1
 end
 xticks([]);
 xlabel(sprintf('Frame (%d total)', length(trace)));
-% ylabel('Fluorescence (norm.)');
 ylim([-0.5 num_cells+0.5]);
 yticks(0:(num_cells-1));
 cell_labels = cell(1, num_cells);
 for k = 1:num_cells
-    cell_labels{k} = sprintf('Cell %d (Evt off/on: %d/%d)',...
-        cell_indices(k), num_events_per_cell(k,1), num_events_per_cell(k,2));
+    event_str = sprintf('%d/', num_events_per_cell(k,:));
+    cell_labels{k} = sprintf('Cell %d (Evts: %s)',...
+        cell_indices(k), event_str(1:end-1));
 end
 yticklabels(cell_labels);
 hold off;
