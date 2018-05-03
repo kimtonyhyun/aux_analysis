@@ -1,4 +1,4 @@
-function trial_inds = find_opto_trials(saleae_file)
+function [trial_inds, num_trials] = find_opto_trials(saleae_file)
 % Returns logical vectors indicating whether the trial was
 % a real/sham opto trial or non-opto trial.
 %
@@ -37,4 +37,4 @@ end
 
 trial_inds.real = realopto_trials;
 trial_inds.sham = shamopto_trials;
-trial_inds.none = ~(realopto_trials | shamopto_trials);
+trial_inds.off = ~(realopto_trials | shamopto_trials);
