@@ -5,13 +5,17 @@ function trial_inds = find_opto_trials(saleae_file)
 % Makes use of the fact that the shutter TTL slightly lags
 % the trial clock transitions.
 
-trials = find_pulses(saleae_file, 3); % Ch 3
+real_shutter_ch = 0;
+sham_shutter_ch = 1;
+trial_clk_ch = 2;
+
+trials = find_pulses(saleae_file, trial_clk_ch);
 num_trials = size(trials,1);
 
-realopto_edges = find_edges(saleae_file, 0);
+realopto_edges = find_edges(saleae_file, real_shutter_ch);
 num_realopto = size(realopto_edges, 1);
 
-shamopto_edges = find_edges(saleae_file, 1);
+shamopto_edges = find_edges(saleae_file, sham_shutter_ch);
 num_shamopto = size(shamopto_edges, 1);
 
 fprintf('Found %d trials total, of which:\n', num_trials);

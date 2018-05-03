@@ -25,10 +25,17 @@ trials = ds.filter_trials('start', 'west'); % Changing path
 
 %% Look at example decoder weights
 bs = zeros(ds.num_cells, num_runs);
+num_zero_weights = zeros(1, num_runs);
+num_nonzero_weights = zeros(1, num_runs);
+eps = 1e-4;
+
 for k = 1:num_runs
     b = info.models{k}.Beta;
-%     bs(:,k) = b/norm(b);
     bs(:,k) = b;
+    
+    max_b = max(abs(b));
+    num_zero_weights(k) = sum(abs(b)<eps*max_b);
+    num_nonzero_weights(k) = ds.num_cells - num_zero_weights(k);
 end
 
 %%
