@@ -1,5 +1,6 @@
-function [p1, p2] = count_opto_events(events, laser_off, laser_on)
+function [p_lower, p_upper] = count_opto_events(events, laser_off, laser_on)
 
+% Count the number of events during laser off and laser on periods
 num_events = length(events);
 is_opto_event = zeros(num_events,1);
 
@@ -11,17 +12,29 @@ end
 num_opto_events = sum(is_opto_event);
 num_nonopto_events = num_events - num_opto_events;
 
+% Test whether the distribution of events between laser off and laser on
+% periods is statistically anomalous. The null hypothesis is that the
+% laser status has no influence on event distribution
 opto_frac = length(laser_on)/(length(laser_on)+length(laser_off));
-p1 = binocdf(num_opto_events, num_events, opto_frac);
-p2 = binocdf(num_opto_events, num_events, opto_frac, 'upper');
+
+% Under the null hypothesis, we expect the number of opto events to be
+% proportional to the amount of time the laser was on
+expected_num_opto_events = opto_frac * num_events; % Under null hypothesis
+p_lower = poisscdf(num_opto_events, expected_num_opto_events);
+p_upper = poisscdf(num_opto_events, expected_num_opto_events, 'upper');
+
+% Old scheme, where the logic was to assign each observed event to laser
+% off or laser on periods
+% p_lower = binocdf(num_opto_events, num_events, opto_frac);
+% p_upper = binocdf(num_opto_events, num_events, opto_frac, 'upper');
 
 % Report results
-fprintf('Observed %d events:\n', num_events);
+fprintf('Observed %d events total:\n', num_events);
 fprintf('  - %d events during opto ON\n', num_opto_events);
 fprintf('  - %d events during opto OFF\n', num_nonopto_events);
 fprintf('Opto fraction was %.1f%%. Under null hypothesis:\n', 100*opto_frac);
 fprintf('  - Expected number of events during opto ON: %.1f\n', opto_frac*num_events);
 fprintf('  - p-value of observing %d or FEWER opto events: %.6f\n',...
-    num_opto_events, p1);
+    num_opto_events, p_lower);
 fprintf('  - p-value of observing %d or MORE opto events: %.6f\n',...
-    num_opto_events, p2);
+    num_opto_events, p_upper);

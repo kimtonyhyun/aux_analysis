@@ -28,7 +28,7 @@ for j = 1:num_cells
         events = ds.get_events_full(cell_idx);
         event_times = events(:,2); % Note: using peak frames
 
-        y_offset = trace_offset + 0.05;
+        y_offset = trace_offset + 0.08;
         
         laser_off_events = intersect(event_times, laser_off);
         plot(laser_off_events, trace(laser_off_events) + y_offset, 'k.');
@@ -49,7 +49,8 @@ if num_cells > 1
 end
 xticks([]);
 xlabel(sprintf('Frame (%d total)', length(trace)));
-ylim([-0.5 num_cells+0.5]);
+y_range = [-0.5 num_cells+0.5];
+ylim(y_range);
 yticks(0:(num_cells-1));
 cell_labels = cell(1, num_cells);
 for k = 1:num_cells
@@ -58,4 +59,11 @@ for k = 1:num_cells
         cell_indices(k), event_str(1:end-1));
 end
 yticklabels(cell_labels);
+
+num_trials = ds.num_trials;
+if num_trials > 1
+    for j = 2:num_trials-1
+        plot(ds.trial_indices(j,1)*[1 1], y_range, 'Color', 0.75*[1 1 1]);
+    end
+end
 hold off;
