@@ -16,7 +16,7 @@ for k = 1:num_cells
         num_events(k,2) = length(intersect(event_times, laser_inds.real));
         num_events(k,3) = length(intersect(event_times, laser_inds.sham));
         [p1, p2] = count_opto_events(event_times, laser_inds.off, laser_inds.real);
-        pvals(k) = min([p1, p2]);
+        pvals(k) = min([p1, p2]); % Consider both inhibited and disinhibited cases
     end
 end
 
