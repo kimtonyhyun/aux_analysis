@@ -26,5 +26,5 @@ stats = [sorted_pvals, sorted_inds, num_events(sorted_inds,:)];
 
 %% Display
 
-plot_opto_cell(ds, stats(1:25,2), laser_inds.off, {laser_inds.real});
+plot_opto_cell(ds, stats(41:50,2), laser_inds.off, {laser_inds.real});
 % plot_opto_cell(ds, stats(1:22,2), laser_inds.off, {laser_inds.real, laser_inds.sham});

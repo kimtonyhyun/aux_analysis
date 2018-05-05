@@ -1,11 +1,11 @@
-function [pos, vel] = process_encoder(saleae_file, encA_ch, encB_ch, frame_clk_ch)
+function [pos, vel, info] = process_encoder(saleae_file, encA_ch, encB_ch, frame_clk_ch)
 
 counter = count_enc_position(saleae_file, encA_ch, encB_ch);
 frame_clk = find_edges(saleae_file, frame_clk_ch);
 
 % Interpolate position at frame clock times
 %------------------------------------------------------------
-dt = 1; % Used for velocity estimation
+dt = 5; % Number of frames, used for velocity estimation
 
 % A quirk of Matlab's 'interp1' is that if the query point Xq is out of
 % range of the observed X, then interpolation returns NaN. Below, we pad
@@ -19,10 +19,10 @@ pos = interp1(counter(:,1), counter(:,2), frame_clk);
 pos_next = interp1(counter(:,1), counter(:,2), frame_clk + dt);
 pos_prev = interp1(counter(:,1), counter(:,2), frame_clk - dt);
 
-vel = (pos_next - pos_prev)/(2*dt);
+vel = (pos_next - pos_prev)/(2*dt); % Clicks / frame
 
 % Display results
-subplot(211);
+ax1 = subplot(211);
 plot(counter(:,1), counter(:,2), 'k.-');
 grid on;
 xlim(counter([1 end],1));
@@ -33,9 +33,14 @@ legend('True position', 'Sampled at frame clock', 'Location', 'NorthWest');
 xlabel('Time (s)');
 ylabel('Encoder position (clicks)');
 
-subplot(212);
+ax2 = subplot(212);
 plot(frame_clk, vel, 'r.-');
 xlim(counter([1 end],1));
 xlabel('Time (s)');
 ylabel('Velocity (clicks/frame)');
 grid on;
+
+linkaxes([ax1 ax2], 'x');
+
+% Additional info
+info.dt = dt;
