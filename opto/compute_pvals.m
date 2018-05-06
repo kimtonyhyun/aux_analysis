@@ -45,6 +45,7 @@ num_disinhibited = length(disinhibited_inds);
 
 other_inds = setdiff(1:num_cells, [inhibited_inds, disinhibited_inds]);
 
+%%
 save('optocells.mat', 'inhibited_inds', 'disinhibited_inds', 'other_inds', 'p_thresh');
 
 %% Inhibited traces
