@@ -51,7 +51,7 @@ xticks([]);
 xlabel(sprintf('Frame (%d total)', length(trace)));
 y_range = [-0.5 num_cells+0.5];
 ylim(y_range);
-yticks(0:(num_cells-1));
+yticks((0:num_cells-1) + 0.2);
 cell_labels = cell(1, num_cells);
 for k = 1:num_cells
     event_str = sprintf('%d/', num_events_per_cell(k,:));
