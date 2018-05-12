@@ -57,26 +57,22 @@ hold off;
 %% Look at some single cell rasters
 cell_idx = 263;
 
-figure;
-subplot(121);
-trial_inds = find(ds.filter_trials('start', 'west', 'end', 'south'));
-num_trials = length(trial_inds);
-alignment_frames = ds.trial_indices(trial_inds, 3);
-[raster, info] = ds.get_aligned_trace(cell_idx, trial_inds, alignment_frames);
-imagesc(info.aligned_time, 1:num_trials, raster);
-title('Aligned to gate close');
+subplot(3,2,1);
+[wn_raster, info] = ds.get_aligned_trace(cell_idx, wn_trials, pos_frames(wn_trials), 'apply_trial_offset');
+imagesc(info.aligned_time, 1:info.num_trials, wn_raster);
+ylabel('West-north trials');
+subplot(3,2,[3 4]);
+shadedErrorBar(info.aligned_time, mean(wn_raster,1), std(wn_raster,1));
+hold on;
 
-%%
+subplot(3,2,2);
+[ws_raster, info] = ds.get_aligned_trace(cell_idx, ws_trials, pos_frames(ws_trials), 'apply_trial_offset');
+imagesc(info.aligned_time, 1:info.num_trials, ws_raster);
+ylabel('West-south trials');
+subplot(3,2,[3 4]);
+shadedErrorBar(info.aligned_time, mean(ws_raster,1), std(ws_raster,1),'r',1);
+hold off;
+grid on;
+xlabel(sprintf('Frames aligned to pos=%.2f', pos));
+ylabel('Fluorescence');
 
-subplot(122);
-[raster, info] = ds.get_aligned_trace(cell_idx, trial_inds, decode_info.pos_frames(trial_inds,1), 'apply_trial_offset');
-imagesc(info.aligned_time, 1:num_trials, raster);
-title(sprintf('Aligned to pos=%.1f', pos));
-
-trial_inds = find(ds.filter_trials('start', 'west', 'end', 'north'));
-[raster2, info2] = ds.get_aligned_trace(cell_idx, trial_inds, decode_info.pos_frames(trial_inds,1), 'apply_trial_offset');
-% title('West --> South');
-% subplot(122);
-% ds.plot_cell_raster(cell_idx, 'start', 'west', 'end', 'north');
-% title('West --> North');
-% suptitle(sprintf('Cell %d', cell_idx));
