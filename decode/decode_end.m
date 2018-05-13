@@ -46,6 +46,7 @@ north_frac = sum(north_end_trials)/sum(trials);
 perf.baseline_error = min(north_frac, 1-north_frac);
 
 % Additional info associated with run
+info.X = X;
 info.args = args;
 info.models = models;
 info.fit = fit_info;

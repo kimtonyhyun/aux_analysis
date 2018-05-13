@@ -13,7 +13,7 @@ wn_trials = ds.filter_trials('start', 'west', 'end', 'north');
 ws_trials = ds.filter_trials('start', 'west', 'end', 'south');
 trials = wn_trials | ws_trials;
 
-pos = 0.25;
+pos = 0.15;
 
 alg = my_algs('linsvm', 0.1); % L1 reg
 num_runs = 512;
@@ -57,22 +57,53 @@ hold off;
 %% Look at some single cell rasters
 cell_idx = 263;
 
-subplot(3,2,1);
-[wn_raster, info] = ds.get_aligned_trace(cell_idx, wn_trials, pos_frames(wn_trials), 'apply_trial_offset');
-imagesc(info.aligned_time, 1:info.num_trials, wn_raster);
+subplot(3,3,1);
+[wn_raster, wn_info] = ds.get_aligned_trace(cell_idx, wn_trials, pos_frames(wn_trials), 'apply_trial_offset');
+imagesc(wn_info.aligned_time, 1:wn_info.num_trials, wn_raster);
+colormap parula;
 ylabel('West-north trials');
-subplot(3,2,[3 4]);
-shadedErrorBar(info.aligned_time, mean(wn_raster,1), std(wn_raster,1));
-hold on;
+title('traces');
 
-subplot(3,2,2);
-[ws_raster, info] = ds.get_aligned_trace(cell_idx, ws_trials, pos_frames(ws_trials), 'apply_trial_offset');
-imagesc(info.aligned_time, 1:info.num_trials, ws_raster);
+subplot(3,3,4);
+[ws_raster, ws_info] = ds.get_aligned_trace(cell_idx, ws_trials, pos_frames(ws_trials), 'apply_trial_offset');
+imagesc(ws_info.aligned_time, 1:ws_info.num_trials, ws_raster);
 ylabel('West-south trials');
-subplot(3,2,[3 4]);
-shadedErrorBar(info.aligned_time, mean(ws_raster,1), std(ws_raster,1),'r',1);
+
+subplot(3,3,7);
+shadedErrorBar(wn_info.aligned_time, mean(wn_raster), std(wn_raster), 'b');
+hold on;
+shadedErrorBar(ws_info.aligned_time, mean(ws_raster), std(ws_raster), 'r', 1);
 hold off;
 grid on;
-xlabel(sprintf('Frames aligned to pos=%.2f', pos));
-ylabel('Fluorescence');
 
+subplot(3,3,2);
+[wn_raster, wn_info] = ds.get_aligned_trace(cell_idx, wn_trials, pos_frames(wn_trials), 'apply_trial_offset', 'fill', 'copy');
+imagesc(wn_info.aligned_time, 1:wn_info.num_trials, wn_raster);
+title('copy');
+
+subplot(3,3,3);
+[wn_raster, wn_info] = ds.get_aligned_trace(cell_idx, wn_trials, pos_frames(wn_trials), 'apply_trial_offset', 'fill', 'copyzero');
+imagesc(wn_info.aligned_time, 1:wn_info.num_trials, wn_raster);
+title('copyzero');
+
+subplot(3,3,8);
+shadedErrorBar(wn_info.aligned_time, mean(wn_raster), std(wn_raster), 'b');
+hold on;
+shadedErrorBar(ws_info.aligned_time, mean(ws_raster), std(ws_raster), 'r', 1);
+hold off;
+grid on;
+
+subplot(3,3,5);
+[ws_raster, ws_info] = ds.get_aligned_trace(cell_idx, ws_trials, pos_frames(ws_trials), 'apply_trial_offset', 'fill', 'copy');
+imagesc(ws_info.aligned_time, 1:ws_info.num_trials, ws_raster);
+
+subplot(3,3,6);
+[ws_raster, ws_info] = ds.get_aligned_trace(cell_idx, ws_trials, pos_frames(ws_trials), 'apply_trial_offset', 'fill', 'copyzero');
+imagesc(ws_info.aligned_time, 1:ws_info.num_trials, ws_raster);
+
+subplot(3,3,9);
+shadedErrorBar(wn_info.aligned_time, mean(wn_raster), std(wn_raster), 'b');
+hold on;
+shadedErrorBar(ws_info.aligned_time, mean(ws_raster), std(ws_raster), 'r', 1);
+hold off;
+grid on;
