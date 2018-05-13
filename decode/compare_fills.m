@@ -3,7 +3,7 @@ clear;
 %% Load PrL data
 
 dataset_name = dirname;
-ds = DaySummary(data_sources, 'cm01-fix', 'noprobe');
+ds = DaySummary(data_sources, 'prl_cm01_fix', 'noprobe');
 
 %% Decoder params
 
