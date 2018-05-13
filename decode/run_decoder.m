@@ -56,54 +56,5 @@ hold off;
 
 %% Look at some single cell rasters
 cell_idx = 263;
-
-subplot(3,3,1);
-[wn_raster, wn_info] = ds.get_aligned_trace(cell_idx, wn_trials, pos_frames(wn_trials), 'apply_trial_offset');
-imagesc(wn_info.aligned_time, 1:wn_info.num_trials, wn_raster);
-colormap parula;
-ylabel('West-north trials');
-title('traces');
-
-subplot(3,3,4);
-[ws_raster, ws_info] = ds.get_aligned_trace(cell_idx, ws_trials, pos_frames(ws_trials), 'apply_trial_offset');
-imagesc(ws_info.aligned_time, 1:ws_info.num_trials, ws_raster);
-ylabel('West-south trials');
-
-subplot(3,3,7);
-shadedErrorBar(wn_info.aligned_time, mean(wn_raster), std(wn_raster), 'b');
-hold on;
-shadedErrorBar(ws_info.aligned_time, mean(ws_raster), std(ws_raster), 'r', 1);
-hold off;
-grid on;
-
-subplot(3,3,2);
-[wn_raster, wn_info] = ds.get_aligned_trace(cell_idx, wn_trials, pos_frames(wn_trials), 'apply_trial_offset', 'fill', 'copy');
-imagesc(wn_info.aligned_time, 1:wn_info.num_trials, wn_raster);
-title('copy');
-
-subplot(3,3,3);
-[wn_raster, wn_info] = ds.get_aligned_trace(cell_idx, wn_trials, pos_frames(wn_trials), 'apply_trial_offset', 'fill', 'copyzero');
-imagesc(wn_info.aligned_time, 1:wn_info.num_trials, wn_raster);
-title('copyzero');
-
-subplot(3,3,8);
-shadedErrorBar(wn_info.aligned_time, mean(wn_raster), std(wn_raster), 'b');
-hold on;
-shadedErrorBar(ws_info.aligned_time, mean(ws_raster), std(ws_raster), 'r', 1);
-hold off;
-grid on;
-
-subplot(3,3,5);
-[ws_raster, ws_info] = ds.get_aligned_trace(cell_idx, ws_trials, pos_frames(ws_trials), 'apply_trial_offset', 'fill', 'copy');
-imagesc(ws_info.aligned_time, 1:ws_info.num_trials, ws_raster);
-
-subplot(3,3,6);
-[ws_raster, ws_info] = ds.get_aligned_trace(cell_idx, ws_trials, pos_frames(ws_trials), 'apply_trial_offset', 'fill', 'copyzero');
-imagesc(ws_info.aligned_time, 1:ws_info.num_trials, ws_raster);
-
-subplot(3,3,9);
-shadedErrorBar(wn_info.aligned_time, mean(wn_raster), std(wn_raster), 'b');
-hold on;
-shadedErrorBar(ws_info.aligned_time, mean(ws_raster), std(ws_raster), 'r', 1);
-hold off;
-grid on;
+examine_fills(ds, cell_idx, wn_trials, ws_trials, pos_frames);
+suptitle(sprintf('%s: Cell %d, aligned to pos=%.2f', dataset_name, cell_idx, pos));
