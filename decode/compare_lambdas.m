@@ -10,7 +10,7 @@ ds = DaySummary(data_sources, 'cm01-fix', 'noprobe');
 pos = 0.1:0.1:0.9;
 
 lambda1 = 0.1;
-lambda2 = 0.0;
+lambda2 = 0.5;
 
 num_runs = 512;
 
@@ -25,8 +25,10 @@ selected_trials = ds.filter_trials('start', 'west'); % Select changing path
 % - binary: 1 if event, 0 if no event (acausal)
 fill_type = 'traces';
 alg1 = my_algs('linsvm', lambda1);
-alg2 = my_algs('linsvm', lambda2);
 [perf1, info1] = decode_end(alg1, ds, pos, selected_trials, fill_type, num_runs);
+
+%%
+alg2 = my_algs('linsvm', lambda2);
 [perf2, info2] = decode_end(alg2, ds, pos, selected_trials, fill_type, num_runs);
 
 %% Decoder visualization
