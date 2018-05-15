@@ -2,8 +2,11 @@
 
 num_cells = ds.num_classified_cells;
 
+p_thresh = 0.05/num_cells;
 pvals = zeros(num_cells, 1);
-effect_type = cell(num_cells, 1);
+
+effect_type = categorical(repmat({'-'}, num_cells, 1),...
+    {'-', 'inhibited', 'disinhibited'});
 num_events = zeros(num_cells, 3); % Laser status: [Off Real Sham]
 
 for k = 1:num_cells
@@ -18,10 +21,13 @@ for k = 1:num_cells
         num_events(k,3) = length(intersect(event_times, laser_inds.sham));
         [p1, p2] = count_opto_events(event_times, laser_inds.off, laser_inds.real);
         [pvals(k), type] = min([p1, p2]); % Consider both inhibited and disinhibited cases
+    end
+    
+    if (pvals(k) < p_thresh)
         if type == 1
-            effect_type{k} = 'inhibited';
-        else
-            effect_type{k} = 'disinhibited';
+            effect_type(k) = 'inhibited';
+        elseif type == 2
+            effect_type(k) = 'disinhibited';
         end
     end
 end
@@ -29,29 +35,24 @@ end
 % Sort by p-value
 [sorted_pvals, sorted_inds] = sort(pvals);
 
-stats = struct('pval', num2cell(sorted_pvals),...
-                'cell_idx', num2cell(sorted_inds),...
-                'events_off', num2cell(num_events(sorted_inds,1)),...
-                'events_real', num2cell(num_events(sorted_inds,2)),...
-                'events_sham', num2cell(num_events(sorted_inds,3)),...
-                'type', effect_type(sorted_inds));
+stats = table(sorted_pvals, sorted_inds, num_events(sorted_inds,:), effect_type(sorted_inds),...
+    'VariableNames', {'pval', 'cell_idx', 'num_events', 'effect'});
 
 %%
 
-p_thresh = 0.05/num_cells;
 is_significant = sorted_pvals < p_thresh;
 num_significant = sum(is_significant);
-stats_sig = stats(is_significant);
+stats_sig = stats(is_significant,:);
 
 % Logical
-inhibited_inds = strcmp({stats_sig.type}, 'inhibited');
-disinhibited_inds = strcmp({stats_sig.type}, 'disinhibited');
+inhibited_inds = (stats_sig.effect == 'inhibited');
+disinhibited_inds = (stats_sig.effect == 'disinhibited');
 
 % Cell inds
-inhibited_inds = [stats_sig(inhibited_inds).cell_idx];
+inhibited_inds = table2array(stats_sig(inhibited_inds, 'cell_idx'))';
 num_inhibited = length(inhibited_inds);
 
-disinhibited_inds = [stats_sig(disinhibited_inds).cell_idx];
+disinhibited_inds = table2array(stats_sig(disinhibited_inds, 'cell_idx'))';
 num_disinhibited = length(disinhibited_inds);
 
 other_inds = setdiff(1:num_cells, [inhibited_inds, disinhibited_inds]);
