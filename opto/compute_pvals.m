@@ -63,13 +63,13 @@ save('optocells.mat', 'inhibited_inds', 'disinhibited_inds', 'other_inds', 'p_th
 %% Inhibited traces
 
 dataset_name = dirname;
-plot_opto_cell(ds, inhibited_inds, laser_inds.off, {laser_inds.real, laser_inds.sham});
+plot_opto_cell(ds, inhibited_inds, laser_inds.off, {laser_inds.real});
 title(sprintf('%s: Inhibited cells (%d of %d; %.1f%%)',...
     dataset_name, num_inhibited, num_cells, 100*num_inhibited/num_cells));
 
 %% Disinhibited traces
 
-plot_opto_cell(ds, disinhibited_inds, laser_inds.off, {laser_inds.real, laser_inds.sham});
+plot_opto_cell(ds, disinhibited_inds, laser_inds.off, {laser_inds.real});
 title(sprintf('%s: Disinhibited cells (%d of %d; %.1f%%)',...
     dataset_name, num_disinhibited, num_cells, 100*num_disinhibited/num_cells));
 
