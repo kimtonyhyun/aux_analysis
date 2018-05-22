@@ -27,7 +27,7 @@ for trial_idx = 1:num_trials
     cs_start_frame = start_frame + (cs_start_frame - 1);
     cs_end_frame = start_frame + (cs_end_frame - 1);
     
-    us_trace = frame_data(trial_frames, 4);
+    us_trace = frame_data(trial_frames, 5);
     us_start_frame = find(us_trace, 1, 'first');
     if ~isempty(us_start_frame)
         us_start_frame = start_frame + (us_start_frame - 1);
