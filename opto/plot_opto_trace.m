@@ -26,6 +26,10 @@ end
 colors = 'rmg';
 num_lasers = length(laser_on);
 for l = 1:num_lasers
+    if isempty(laser_on{l})
+        continue;
+    end
+    
     color = colors(mod(l-1,length(colors))+1);
     laser_on_segments = frame_list_to_segments(laser_on{l});
     num_on_segments = size(laser_on_segments,1);
