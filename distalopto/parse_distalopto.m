@@ -19,19 +19,30 @@ for trial_idx = 1:num_trials
     cs_start_frame = start_frame + (cs_start_frame - 1);
     cs_end_frame = start_frame + (cs_end_frame - 1);
     
+    us_trace = frame_data(trial_frames, 4);
+    us_start_frame = find(us_trace, 1, 'first');
+    if ~isempty(us_start_frame)
+        us_start_frame = start_frame + (us_start_frame - 1);
+    else
+        % On "miss" trials, there is no US activation. For these cases, use
+        % the end of the CS as the trial marker.
+        us_start_frame = cs_end_frame;
+    end
+    
     trial_frame_indices(trial_idx,:) = ...
-        [start_frame cs_start_frame cs_end_frame last_frame];
+        [start_frame cs_start_frame us_start_frame last_frame];
 end
 
-end
+end % parse_distalopto
 
 function frame_data = parse_frames(source)
 % Output:
-% - frame_data: [num_frames x 4] table where,
+% - frame_data: [num_frames x 5] table where,
 %   -> frame_data(k,1): Trial index associated with the k-th frame
 %   -> frame_data(k,2): Absolute time at the beginning of the k-th frame
 %   -> frame_data(k,3): 1 if CS was active at the k-th frame, 0 otherwise
-%   -> frame_data(k,4): Interpolated position (units of encoder "counts" 
+%   -> frame_data(k,4): 1 if US was active at the k-th frame, 0 otherwise
+%   -> frame_data(k,5): Interpolated position (units of encoder "counts" 
 %           at the beginning of the k-th frame
 %
 
@@ -41,6 +52,7 @@ encB_ch = 1;
 
 scope_en_ch = 3;
 cs_ch = 5;
+us_ch = 6;
 frame_clock_ch = 7;
 
 % Load data
@@ -83,20 +95,30 @@ fprintf('Parsing frame data... '); tic;
 scope_en = data(:,2+scope_en_ch);
 frame_clock = data(:,2+frame_clock_ch);
 cs_trace = data(:,2+cs_ch);
+us_trace = data(:,2+us_ch);
 
-% Preallocate output. Format: [Trial-idx Time CS]
-frame_data = zeros(num_rows,3);
+% Preallocate output. Format: [Trial-idx Time CS US]
+frame_data = zeros(num_rows,4);
 frame_idx = 0;
 trial_idx = 0;
 
+% We can't directly sample the US trace at the frame clock edges, because
+% the duration of the US signal is shorter than the frame clock period --
+% hence we can easily miss the US pulse. Hence, we employ a flag.
+us_detected = 0;
 for k = 2:length(times)
     if (~scope_en(k-1) && scope_en(k)) %% Rising edge on scope_enable
         trial_idx = trial_idx + 1;
     end
     
+    if (~us_trace(k-1) && us_trace(k)) %% Rising edge on US trace
+        us_detected = 1;
+    end
+    
     if (~frame_clock(k-1) && frame_clock(k)) %% Rising edge on frame clock
         frame_idx = frame_idx + 1;
-        frame_data(frame_idx,:) = [trial_idx times(k) cs_trace(k)];
+        frame_data(frame_idx,:) = [trial_idx times(k) cs_trace(k) us_detected];
+        us_detected = 0;
     end
 end
 
