@@ -1,12 +1,25 @@
-function [p_lower, p_upper] = count_opto_events(events, laser_off, laser_on)
+function [p_lower, p_upper] = count_opto_events(event_times, laser_off_frames, laser_on_frames)
 
-% Count the number of events during laser off and laser on periods
-num_events = length(events);
+% First, need to filter for events that occur during one of the two
+% specified periods: 'laser_off_frames' or 'laser_on_frames'
+filtered_events = ismember(event_times, union(laser_off_frames, laser_on_frames));
+event_times = event_times(filtered_events);
+num_events = length(event_times);
+
+% If there are no events during the prescribed periods, then we can't
+% perform any statistical tests. Return immediately.
+if (num_events == 0)
+    fprintf('Observed 0 events during specified periods!\n');
+    p_lower = 0.5;
+    p_upper = 0.5;
+    return;
+end
+
+% Otherwise, determine the fraction of events that occurred during
+% laser_on_frames.
 is_opto_event = zeros(num_events,1);
-
 for k = 1:num_events
-    event = events(k);
-    is_opto_event(k) = ismember(event, laser_on);
+    is_opto_event(k) = ismember(event_times(k), laser_on_frames);
 end
 
 num_opto_events = sum(is_opto_event);
@@ -15,18 +28,13 @@ num_nonopto_events = num_events - num_opto_events;
 % Test whether the distribution of events between laser off and laser on
 % periods is statistically anomalous. The null hypothesis is that the
 % laser status has no influence on event distribution
-opto_frac = length(laser_on)/(length(laser_on)+length(laser_off));
+opto_frac = length(laser_on_frames)/(length(laser_on_frames)+length(laser_off_frames));
 
 % Under the null hypothesis, we expect the number of opto events to be
 % proportional to the amount of time the laser was on
 expected_num_opto_events = opto_frac * num_events; % Under null hypothesis
 p_lower = poisscdf(num_opto_events, expected_num_opto_events);
 p_upper = poisscdf(num_opto_events, expected_num_opto_events, 'upper');
-
-% Old scheme, where the logic was to assign each observed event to laser
-% off or laser on periods
-% p_lower = binocdf(num_opto_events, num_events, opto_frac);
-% p_upper = binocdf(num_opto_events, num_events, opto_frac, 'upper');
 
 % Report results
 fprintf('Observed %d events total:\n', num_events);

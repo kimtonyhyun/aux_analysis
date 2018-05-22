@@ -19,6 +19,7 @@ for k = 1:num_cells
         num_events(k,1) = length(intersect(event_times, laser_inds.off));
         num_events(k,2) = length(intersect(event_times, laser_inds.real));
         num_events(k,3) = length(intersect(event_times, laser_inds.sham));
+        fprintf('Cell %d\n', k);
         [p1, p2] = count_opto_events(event_times, laser_inds.off, laser_inds.real);
         [pvals(k), type] = min([p1, p2]); % Consider both inhibited and disinhibited cases
     end
@@ -63,13 +64,13 @@ save('optocells.mat', 'inhibited_inds', 'disinhibited_inds', 'other_inds', 'p_th
 %% Inhibited traces
 
 dataset_name = dirname;
-plot_opto_cell(ds, inhibited_inds, laser_inds.off, {laser_inds.real});
+plot_opto_cell(ds, inhibited_inds, laser_inds.off, {laser_inds.real, laser_inds.sham});
 title(sprintf('%s: Inhibited cells (%d of %d; %.1f%%)',...
     dataset_name, num_inhibited, num_cells, 100*num_inhibited/num_cells));
 
 %% Disinhibited traces
 
-plot_opto_cell(ds, disinhibited_inds, laser_inds.off, {laser_inds.real});
+plot_opto_cell(ds, disinhibited_inds, laser_inds.off, {laser_inds.real, laser_inds.sham});
 title(sprintf('%s: Disinhibited cells (%d of %d; %.1f%%)',...
     dataset_name, num_disinhibited, num_cells, 100*num_disinhibited/num_cells));
 
