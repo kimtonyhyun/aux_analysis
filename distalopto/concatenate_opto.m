@@ -1,7 +1,7 @@
 clear;
 
 %% Concatenate trials
-num_trials = 160;
+num_trials = 100;
 frames_per_trial = 240;
 
 M = zeros(512, 512, frames_per_trial*num_trials, 'int16');

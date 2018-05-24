@@ -1,10 +1,11 @@
 function [p_lower, p_upper] = count_opto_events(event_times, laser_off_frames, laser_on_frames)
 
-% First, need to filter for events that occur during one of the two
-% specified periods: 'laser_off_frames' or 'laser_on_frames'
-filtered_events = ismember(event_times, union(laser_off_frames, laser_on_frames));
-event_times = event_times(filtered_events);
-num_events = length(event_times);
+% Count the number of events that occur during provided 'laser_off_frames'
+% or 'laser_on_frames'
+num_opto_events = sum(ismember(event_times, laser_on_frames));
+num_nonopto_events = sum(ismember(event_times, laser_off_frames));
+
+num_events = num_opto_events + num_nonopto_events;
 
 % If there are no events during the prescribed periods, then we can't
 % perform any statistical tests. Return immediately.
@@ -14,16 +15,6 @@ if (num_events == 0)
     p_upper = 0.5;
     return;
 end
-
-% Otherwise, determine the fraction of events that occurred during
-% laser_on_frames.
-is_opto_event = zeros(num_events,1);
-for k = 1:num_events
-    is_opto_event(k) = ismember(event_times(k), laser_on_frames);
-end
-
-num_opto_events = sum(is_opto_event);
-num_nonopto_events = num_events - num_opto_events;
 
 % Test whether the distribution of events between laser off and laser on
 % periods is statistically anomalous. The null hypothesis is that the
