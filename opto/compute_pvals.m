@@ -3,6 +3,7 @@
 num_cells = ds.num_classified_cells;
 
 p_thresh = 0.05/num_cells;
+% p_thresh = 0.01;
 pvals = zeros(num_cells, 1);
 
 effect_type = categorical(repmat({'-'}, num_cells, 1),...
@@ -58,9 +59,6 @@ num_disinhibited = length(disinhibited_inds);
 
 other_inds = setdiff(1:num_cells, [inhibited_inds, disinhibited_inds]);
 
-%%
-save('optocells.mat', 'inhibited_inds', 'disinhibited_inds', 'other_inds', 'p_thresh');
-
 %% Inhibited traces
 
 dataset_name = dirname;
@@ -70,6 +68,7 @@ title(sprintf('%s: Inhibited cells (%d of %d; %.1f%%)',...
 
 %% Disinhibited traces
 
+dataset_name = dirname;
 plot_opto_cell(ds, disinhibited_inds, laser_inds.off, {laser_inds.real, laser_inds.sham});
 title(sprintf('%s: Disinhibited cells (%d of %d; %.1f%%)',...
     dataset_name, num_disinhibited, num_cells, 100*num_disinhibited/num_cells));
