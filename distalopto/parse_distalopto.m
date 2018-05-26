@@ -1,6 +1,10 @@
-function [trial_frame_indices, velocity, frame_data] = parse_distalopto(source)
-% Parse distalopto behavioral data from its Saleae CSV log.
-% TODO: Handle dropped frames
+function [trial_frame_indices, frame_data] = parse_distalopto(source)
+% Parse distalopto behavioral data from its Saleae CSV log. Generates a
+% PlusMaze-like text file with trial frame boundaries, and a MAT file
+% (behavior.mat) containing running velocity, licking, and trial
+% correctness.
+%
+% TODO: Dropped frame correction!
 
 frame_data = parse_frames(source);
 num_trials = max(frame_data(:,1));
@@ -12,7 +16,11 @@ frame_data(:,6) = 2*pi*R*frame_data(:,6)/cpr;
 frame_data(:,7) = 2*pi*R*frame_data(:,7)/cpr;
 
 trial_frame_indices = zeros(num_trials, 4);
+
+% Other trial metadata to parse
 velocity = cell(num_trials,1);
+licks = cell(num_trials,1);
+rewarded = false(num_trials,1);
 
 for trial_idx = 1:num_trials
     trial_frames = (frame_data(:,1)==trial_idx);
@@ -29,7 +37,9 @@ for trial_idx = 1:num_trials
     
     us_trace = frame_data(trial_frames, 5);
     us_start_frame = find(us_trace, 1, 'first');
-    if ~isempty(us_start_frame)
+    rewarded(trial_idx) = ~isempty(us_start_frame);
+    
+    if rewarded(trial_idx)
         us_start_frame = start_frame + (us_start_frame - 1);
     else
         % On "miss" trials, there is no US activation. For these cases, use
@@ -41,7 +51,14 @@ for trial_idx = 1:num_trials
         [start_frame cs_start_frame us_start_frame last_frame];
     
     velocity{trial_idx} = frame_data(trial_frames, 7)';
+    licks{trial_idx} = frame_data(trial_frames, 4)';
 end
+
+% Write PlusMaze-like text file
+write_distalopto(trial_frame_indices, rewarded);
+
+% Write behavioral metadata to MAT file
+save('behavior.mat', 'velocity', 'rewarded', 'licks');
 
 % For viewing convenience, convert to table
 frame_data = array2table(frame_data,...
