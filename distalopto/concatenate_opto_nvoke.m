@@ -57,3 +57,12 @@ end
 
 M = M(:,:,1:num_frames_saved);
 fprintf('%s: Done!\n', datestr(now));
+
+%%
+
+F = compute_fluorescence_stats(M);
+plot(F);
+grid on;
+xlim([1 size(M,3)]);
+xlabel('Frames');
+ylabel('Fluorescence');
