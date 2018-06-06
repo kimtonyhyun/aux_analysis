@@ -66,5 +66,9 @@ if num_trials > 1
     for j = 2:num_trials-1
         plot(ds.trial_indices(j,1)*[1 1], y_range, 'Color', 0.75*[1 1 1]);
     end
+    set(gca, 'XTick', ds.trial_indices(:,1));
+    set(gca, 'XTickLabel', num2cell(1:num_trials));
+    xtickangle(90);
+    xlabel('Trial');
 end
 hold off;
