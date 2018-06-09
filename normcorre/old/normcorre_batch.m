@@ -108,7 +108,7 @@ switch filetype
             Y_temp(:,:,tt) = imread(Y,'Index',perm(tt),'Info',tiffInfo);
         end
     case 'hdf5'
-        Y_temp = bigread2(Y,1,init_batch);        
+        Y_temp = bigread2_nc(Y,1,init_batch);        
     case 'mem'
         if nd == 2; Y_temp = Y.Y(:,:,1:init_batch); elseif nd == 3; Y_temp = Y.Y(:,:,:,1:init_batch); end
     case 'mat'
