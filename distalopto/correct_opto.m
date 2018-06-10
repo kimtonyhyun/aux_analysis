@@ -1,4 +1,6 @@
 %%
+load('opto.mat');
+
 A_off = compute_mean_image(M,laser_inds.off);
 A_real = compute_mean_image(M,laser_inds.real);
 A_sham = compute_mean_image(M,laser_inds.sham);
@@ -38,3 +40,12 @@ for k = laser_inds.sham
     M(:,:,k) = M(:,:,k) - d_sham;
 end
 fprintf('%s: Applied opto correction!\n', datestr(now));
+
+%%
+[S,A] = compute_std_image(M);
+
+for k = 1:size(M,3)
+    M(:,:,k) = (M(:,:,k)-A)./S;
+end
+
+fprintf('%s: Z-scored movie!\n', datestr(now));
