@@ -1,7 +1,7 @@
 clear;
 
 %%
-fps = 20;
+fps = 30;
 x_ticks = fps*(-2:6);
 load('behavior.mat');
 ls = cellfun(@sum, licks, 'UniformOutput', true);
@@ -40,18 +40,20 @@ aligned_licks_real = aligned_licks(trial_inds.real,:);
 aligned_licks_sham = aligned_licks(trial_inds.sham,:);
 
 first_licks = zeros(num_trials, num_aligned_time);
+first_licks_times = zeros(num_trials);
 for k = 1:num_trials
     fl = find(aligned_licks(k,:),1,'first');
     first_licks(k,fl) = 1;
+    first_licks_times(k) = aligned_time(fl)/fps;
 end
 
 first_licks_off = first_licks(trial_inds.off,:);
 first_licks_real = first_licks(trial_inds.real,:);
 first_licks_sham = first_licks(trial_inds.sham,:);
 
-first_licks_off_mean = aligned_time * sum(first_licks_off)' / length(trial_inds.off);
-first_licks_real_mean = aligned_time * sum(first_licks_real)' / length(trial_inds.real);
-first_licks_sham_mean = aligned_time * sum(first_licks_sham)' / length(trial_inds.sham);
+first_licks_times_off = first_licks_times(trial_inds.off);
+first_licks_times_real = first_licks_times(trial_inds.real);
+first_licks_times_sham = first_licks_times(trial_inds.sham);
 
 %%
 
@@ -120,7 +122,8 @@ bar(aligned_time, sum(first_licks_off), 1, 'k');
 ylabel('Licks (off)');
 xlim(aligned_time([1 end]));
 xticks(x_ticks);
-legend(sprintf('\\mu = %.2f s', first_licks_off_mean/fps), 'Location', 'NorthEast');
+legend(sprintf('Distr: %.2f \\pm %.2f s', mean(first_licks_times_off), std(first_licks_times_off)),...
+    'Location', 'NorthEast');
 title('FIRST licks');
 grid on;
 
@@ -136,7 +139,8 @@ bar(aligned_time, sum(first_licks_real), 1, 'r');
 ylabel('Licks (real)');
 xlim(aligned_time([1 end]));
 xticks(x_ticks);
-legend(sprintf('\\mu = %.2f s', first_licks_real_mean/fps), 'Location', 'NorthEast');
+legend(sprintf('Distr: %.2f \\pm %.2f s', mean(first_licks_times_real), std(first_licks_times_real)),...
+    'Location', 'NorthEast');
 grid on;
 
 subplot(4,3,11);
@@ -152,7 +156,8 @@ bar(aligned_time, sum(first_licks_sham), 1, 'm');
 ylabel('Licks (sham)');
 xlim(aligned_time([1 end]));
 xticks(x_ticks);
-legend(sprintf('\\mu = %.2f s', first_licks_sham_mean/fps), 'Location', 'NorthEast');
+legend(sprintf('Distr: %.2f \\pm %.2f s', mean(first_licks_times_sham), std(first_licks_times_sham)),...
+    'Location', 'NorthEast');
 xlabel('Frames relative to CS onset');
 grid on;
 
