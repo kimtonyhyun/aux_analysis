@@ -1,6 +1,8 @@
 clear;
 
 %%
+fps = 20;
+x_ticks = fps*(-2:6);
 load('behavior.mat');
 ls = cellfun(@sum, licks, 'UniformOutput', true);
 min_l = min(ls);
@@ -59,7 +61,7 @@ subplot(1,3,1);
 imagesc(aligned_time, 1:num_trials, aligned_licks);
 colormap([1 1 1; 0 0 0]);
 xlabel('Frames relative to CS onset');
-xticks(-60:30:180);
+xticks(x_ticks);
 ylabel('Trial index');
 hold on;
 plot([0 0], [0 num_trials], 'b--');
@@ -69,7 +71,7 @@ for k = 1:num_trials
     else
         corr_color = 'r';
     end
-    rectangle('Position', [180 k-0.5 corr_width 1], 'FaceColor', corr_color);
+    rectangle('Position', [aligned_time(end) k-0.5 corr_width 1], 'FaceColor', corr_color);
 end
 xlim([aligned_time(1) aligned_time(end)+corr_width]);
 hold off;
@@ -109,7 +111,7 @@ subplot(4,3,5);
 bar(aligned_time, mean(aligned_licks_off), 1, 'k');
 ylabel('Licks / Trial (off)');
 xlim(aligned_time([1 end]));
-xticks(-60:30:180);
+xticks(x_ticks);
 title('ALL licks');
 grid on;
 
@@ -117,8 +119,8 @@ subplot(4,3,6);
 bar(aligned_time, sum(first_licks_off), 1, 'k');
 ylabel('Licks (off)');
 xlim(aligned_time([1 end]));
-xticks(-60:30:180);
-legend(sprintf('\\mu = %.1f', first_licks_off_mean), 'Location', 'NorthEast');
+xticks(x_ticks);
+legend(sprintf('\\mu = %.2f s', first_licks_off_mean/fps), 'Location', 'NorthEast');
 title('FIRST licks');
 grid on;
 
@@ -126,22 +128,22 @@ subplot(4,3,8);
 bar(aligned_time, mean(aligned_licks_real), 1, 'r');
 ylabel('Licks / Trial (real)');
 xlim(aligned_time([1 end]));
-xticks(-60:30:180);
+xticks(x_ticks);
 grid on;
 
 subplot(4,3,9);
 bar(aligned_time, sum(first_licks_real), 1, 'r');
 ylabel('Licks (real)');
 xlim(aligned_time([1 end]));
-xticks(-60:30:180);
-legend(sprintf('\\mu = %.1f', first_licks_real_mean), 'Location', 'NorthEast');
+xticks(x_ticks);
+legend(sprintf('\\mu = %.2f s', first_licks_real_mean/fps), 'Location', 'NorthEast');
 grid on;
 
 subplot(4,3,11);
 bar(aligned_time, mean(aligned_licks_sham), 1, 'm');
 ylabel('Licks / Trial (sham)');
 xlim(aligned_time([1 end]));
-xticks(-60:30:180);
+xticks(x_ticks);
 xlabel('Frames relative to CS onset');
 grid on;
 
@@ -149,8 +151,8 @@ subplot(4,3,12);
 bar(aligned_time, sum(first_licks_sham), 1, 'm');
 ylabel('Licks (sham)');
 xlim(aligned_time([1 end]));
-xticks(-60:30:180);
-legend(sprintf('\\mu = %.1f', first_licks_sham_mean), 'Location', 'NorthEast');
+xticks(x_ticks);
+legend(sprintf('\\mu = %.2f s', first_licks_sham_mean/fps), 'Location', 'NorthEast');
 xlabel('Frames relative to CS onset');
 grid on;
 
