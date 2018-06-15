@@ -43,17 +43,22 @@ first_licks = zeros(num_trials, num_aligned_time);
 first_licks_times = zeros(num_trials);
 for k = 1:num_trials
     fl = find(aligned_licks(k,:),1,'first');
-    first_licks(k,fl) = 1;
-    first_licks_times(k) = aligned_time(fl)/fps;
+    if ~isempty(fl)
+        first_licks(k,fl) = 1;
+        first_licks_times(k) = aligned_time(fl)/fps;
+    else
+        first_licks_times(k) = NaN;
+    end
 end
 
 first_licks_off = first_licks(trial_inds.off,:);
 first_licks_real = first_licks(trial_inds.real,:);
 first_licks_sham = first_licks(trial_inds.sham,:);
 
-first_licks_times_off = first_licks_times(trial_inds.off);
-first_licks_times_real = first_licks_times(trial_inds.real);
-first_licks_times_sham = first_licks_times(trial_inds.sham);
+% Note: 'rmmissing' removes NaN entries
+first_licks_times_off = rmmissing(first_licks_times(trial_inds.off));
+first_licks_times_real = rmmissing(first_licks_times(trial_inds.real));
+first_licks_times_sham = rmmissing(first_licks_times(trial_inds.sham));
 
 %%
 
