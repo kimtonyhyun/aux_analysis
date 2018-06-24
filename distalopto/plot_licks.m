@@ -1,6 +1,8 @@
 clear;
 
 %%
+fps = 30;
+x_ticks = fps*(-2:6);
 load('behavior.mat');
 ls = cellfun(@sum, licks, 'UniformOutput', true);
 min_l = min(ls);
@@ -38,18 +40,25 @@ aligned_licks_real = aligned_licks(trial_inds.real,:);
 aligned_licks_sham = aligned_licks(trial_inds.sham,:);
 
 first_licks = zeros(num_trials, num_aligned_time);
+first_licks_times = zeros(num_trials);
 for k = 1:num_trials
     fl = find(aligned_licks(k,:),1,'first');
-    first_licks(k,fl) = 1;
+    if ~isempty(fl)
+        first_licks(k,fl) = 1;
+        first_licks_times(k) = aligned_time(fl)/fps;
+    else
+        first_licks_times(k) = NaN;
+    end
 end
 
 first_licks_off = first_licks(trial_inds.off,:);
 first_licks_real = first_licks(trial_inds.real,:);
 first_licks_sham = first_licks(trial_inds.sham,:);
 
-first_licks_off_mean = aligned_time * sum(first_licks_off)' / length(trial_inds.off);
-first_licks_real_mean = aligned_time * sum(first_licks_real)' / length(trial_inds.real);
-first_licks_sham_mean = aligned_time * sum(first_licks_sham)' / length(trial_inds.sham);
+% Note: 'rmmissing' removes NaN entries
+first_licks_times_off = rmmissing(first_licks_times(trial_inds.off));
+first_licks_times_real = rmmissing(first_licks_times(trial_inds.real));
+first_licks_times_sham = rmmissing(first_licks_times(trial_inds.sham));
 
 %%
 
@@ -59,7 +68,7 @@ subplot(1,3,1);
 imagesc(aligned_time, 1:num_trials, aligned_licks);
 colormap([1 1 1; 0 0 0]);
 xlabel('Frames relative to CS onset');
-xticks(-60:30:180);
+xticks(x_ticks);
 ylabel('Trial index');
 hold on;
 plot([0 0], [0 num_trials], 'b--');
@@ -69,7 +78,7 @@ for k = 1:num_trials
     else
         corr_color = 'r';
     end
-    rectangle('Position', [180 k-0.5 corr_width 1], 'FaceColor', corr_color);
+    rectangle('Position', [aligned_time(end) k-0.5 corr_width 1], 'FaceColor', corr_color);
 end
 xlim([aligned_time(1) aligned_time(end)+corr_width]);
 hold off;
@@ -109,7 +118,7 @@ subplot(4,3,5);
 bar(aligned_time, mean(aligned_licks_off), 1, 'k');
 ylabel('Licks / Trial (off)');
 xlim(aligned_time([1 end]));
-xticks(-60:30:180);
+xticks(x_ticks);
 title('ALL licks');
 grid on;
 
@@ -117,8 +126,9 @@ subplot(4,3,6);
 bar(aligned_time, sum(first_licks_off), 1, 'k');
 ylabel('Licks (off)');
 xlim(aligned_time([1 end]));
-xticks(-60:30:180);
-legend(sprintf('\\mu = %.1f', first_licks_off_mean), 'Location', 'NorthEast');
+xticks(x_ticks);
+legend(sprintf('Distr: %.2f \\pm %.2f s', mean(first_licks_times_off), std(first_licks_times_off)),...
+    'Location', 'NorthEast');
 title('FIRST licks');
 grid on;
 
@@ -126,22 +136,23 @@ subplot(4,3,8);
 bar(aligned_time, mean(aligned_licks_real), 1, 'r');
 ylabel('Licks / Trial (real)');
 xlim(aligned_time([1 end]));
-xticks(-60:30:180);
+xticks(x_ticks);
 grid on;
 
 subplot(4,3,9);
 bar(aligned_time, sum(first_licks_real), 1, 'r');
 ylabel('Licks (real)');
 xlim(aligned_time([1 end]));
-xticks(-60:30:180);
-legend(sprintf('\\mu = %.1f', first_licks_real_mean), 'Location', 'NorthEast');
+xticks(x_ticks);
+legend(sprintf('Distr: %.2f \\pm %.2f s', mean(first_licks_times_real), std(first_licks_times_real)),...
+    'Location', 'NorthEast');
 grid on;
 
 subplot(4,3,11);
 bar(aligned_time, mean(aligned_licks_sham), 1, 'm');
 ylabel('Licks / Trial (sham)');
 xlim(aligned_time([1 end]));
-xticks(-60:30:180);
+xticks(x_ticks);
 xlabel('Frames relative to CS onset');
 grid on;
 
@@ -149,8 +160,9 @@ subplot(4,3,12);
 bar(aligned_time, sum(first_licks_sham), 1, 'm');
 ylabel('Licks (sham)');
 xlim(aligned_time([1 end]));
-xticks(-60:30:180);
-legend(sprintf('\\mu = %.1f', first_licks_sham_mean), 'Location', 'NorthEast');
+xticks(x_ticks);
+legend(sprintf('Distr: %.2f \\pm %.2f s', mean(first_licks_times_sham), std(first_licks_times_sham)),...
+    'Location', 'NorthEast');
 xlabel('Frames relative to CS onset');
 grid on;
 
