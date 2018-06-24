@@ -26,21 +26,23 @@ for j = 1:num_cells
     
     if ds.is_eventdata_loaded
         events = ds.get_events_full(cell_idx);
-        event_times = events(:,2); % Note: using peak frames
-        [laser_off_events, laser_on_events] = ...
-            categorize_opto_events(event_times, laser_off, laser_on);
-        
-        y_offset = trace_offset + 0.08;
-        
-        laser_off_frames = event_times(laser_off_events);
-        plot(laser_off_frames, trace(laser_off_frames) + y_offset, 'k.');
-        num_events_per_cell(j,1) = length(laser_off_frames);
-        
-        for l = 1:num_lasers
-            laser_on_frames = event_times(laser_on_events{l});
-            plot(laser_on_frames, trace(laser_on_frames) + y_offset,...
-                 '.', 'Color', laser_colors(l));      
-            num_events_per_cell(j,1+l) = length(laser_on_frames);
+        if ~isempty(events)
+            event_times = events(:,2); % Note: using peak frames
+            [laser_off_events, laser_on_events] = ...
+                categorize_opto_events(event_times, laser_off, laser_on);
+
+            y_offset = trace_offset + 0.08;
+
+            laser_off_frames = event_times(laser_off_events);
+            plot(laser_off_frames, trace(laser_off_frames) + y_offset, 'k.');
+            num_events_per_cell(j,1) = length(laser_off_frames);
+
+            for l = 1:num_lasers
+                laser_on_frames = event_times(laser_on_events{l});
+                plot(laser_on_frames, trace(laser_on_frames) + y_offset,...
+                     '.', 'Color', laser_colors(l));      
+                num_events_per_cell(j,1+l) = length(laser_on_frames);
+            end
         end
     end
 end
