@@ -9,7 +9,13 @@ min_l = min(ls);
 max_l = max(ls);
 l_range = [min_l max_l] + 1/10*(max_l-min_l)*[-1 1];
 
-trial_inds.off = 1:160;
+num_trials = size(rewarded);
+trial_inds.off = 1:num_trials;
+
+% Specializations for Pavlovian variant of the task. Note: a trial is
+% marked as "rewarded" if there is a detected lick within the trial.
+rewarded = cellfun(@any, licks, 'UniformOutput', true);
+
 ls_off = ls(trial_inds.off);
 
 hit_off = sum(rewarded(trial_inds.off))/length(trial_inds.off);
