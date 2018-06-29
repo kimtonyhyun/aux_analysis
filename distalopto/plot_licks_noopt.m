@@ -89,21 +89,18 @@ subplot(3,6,6);
 g = cell(160,1);
 g(trial_inds.off) = {'off'};
 boxplot(ls, g);
-ylabel('Total licks in trial');
-% grid on;
 
 subplot(3,3,[5 6]);
 bar(aligned_time, mean(aligned_licks_off), 1, 'k');
-ylabel('Licks / Trial (off)');
+ylabel('Licks / Trial');
 xlim(aligned_time([1 end]));
 xticks(x_ticks);
 title('ALL licks');
-xlabel('Frames relative to CS onset');
 grid on;
 
 subplot(3,3,[8 9]);
 bar(aligned_time, sum(first_licks_off), 1, 'k');
-ylabel('Licks (off)');
+ylabel('Licks');
 xlim(aligned_time([1 end]));
 xticks(x_ticks);
 legend(sprintf('Distr: %.2f \\pm %.2f s', mean(first_licks_times_off), std(first_licks_times_off)),...
