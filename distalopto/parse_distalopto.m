@@ -16,6 +16,7 @@ frame_data(:,7) = 2*pi*R/cpr*frame_data(:,7);
 iti(:,3) = 2*pi*R/cpr*iti(:,3); %#ok<*NASGU>
 
 trial_frame_indices = zeros(num_trials, 4);
+trial_durations = zeros(num_trials, 1);
 
 % Other trial metadata to parse
 velocity = cell(num_trials,1);
@@ -27,6 +28,10 @@ for trial_idx = 1:num_trials
     
     start_frame = find(trial_frames, 1, 'first');
     last_frame = find(trial_frames, 1, 'last');
+    
+    trial_start_time = frame_data(start_frame, 2);
+    trial_end_time = frame_data(last_frame, 2);
+    trial_durations(trial_idx) = trial_end_time - trial_start_time;
     
     cs_trace = frame_data(trial_frames, 3);
     cs_start_frame = find(cs_trace, 1, 'first');
@@ -55,7 +60,7 @@ for trial_idx = 1:num_trials
 end
 
 % Write PlusMaze-like text file
-write_distalopto(trial_frame_indices, rewarded);
+write_distalopto(trial_frame_indices, rewarded, trial_durations);
 
 % Write behavioral metadata to MAT file
 save('behavior.mat', 'velocity', 'rewarded', 'licks', 'iti');
