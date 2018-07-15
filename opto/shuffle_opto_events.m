@@ -9,7 +9,7 @@ true_on_events = sum(events_per_trial(laser_on_trials));
 all_trials = union(laser_off_trials, laser_on_trials);
 num_on = length(laser_on_trials);
 
-num_shuffles = 1e3;
+num_shuffles = 1e4;
 shuffled_on_events = zeros(1, num_shuffles);
 for k = 1:num_shuffles
     shuffled_on_trials = randsample(all_trials, num_on);

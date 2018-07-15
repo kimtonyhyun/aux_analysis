@@ -9,7 +9,7 @@ laser_on_trials = trial_inds.real;
 num_cells = ds.num_classified_cells;
 num_trials = ds.num_trials;
 
-p_thresh = 0.05/num_cells;
+p_thresh = 0.05/(num_cells*2); % The 2 is for two-sided correction
 pvals = zeros(num_cells, 1);
 
 effect_type = categorical(repmat({'-'}, num_cells, 1),...
@@ -36,7 +36,7 @@ for k = 1:num_cells
     
     [pvals(k), type] = min([p1, p2]);
     
-    if (pvals(k) < p_thresh/2) % Correction for two-sided test
+    if (pvals(k) < p_thresh) 
         if type == 1
             effect_type(k) = 'inhibited';
         elseif type == 2
