@@ -1,5 +1,11 @@
 %% Compute p-values by trial shuffles
 
+load('opto.mat');
+
+laser_off_trials = trial_inds.off;
+laser_on_trials = trial_inds.real;
+
+%%
 num_cells = ds.num_classified_cells;
 num_trials = ds.num_trials;
 
@@ -18,11 +24,12 @@ for k = 1:num_cells
         events_per_trial(m) = size(eventdata,1);
     end
     
-    num_events(k,1) = sum(events_per_trial(trial_inds.off));
-    num_events(k,2) = sum(events_per_trial(trial_inds.real));
+    % Tabulate for later inspection
+    num_events(k,1) = sum(events_per_trial(laser_off_trials));
+    num_events(k,2) = sum(events_per_trial(laser_on_trials));
     
     % Perform shuffle test
-    [p1, p2] = shuffle_opto_events(events_per_trial, trial_inds.off, trial_inds.real);
+    [p1, p2] = shuffle_opto_events(events_per_trial, laser_off_trials, laser_on_trials);
     title(sprintf('Cell %d', k));
     drawnow;
     pause;

@@ -17,12 +17,16 @@ for k = 1:num_shuffles
 end
 
 % Fraction of shuffles with number of opto events as FEW as the one
-% observed
-p_lower = sum(shuffled_on_events<true_on_events)/num_shuffles;
+% observed. Note that it is important to have the equality for this
+% comparison. Consider the case where there are 0 events during laser on
+% trials. Since it is impossible for the shuffled event counts to be less
+% than 0, in the case that we applied a strict inequality, all such cells
+% would automatically classified as opto-inhibited.
+p_lower = sum(shuffled_on_events<=true_on_events)/num_shuffles;
 
 % Fraction of shuffles with number of opto events as MANY as the one
 % observed
-p_upper = sum(shuffled_on_events>true_on_events)/num_shuffles;
+p_upper = sum(shuffled_on_events>=true_on_events)/num_shuffles;
 
 if (show_cdf)
     [F,x] = ecdf(shuffled_on_events);
@@ -31,7 +35,9 @@ if (show_cdf)
     ylabel('Cumulative fraction');
     grid on;
     hold on;
-    plot(true_on_events*[1 1], [0 1], 'r', 'LineWidth', 2);
+    plot(true_on_events*[1 1], [0 1], 'r--', 'LineWidth', 2);
     hold off;
-    legend('Shuffle', 'Observed', 'Location', 'Best');
+    legend('Shuffle',...
+           sprintf('Observed (p_L=%.4f, p_U=%.4f)',p_lower,p_upper),...
+           'Location', 'SouthEast');
 end
