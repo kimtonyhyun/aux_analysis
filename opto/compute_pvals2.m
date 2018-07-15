@@ -1,30 +1,35 @@
-%% Compute p-values
+%% Compute p-values by trial shuffles
 
 num_cells = ds.num_classified_cells;
+num_trials = ds.num_trials;
 
 p_thresh = 0.05/num_cells;
 pvals = zeros(num_cells, 1);
 
 effect_type = categorical(repmat({'-'}, num_cells, 1),...
     {'-', 'inhibited', 'disinhibited'});
-num_events = zeros(num_cells, 3); % Laser status: [Off Real Sham]
+num_events = zeros(num_cells, 2); % [Laser-off Laser-on]
 
 for k = 1:num_cells
-    events = ds.get_events_full(k);
-    
-    if isempty(events)
-        pvals(k) = Inf;
-    else
-        event_times = events(:,2); % Note: using peak frames
-        num_events(k,1) = length(intersect(event_times, laser_inds.off));
-        num_events(k,2) = length(intersect(event_times, laser_inds.real));
-        num_events(k,3) = length(intersect(event_times, laser_inds.sham));
-        fprintf('Cell %d\n', k);
-        [p1, p2] = count_opto_events(event_times, laser_inds.off, laser_inds.real);
-        [pvals(k), type] = min([p1, p2]); % Consider both inhibited and disinhibited cases
+    % Collect event information from cell
+    events_per_trial = zeros(num_trials, 1);
+    for m = 1:num_trials
+        eventdata = ds.trials(m).events{k};
+        events_per_trial(m) = size(eventdata,1);
     end
     
-    if (pvals(k) < p_thresh/2) % Correct for two-sided test
+    num_events(k,1) = sum(events_per_trial(trial_inds.off));
+    num_events(k,2) = sum(events_per_trial(trial_inds.real));
+    
+    % Perform shuffle test
+    [p1, p2] = shuffle_opto_events(events_per_trial, trial_inds.off, trial_inds.real);
+    title(sprintf('Cell %d', k));
+    drawnow;
+    pause;
+    
+    [pvals(k), type] = min([p1, p2]);
+    
+    if (pvals(k) < p_thresh/2) % Correction for two-sided test
         if type == 1
             effect_type(k) = 'inhibited';
         elseif type == 2

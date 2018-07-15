@@ -1,4 +1,7 @@
 function [p_lower, p_upper] = count_opto_events(event_times, laser_off_frames, laser_on_frames)
+% Compute the p-value of observed opto effect, by assuming a Poisson
+% distribution of events with the rate determined by the firing over _both_
+% laser-off and laser-on frames.
 
 % Count the number of events that occur during provided 'laser_off_frames'
 % or 'laser_on_frames'
