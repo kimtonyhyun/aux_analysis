@@ -1,8 +1,8 @@
-function [p_lower, p_upper] = shuffle_opto_events(events_per_trial, laser_off_trials, laser_on_trials)
+function [p_lower, p_upper, info] = shuffle_opto_events(events_per_trial, laser_off_trials, laser_on_trials)
 % Compute the p-value of observed opto effect, by performing random trial
 % shuffles.
 
-show_cdf = true;
+show_cdf = false;
 
 true_on_events = sum(events_per_trial(laser_on_trials));
 
@@ -28,6 +28,13 @@ p_lower = sum(shuffled_on_events<=true_on_events)/num_shuffles;
 % observed
 p_upper = sum(shuffled_on_events>=true_on_events)/num_shuffles;
 
+% Additional info
+info.num_shuffles = num_shuffles;
+percentiles_x = [5 25 50 75 95];
+info.shuffle_distr.x = percentiles_x;
+info.shuffle_distr.y = prctile(shuffled_on_events, percentiles_x);
+
+% Optional visualization
 if (show_cdf)
     [F,x] = ecdf(shuffled_on_events);
     plot(x,F,'.-');

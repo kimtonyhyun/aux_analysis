@@ -15,8 +15,11 @@ pvals = zeros(num_cells, 1);
 effect_type = categorical(repmat({'-'}, num_cells, 1),...
     {'-', 'inhibited', 'disinhibited'});
 num_events = zeros(num_cells, 2); % [Laser-off Laser-on]
+distrs = zeros(num_cells, 3); % [5th-percentile median 95-th percentile]
 
 for k = 1:num_cells
+    fprintf('%s: Cell %d...\n', datestr(now), k);
+
     % Collect event information from cell
     events_per_trial = zeros(num_trials, 1);
     for m = 1:num_trials
@@ -29,10 +32,8 @@ for k = 1:num_cells
     num_events(k,2) = sum(events_per_trial(laser_on_trials));
     
     % Perform shuffle test
-    [p1, p2] = shuffle_opto_events(events_per_trial, laser_off_trials, laser_on_trials);
-    title(sprintf('Cell %d', k));
-    drawnow;
-    pause;
+    [p1, p2, info] = shuffle_opto_events(events_per_trial, laser_off_trials, laser_on_trials);
+    distrs(k,:) = info.shuffle_distr.y([1 3 5]);
     
     [pvals(k), type] = min([p1, p2]);
     
@@ -48,8 +49,9 @@ end
 % Sort by p-value
 [sorted_pvals, sorted_inds] = sort(pvals);
 
-stats = table(sorted_pvals, sorted_inds, num_events(sorted_inds,:), effect_type(sorted_inds),...
-    'VariableNames', {'pval', 'cell_idx', 'num_events', 'effect'});
+stats = table(sorted_pvals, sorted_inds, num_events(sorted_inds,:),...
+    distrs(sorted_inds,:), effect_type(sorted_inds),...
+    'VariableNames', {'pval', 'cell_idx', 'num_events', 'shuffle_distr', 'effect'});
 
 %%
 
@@ -69,6 +71,35 @@ disinhibited_inds = table2array(stats_sig(disinhibited_inds, 'cell_idx'))';
 num_disinhibited = length(disinhibited_inds);
 
 other_inds = setdiff(1:num_cells, [inhibited_inds, disinhibited_inds]);
+
+%% Sort cells by median shuffle event count, for visualization
+
+[~, sorted_inds] = sort(distrs(:,2));
+figure;
+hold on;
+for k = 1:num_cells
+    cell_idx = sorted_inds(k);
+    plot(k*[1 1], distrs(cell_idx,[1 end]), 'k-');
+    plot(k, distrs(cell_idx,2), 'k.');
+    switch effect_type(cell_idx)
+        case '-'
+            true_color = 'k';
+        case 'inhibited'
+            true_color = 'b';
+        case 'disinhibited'
+            true_color = 'r';
+    end
+    plot(k, num_events(cell_idx,2), 'x', 'Color', true_color);
+end
+hold off;
+xlim([0 num_cells+1]);
+xlabel(sprintf('Sorted cells (%d total)', num_cells));
+ylabel('Event counts');
+grid on;
+legend('Shuffle distribution (5th-95th)', 'Shuffle median', 'Unshuffled (true) measurement',...
+       'Location', 'NorthWest');
+title(sprintf('%s: Inhibited (%d; blue), Disinhibited (%d; red)',...
+    dirname, num_inhibited, num_disinhibited));
 
 %% Inhibited traces
 
