@@ -19,20 +19,11 @@ distrs = zeros(num_cells, 3); % [5th-percentile median 95-th percentile]
 
 for k = 1:num_cells
     fprintf('%s: Cell %d...\n', datestr(now), k);
-
-    % Collect event information from cell
-    events_per_trial = zeros(num_trials, 1);
-    for m = 1:num_trials
-        eventdata = ds.trials(m).events{k};
-        events_per_trial(m) = size(eventdata,1);
-    end
-    
-    % Tabulate for later inspection
-    num_events(k,1) = sum(events_per_trial(laser_off_trials));
-    num_events(k,2) = sum(events_per_trial(laser_on_trials));
     
     % Perform shuffle test
-    [p1, p2, info] = shuffle_opto_events(events_per_trial, laser_off_trials, laser_on_trials);
+    [p1, p2, info] = shuffle_opto_events(ds, k, laser_off_trials, laser_on_trials);
+    num_events(k,1) = info.true_events.off;
+    num_events(k,2) = info.true_events.on;
     distrs(k,:) = info.shuffle_distr.y([1 3 5]);
     
     [pvals(k), type] = min([p1, p2]);
@@ -94,7 +85,7 @@ end
 hold off;
 xlim([0 num_cells+1]);
 xlabel(sprintf('Sorted cells (%d total)', num_cells));
-ylabel('Event counts');
+ylabel('Event rate (count per frame)');
 grid on;
 legend('Shuffle distribution (5th-95th)', 'Shuffle median', 'Unshuffled (true) measurement',...
        'Location', 'NorthWest');
