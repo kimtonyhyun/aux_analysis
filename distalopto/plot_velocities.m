@@ -58,7 +58,7 @@ xlabel('Velocity (cm/s)');
 suptitle(sprintf('%s: Velocities across laser conditions', dirname));
 
 %%
-velocity_filter = @(v) (-Inf<v)&(v<3);
+velocity_filter = @(v) (-0.5<v)&(v<1.5);
 
 filtered_trial_inds.off = trial_inds.off(velocity_filter(vs_off));
 filtered_trial_inds.real = trial_inds.real(velocity_filter(vs_real));

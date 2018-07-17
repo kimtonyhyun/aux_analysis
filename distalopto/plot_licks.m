@@ -1,7 +1,7 @@
 clear;
 
 %%
-fps = 30;
+fps = 20;
 x_ticks = fps*(-2:6);
 load('behavior.mat');
 ls = cellfun(@sum, licks, 'UniformOutput', true);
