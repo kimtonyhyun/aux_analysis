@@ -85,7 +85,7 @@ end
 hold off;
 xlim([0 num_cells+1]);
 xlabel(sprintf('Sorted cells (%d total)', num_cells));
-ylabel('Event rate (count per frame)');
+ylabel('Event rate (count/s)');
 grid on;
 legend('Shuffle distribution (5th-95th)', 'Shuffle median', 'Unshuffled (true) measurement',...
        'Location', 'NorthWest');

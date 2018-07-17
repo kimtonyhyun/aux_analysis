@@ -2,7 +2,8 @@ function [p_lower, p_upper, info] = shuffle_opto_events(ds, cell_idx, laser_off_
 % Compute the p-value of observed opto effect, by performing random trial
 % shuffles.
 
-use_rate = true;
+use_rate = true; % Normalize by duration of trial?
+use_all_trials = false; % Sample from both laser_off and laser_on trials?
 show_cdf = false;
 
 % Collect event information from cell
@@ -12,8 +13,7 @@ for m = 1:num_trials
     eventdata = ds.trials(m).events{cell_idx};
     num_events = size(eventdata,1);
     if use_rate
-        num_frames = diff(ds.trial_indices(m,[1 end])) + 1;
-        events_per_trial(m) = num_events / num_frames;
+        events_per_trial(m) = num_events / ds.trials(m).time;
     else
         events_per_trial(m) = num_events;
     end
@@ -21,13 +21,18 @@ end
 
 true_on_events = mean(events_per_trial(laser_on_trials));
 
-all_trials = union(laser_off_trials, laser_on_trials);
+if use_all_trials
+    shuffle_trials = union(laser_off_trials, laser_on_trials);
+else
+    shuffle_trials = laser_off_trials;
+end
+
 num_laser_on_trials = length(laser_on_trials);
 
 num_shuffles = 1e4;
 shuffled_on_events = zeros(1, num_shuffles);
 for k = 1:num_shuffles
-    shuffled_on_trials = randsample(all_trials, num_laser_on_trials);
+    shuffled_on_trials = randsample(shuffle_trials, num_laser_on_trials);
     shuffled_on_events(k) = mean(events_per_trial(shuffled_on_trials));
 end
 
@@ -45,6 +50,7 @@ p_upper = sum(shuffled_on_events>=true_on_events)/num_shuffles;
 
 % Additional info
 info.use_rate = use_rate;
+info.use_all_trials = use_all_trials;
 info.true_events.off = mean(events_per_trial(laser_off_trials));
 info.true_events.on = true_on_events;
 
