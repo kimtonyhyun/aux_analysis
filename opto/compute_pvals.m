@@ -2,7 +2,7 @@
 
 num_cells = ds.num_classified_cells;
 
-p_thresh = 0.05;
+p_thresh = 0.01;
 pvals = zeros(num_cells, 1);
 
 effect_type = categorical(repmat({'-'}, num_cells, 1),...
@@ -24,7 +24,7 @@ for k = 1:num_cells
         [pvals(k), type] = min([p1, p2]); % Consider both inhibited and disinhibited cases
     end
     
-    if (pvals(k) < p_thresh) % Note: Should've corrected for two-sided test (kept in for consistency with past measurements)
+    if (pvals(k) < p_thresh/2)
         if type == 1
             effect_type(k) = 'inhibited';
         elseif type == 2
