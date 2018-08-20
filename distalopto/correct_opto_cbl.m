@@ -12,11 +12,14 @@ end
 %%
 
 D = zeros(512, 512, num_levels);
+ds = zeros(num_levels, 1);
 for k = 1:num_levels
-    D(:,:,k) = A_on(:,:,k) - A_off;
+    D_k = A_on(:,:,k) - A_off;
+    D(:,:,k) = D_k;
+    ds(k) = mean(D_k(:));
 end
 
-save('diffmap', 'A_off', 'A_on', 'D');
+save('diffmap', 'A_off', 'A_on', 'D', 'ds');
 
 %%
 
@@ -25,9 +28,7 @@ for k = 1:num_levels
     imagesc(D(:,:,k), [-0.5 0.5]);
     axis image;
     colormap redblue;
-    d = D(:,:,k);
-    d = mean(d(:));
-    title(sprintf('AVG laser on - AVG laser off: \\mu=%.4f', d));
+    title(sprintf('AVG laser on - AVG laser off: \\mu=%.4f', ds(k)));
 end
 
 %%
@@ -35,7 +36,7 @@ end
 for k = 1:num_levels
     laser_on_k = laser_on{k};
     for m = laser_on_k
-        M(:,:,m) = M(:,:,m) - D(:,:,k); %#ok<*SAGROW>
+        M(:,:,m) = M(:,:,m) - ds(k); %#ok<*SAGROW>
     end
 end
 fprintf('%s: Applied opto correction!\n', datestr(now));

@@ -2,7 +2,7 @@
 
 num_cells = ds.num_classified_cells;
 
-p_thresh = 0.05/num_cells;
+p_thresh = 0.05;
 pvals = zeros(num_cells, 1);
 
 effect_type = categorical(repmat({'-'}, num_cells, 1),...
