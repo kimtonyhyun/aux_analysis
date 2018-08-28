@@ -101,6 +101,9 @@ end
 reward_frames = reward_frames(2:end-1);
 num_trials = length(reward_frames);
 
+load('opto.mat');
+is_opto_trial = zeros(num_trials,1);
+
 trial_frame_indices = zeros(num_trials, 4);
 for k = 1:num_trials
     reward_frame = reward_frames(k);
@@ -108,6 +111,8 @@ for k = 1:num_trials
     trial_frame_indices(k,2) = reward_frame - 30;
     trial_frame_indices(k,3) = reward_frame;
     trial_frame_indices(k,4) = reward_frame + 30;
+    
+    is_opto_trial(k) = ~ismember(reward_frame, laser_off);   
 end
 
-write_reachbot(trial_frame_indices);
+write_reachbot(trial_frame_indices, is_opto_trial);
