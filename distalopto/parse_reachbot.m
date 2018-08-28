@@ -1,8 +1,10 @@
-clear all;
+clear all; close all;
+
+%%
 
 % Format: [Current1 Current2 Xpos Ypos RobotState Lick Laser Frame1 Frame2 Solenoid TrialToggle]
 %   Sampled at 200 Hz
-data = dlmread('2w-081518.csv', '\t');
+data = dlmread('2w_082718.csv', '\t');
 num_samples = size(data, 1);
 
 %% Process frame counter
@@ -30,17 +32,22 @@ for k = 2:num_samples
     end
     frame_counter_prev = frame_counter_curr;
 end
+
+% We seem to get an "extra" frame when the frame counter resets at the end
+% of a recording
+num_frames = num_frames - 1;
+
 frame_samples = frame_samples(1:num_frames);
 
 %% Sample solenoid and lickometer traces.
-solenoid = zeros(num_frames, 1);
+reward = zeros(num_frames, 1);
 lick = zeros(num_frames, 1);
 
 % Note that the solenoid / lick pulses can be shorter than the microscope
 % frame clock.
 for k = 1:num_frames-1
     solenoid_segment = data(frame_samples(k):frame_samples(k+1), 10);
-    solenoid(k) = any(solenoid_segment>0);
+    reward(k) = any(solenoid_segment>0);
     
     lick_segment = data(frame_samples(k):frame_samples(k+1), 6);
     lick(k) = any(lick_segment>0);
@@ -53,7 +60,7 @@ behavior.pos = data(frame_samples, [3 4]);
 behavior.trial_toggle = data(frame_samples, 11);
 
 behavior.lick = lick;
-behavior.reward = solenoid;
+behavior.reward = reward;
 
 %%
 
@@ -63,7 +70,7 @@ plot(behavior.pos(:,2));
 ylabel('y position');
 ylim([-1 10]);
 yyaxis right;
-plot(solenoid, 'r');
+plot(reward, 'r');
 ylabel('solenoid');
 ylim([-1 2]);
 
@@ -75,3 +82,32 @@ ylim([-1 2]);
 
 linkaxes([ax1 ax2], 'x');
 xlim([1 num_frames]);
+
+%% Enumerate successful trials
+reward_frames = [];
+
+% Find positive edges of the reward signal
+reward_prev = reward(1);
+for k = 2:num_frames
+    reward_curr = reward(k);
+    if (~reward_prev && reward_curr) % pos edge
+        reward_frames = [reward_frames k]; %#ok<AGROW>
+    end
+    reward_prev = reward_curr;
+end
+
+% Omit the first and last trials, in case we only have imaging data over
+% only a part of those trials.
+reward_frames = reward_frames(2:end-1);
+num_trials = length(reward_frames);
+
+trial_frame_indices = zeros(num_trials, 4);
+for k = 1:num_trials
+    reward_frame = reward_frames(k);
+    trial_frame_indices(k,1) = reward_frame - 60;
+    trial_frame_indices(k,2) = reward_frame - 30;
+    trial_frame_indices(k,3) = reward_frame;
+    trial_frame_indices(k,4) = reward_frame + 30;
+end
+
+write_reachbot(trial_frame_indices);
