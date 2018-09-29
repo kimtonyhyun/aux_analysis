@@ -2,19 +2,24 @@ clear;
 
 %% Concatenate trials
 num_trials = 160;
-frames_per_trial = 240;
 
-M = zeros(512, 512, frames_per_trial*num_trials, 'int16');
+% Preallocate
+M = zeros(512, 512, 50000, 'int16');
 
+num_frames_saved = 0;
 for k = 1:num_trials
     filename = sprintf('trial_%05d.tif', k);
     fprintf('%s: Loading "%s"...\n', datestr(now), filename);
     M_trial = load_scanimage_tif(filename);
     
-    start_idx = 1 + (k-1)*frames_per_trial;
-    end_idx = start_idx + frames_per_trial - 1;
+    start_idx = num_frames_saved + 1;
+    end_idx = start_idx + size(M_trial,3) - 1;
     M(:,:,start_idx:end_idx) = M_trial;
+    
+    num_frames_saved = end_idx;
 end
+M = M(:,:,1:num_frames_saved);
+
 
 %% Inspect fluorescence stats
 F = compute_fluorescence_stats(M);
