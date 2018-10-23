@@ -89,7 +89,7 @@ grid on;
 ylim(l_range);
 
 subplot(3,6,5);
-g = cell(160,1);
+g = cell(num_trials,1);
 g(trial_inds.off) = {'off'};
 g(trial_inds.real) = {'real'};
 boxplot(ls, g, 'GroupOrder', {'off', 'real'});
