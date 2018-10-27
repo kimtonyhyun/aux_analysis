@@ -2,9 +2,9 @@ clear;
 
 %% Read digital shutter data
 
-trial_clk_ch = 1;
+trial_clk_ch = 2;
 real_shutter_ch = 0;
-sham_shutter_ch = [];
+sham_shutter_ch = 1;
 
 [trial_inds, trial_times] = find_opto_trials('opto.csv', trial_clk_ch, real_shutter_ch, sham_shutter_ch);
 

@@ -13,7 +13,7 @@ D_sham = A_sham - A_off;
 d_real = mean(D_real(:));
 d_sham = mean(D_sham(:));
 
-save('diffmap', 'A_off', 'A_real', 'A_sham', 'D_real', 'D_sham');
+% save('diffmap', 'A_off', 'A_real', 'A_sham', 'D_real', 'D_sham');
 
 %%
 
