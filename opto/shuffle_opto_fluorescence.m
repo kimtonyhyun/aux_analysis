@@ -4,20 +4,11 @@ function [p_lower, p_upper, info] = shuffle_opto_fluorescence(ds, cell_idx, lase
 
 num_shuffles = 1e4;
 use_all_trials = false; % Sample from both laser_off and laser_on trials?
-show_cdf = false;
+show_cdf = true;
 
 % Collect event information from cell
 %------------------------------------------------------------
-num_trials = ds.num_trials;
-fluorescence_per_trial = zeros(num_trials, 1);
-full_trace = ds.get_trace(cell_idx);
-for m = 1:num_trials
-    trial_inds = ds.trial_indices(m,:); % [Start CS US End]
-    % Sample the trace from 0.5 s (assuming 30 Hz) prior to CS onset until
-    % the end of the trial.
-    tr = full_trace(trial_inds(2)-15:trial_inds(4));
-    fluorescence_per_trial(m) = mean(tr);
-end
+fluorescence_per_trial = compute_trial_mean_fluorescences(ds, cell_idx);
 
 true_on_fl = mean(fluorescence_per_trial(laser_on_trials));
 
