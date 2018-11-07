@@ -1,6 +1,6 @@
 %% Compute p-values by trial shuffles
 
-load('opto.mat');
+% load('opto.mat');
 
 laser_off_trials = trial_inds.off;
 laser_on_trials = trial_inds.real;
