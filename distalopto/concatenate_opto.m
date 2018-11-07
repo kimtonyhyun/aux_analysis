@@ -1,7 +1,7 @@
 clear;
 
 %% Concatenate trials
-num_trials = 120;
+num_trials = 160;
 
 % Preallocate
 M = zeros(512, 512, 50000, 'int16');

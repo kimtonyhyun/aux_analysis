@@ -14,16 +14,16 @@ pvals = zeros(num_cells, 1);
 
 effect_type = categorical(repmat({'-'}, num_cells, 1),...
     {'-', 'inhibited', 'disinhibited'});
-num_events = zeros(num_cells, 2); % [Laser-off Laser-on]
+mean_fluorescence = zeros(num_cells, 2); % [Laser-off Laser-on]
 distrs = zeros(num_cells, 3); % [5th-percentile median 95-th percentile]
 
 for k = 1:num_cells
     fprintf('%s: Cell %d...\n', datestr(now), k);
     
     % Perform shuffle test
-    [p1, p2, info] = shuffle_opto_events(ds, k, laser_off_trials, laser_on_trials);
-    num_events(k,1) = info.true_events.off;
-    num_events(k,2) = info.true_events.on;
+    [p1, p2, info] = shuffle_opto_fluorescence(ds, k, laser_off_trials, laser_on_trials);
+    mean_fluorescence(k,1) = info.true_fluorescence.off;
+    mean_fluorescence(k,2) = info.true_fluorescence.on;
     distrs(k,:) = info.shuffle_distr.y([1 3 5]);
     
     [pvals(k), type] = min([p1, p2]);
@@ -40,9 +40,9 @@ end
 % Sort by p-value
 [sorted_pvals, sorted_inds] = sort(pvals);
 
-stats = table(sorted_pvals, sorted_inds, num_events(sorted_inds,:),...
+stats = table(sorted_pvals, sorted_inds, mean_fluorescence(sorted_inds,:),...
     distrs(sorted_inds,:), effect_type(sorted_inds),...
-    'VariableNames', {'pval', 'cell_idx', 'num_events', 'shuffle_distr', 'effect'});
+    'VariableNames', {'pval', 'cell_idx', 'fluorescence', 'shuffle_distr', 'effect'});
 
 %%
 
@@ -80,12 +80,12 @@ for k = 1:num_cells
         case 'disinhibited'
             true_color = 'r';
     end
-    plot(k, num_events(cell_idx,2), 'x', 'Color', true_color);
+    plot(k, mean_fluorescence(cell_idx,2), 'x', 'Color', true_color);
 end
 hold off;
 xlim([0 num_cells+1]);
 xlabel(sprintf('Sorted cells (%d total)', num_cells));
-ylabel('Event rate (count/s)');
+ylabel('Mean fluorescence over trial');
 grid on;
 legend('Shuffle distribution (5th-95th)', 'Shuffle median', 'Unshuffled (true) measurement',...
        'Location', 'NorthWest');
