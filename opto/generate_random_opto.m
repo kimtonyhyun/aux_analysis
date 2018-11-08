@@ -8,10 +8,7 @@ num_blocks = floor(num_trials/N);
 opto_ind = randi(N, 1, num_blocks);
 
 % Now, unpack into an absolute trial index
-opto_trials = [];
-for k = 1:num_blocks
-    opto_trials = [opto_trials N*(k-1)+opto_ind(k)]; %#ok<AGROW>
-end
+opto_trials = (1:N:num_trials) + opto_ind - 1;
 
 trial_inds.real = opto_trials;
 trial_inds.sham = [];

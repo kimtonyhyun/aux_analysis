@@ -3,6 +3,8 @@ function plot_opto_cell(ds, cell_indices, laser_off, laser_on)
 % trace itself. The use of DS allows for additional visualization, e.g.
 % events.
 
+display_events = false;
+
 if ~iscell(laser_on) % Allow for "multiple" lasers
     laser_on = {laser_on};
 end
@@ -24,7 +26,7 @@ for j = 1:num_cells
     plot_opto_trace(trace+trace_offset, laser_off, laser_on);
     hold on;
     
-    if ds.is_eventdata_loaded
+    if (ds.is_eventdata_loaded && display_events)
         events = ds.get_events_full(cell_idx);
         if ~isempty(events)
             event_times = events(:,2); % Note: using peak frames
