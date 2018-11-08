@@ -59,7 +59,7 @@ yticks((0:num_cells-1) + 0.2);
 set(gca, 'TickLength', [0 0]);
 cell_labels = cell(1, num_cells);
 for k = 1:num_cells
-    if ds.is_eventdata_loaded
+    if (ds.is_eventdata_loaded && display_events)
         event_str = sprintf('%d/', num_events_per_cell(k,:));
         cell_labels{k} = sprintf('Cell %d (Evts: %s)',...
             cell_indices(k), event_str(1:end-1));

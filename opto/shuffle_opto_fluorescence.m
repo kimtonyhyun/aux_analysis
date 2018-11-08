@@ -16,24 +16,12 @@ true_on_fl = mean(fluorescence_per_trial(laser_on_trials));
 
 % Next, we will form subsamples of trials.
 %------------------------------------------------------------
+all_trials = union(laser_off_trials, laser_on_trials);
 num_laser_on_trials = length(laser_on_trials);
+
 shuffled_fl = zeros(1, num_shuffles);
 for k = 1:num_shuffles
-    % (A) Select any trial from all trials
-    trial_shuffle = randsample(1:160, num_laser_on_trials);
-    
-    % (B) Select any trials from laser off trials
-%     trial_shuffle = randsample(laser_off_trials, num_laser_on_trials);
-    
-    % (C) Select one trial from each block of four trials from all trials
-%     trial_shuffle = (1:4:160) + randi(4,1,40) - 1;    
-
-    % (D) Select one trial from each block of three trials from
-    % 'laser_off_trials'
-%     shuffle_inds = (1:3:120) + randi(3,1,40) - 1;
-%     trial_shuffle = laser_off_trials(shuffle_inds);
-
-    
+    trial_shuffle = randsample(all_trials, num_laser_on_trials);
     shuffled_fl(k) = mean(fluorescence_per_trial(trial_shuffle));
 end
 

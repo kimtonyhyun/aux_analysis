@@ -9,7 +9,7 @@ laser_on_trials = trial_inds.real;
 num_cells = ds.num_classified_cells;
 num_trials = ds.num_trials;
 
-p_thresh = 0.001/2; % The 2 is for two-sided correction
+p_thresh = 0.01/2; % The 2 is for two-sided correction
 pvals = zeros(num_cells, 1);
 
 effect_type = categorical(repmat({'-'}, num_cells, 1),...
@@ -95,14 +95,14 @@ title(sprintf('%s: Inhibited (%d; blue), Disinhibited (%d; red)',...
 %% Inhibited traces
 
 dataset_name = dirname;
-plot_opto_cell(ds, inhibited_inds, laser_inds.off, {laser_inds.real, laser_inds.sham});
+plot_opto_cell(ds, inhibited_inds, laser_inds.off, laser_inds.real);
 title(sprintf('%s: Inhibited cells (%d of %d; %.1f%%)',...
     dataset_name, num_inhibited, num_cells, 100*num_inhibited/num_cells));
 
 %% Disinhibited traces
 
 dataset_name = dirname;
-plot_opto_cell(ds, disinhibited_inds, laser_inds.off, {laser_inds.real, laser_inds.sham});
+plot_opto_cell(ds, disinhibited_inds, laser_inds.off, laser_inds.real);
 title(sprintf('%s: Disinhibited cells (%d of %d; %.1f%%)',...
     dataset_name, num_disinhibited, num_cells, 100*num_disinhibited/num_cells));
 
