@@ -6,7 +6,7 @@ function [p_lower, p_upper, info] = shuffle_opto_fluorescence(ds, cell_idx, lase
 % on trials.
 
 num_shuffles = 1e4;
-show_cdf = true;
+show_cdf = false;
 
 % Collect event information from cell
 %------------------------------------------------------------
@@ -19,19 +19,20 @@ true_on_fl = mean(fluorescence_per_trial(laser_on_trials));
 num_laser_on_trials = length(laser_on_trials);
 shuffled_fl = zeros(1, num_shuffles);
 for k = 1:num_shuffles
-    % Select one trial from each block of three trials from
+    % (A) Select any trial from all trials
+    trial_shuffle = randsample(1:160, num_laser_on_trials);
+    
+    % (B) Select any trials from laser off trials
+%     trial_shuffle = randsample(laser_off_trials, num_laser_on_trials);
+    
+    % (C) Select one trial from each block of four trials from all trials
+%     trial_shuffle = (1:4:160) + randi(4,1,40) - 1;    
+
+    % (D) Select one trial from each block of three trials from
     % 'laser_off_trials'
 %     shuffle_inds = (1:3:120) + randi(3,1,40) - 1;
 %     trial_shuffle = laser_off_trials(shuffle_inds);
 
-    % Select one trial from each block of four trials from all trials
-%     trial_shuffle = (1:4:160) + randi(4,1,40) - 1;
-
-    % Select any trial from all trials
-    trial_shuffle = randsample(1:160, num_laser_on_trials);
-    
-    % Select any trials from laser off trials
-%     trial_shuffle = randsample(laser_off_trials, num_laser_on_trials);
     
     shuffled_fl(k) = mean(fluorescence_per_trial(trial_shuffle));
 end

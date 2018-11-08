@@ -9,7 +9,7 @@ laser_on_trials = trial_inds.real;
 num_cells = ds.num_classified_cells;
 num_trials = ds.num_trials;
 
-p_thresh = 0.01/2; % The 2 is for two-sided correction
+p_thresh = 0.001/2; % The 2 is for two-sided correction
 pvals = zeros(num_cells, 1);
 
 effect_type = categorical(repmat({'-'}, num_cells, 1),...
