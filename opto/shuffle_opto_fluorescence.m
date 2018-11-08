@@ -16,7 +16,7 @@ true_on_fl = mean(fluorescence_per_trial(laser_on_trials));
 
 % Next, we will form subsamples of trials.
 %------------------------------------------------------------
-
+num_laser_on_trials = length(laser_on_trials);
 shuffled_fl = zeros(1, num_shuffles);
 for k = 1:num_shuffles
     % Select one trial from each block of three trials from
