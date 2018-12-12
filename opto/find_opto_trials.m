@@ -5,42 +5,39 @@ function [trial_inds, trial_times] = find_opto_trials(saleae_file, trial_clk_ch,
 % Makes use of the fact that the shutter TTL slightly lags
 % the trial clock transitions.
 
-trials = find_pulses(saleae_file, trial_clk_ch);
-trial_times = trials(:,1);
-num_trials = size(trials,1);
+% Load data
+data = csvread(saleae_file);
+times = data(:,1);
+trial_clk = data(:,2+trial_clk_ch);
+num_samples = length(times);
 
-realopto_edges = find_edges(saleae_file, real_shutter_ch);
-num_realopto = size(realopto_edges, 1);
+% First, go through the trial clock and identify all positive edges
+%------------------------------------------------------------
+trial_times = [];
+for k = 2:num_samples
+    if (~trial_clk(k-1) && trial_clk(k)) % Positive edge
+        trial_times = [trial_times, times(k)]; %#ok<AGROW>
+    end
+end
+num_trials = length(trial_times);
 
-if (exist('sham_shutter_ch', 'var') && ~isempty(sham_shutter_ch))
-    shamopto_edges = find_edges(saleae_file, sham_shutter_ch);
-    num_shamopto = size(shamopto_edges, 1);
+% Second, evaluate whether the shutter signal was active during the trial.
+% We check the shutter state 0.1 seconds _after_ the start of the trial.
+%------------------------------------------------------------
+real_shutter = interp1(times, data(:,2+real_shutter_ch),...
+    trial_times + 0.1);
+
+if ~isempty(sham_shutter_ch)
+    sham_shutter = interp1(times, data(:,2+sham_shutter_ch),...
+        trial_times + 0.1);
 else
-    shamopto_edges = [];
-    num_shamopto = 0;
+    sham_shutter = zeros(size(trial_times));
 end
 
 fprintf('Found %d trials total, of which:\n', num_trials);
-fprintf('  - %d are REAL opto trials\n', num_realopto);
-fprintf('  - %d are SHAM opto trials\n', num_shamopto);
+fprintf('  - %d are REAL opto trials\n', sum(real_shutter));
+fprintf('  - %d are SHAM opto trials\n', sum(sham_shutter));
 
-realopto_trials = false(1, num_trials);
-shamopto_trials = false(1, num_trials);
-
-for k = 1:num_realopto
-    t = find(realopto_edges(k)>trials(:,1),1,'last');
-    realopto_trials(t) = true;
-end
-
-for k = 1:num_shamopto
-    t = find(shamopto_edges(k)>trials(:,1),1,'last');
-    shamopto_trials(t) = true;
-end
-
-trials_logical.real = realopto_trials;
-trials_logical.sham = shamopto_trials;
-trials_logical.off = ~(realopto_trials | shamopto_trials);
-
-trial_inds.real = find(trials_logical.real);
-trial_inds.sham = find(trials_logical.sham);
-trial_inds.off = find(trials_logical.off);
+trial_inds.real = find(real_shutter);
+trial_inds.sham = find(sham_shutter);
+trial_inds.off = setdiff(1:num_trials, [trial_inds.real trial_inds.sham]);
