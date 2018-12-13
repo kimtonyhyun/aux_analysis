@@ -87,7 +87,8 @@ for k = laser_inds.real_high
 end
 fprintf('%s: Applied opto correction (POWER MOD)!\n', datestr(now));
 
-%%
+%% Z-score movie
+
 [S,A] = compute_std_image(M);
 
 for k = 1:size(M,3)

@@ -35,6 +35,11 @@ trial_inds.real_low = low;
 trial_inds.real_mid = mid;
 trial_inds.real_high = high;
 
+fprintf('Power mod breakdown:\n');
+fprintf('  - Low: %d trials\n', length(low));
+fprintf('  - Mid: %d trials\n', length(mid));
+fprintf('  - High: %d trials\n', length(high));
+
 %%
 
 trial_frame_indices = get_trial_frame_indices('distalopto.txt');
