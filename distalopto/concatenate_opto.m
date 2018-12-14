@@ -6,7 +6,6 @@ trial_indices = get_trial_frame_indices('distalopto.txt');
 num_frames_per_trial = trial_indices(:,end) - trial_indices(:,1) + 1;
 num_trials = length(num_frames_per_trial);
 
-% Preallocate
 num_total_frames = sum(num_frames_per_trial);
 M = zeros(512, 512, num_total_frames, 'int16');
 
@@ -22,7 +21,7 @@ for k = 1:num_trials
         N, num_frames_per_trial(k));
     
     % It appears that the first and last frames in each trial are often
-    % dark (maybe the IR is being cut out?)
+    % dark (likely my IR "soft" shutter implementation for ITIs)
     M_trial(:,:,1) = M_trial(:,:,2);
     M_trial(:,:,N) = M_trial(:,:,N-1);
 
