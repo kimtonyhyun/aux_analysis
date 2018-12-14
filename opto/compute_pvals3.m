@@ -3,7 +3,8 @@
 load('opto.mat');
 
 laser_off_trials = trial_inds.off;
-laser_on_trials = trial_inds.real;
+laser_on_trials = trial_inds.real_mid;
+laser_on_frames = laser_inds.real_mid;
 
 %%
 num_cells = ds.num_classified_cells;
@@ -95,14 +96,14 @@ title(sprintf('%s: Inhibited (%d; blue), Disinhibited (%d; red)',...
 %% Inhibited traces
 
 dataset_name = dirname;
-plot_opto_cell(ds, inhibited_inds, laser_inds.off, laser_inds.real);
+plot_opto_cell(ds, inhibited_inds, laser_inds.off, laser_on_frames);
 title(sprintf('%s: Inhibited cells (%d of %d; %.1f%%)',...
     dataset_name, num_inhibited, num_cells, 100*num_inhibited/num_cells));
 
 %% Disinhibited traces
 
 dataset_name = dirname;
-plot_opto_cell(ds, disinhibited_inds, laser_inds.off, laser_inds.real);
+plot_opto_cell(ds, disinhibited_inds, laser_inds.off, laser_on_frames);
 title(sprintf('%s: Disinhibited cells (%d of %d; %.1f%%)',...
     dataset_name, num_disinhibited, num_cells, 100*num_disinhibited/num_cells));
 
