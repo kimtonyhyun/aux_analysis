@@ -2,7 +2,8 @@ clear;
 
 %% Concatenate trials
 trial_indices = get_trial_frame_indices('distalopto.txt');
- 
+load('opto.mat'); % We use 'trial_inds'
+
 num_frames_per_trial = trial_indices(:,end) - trial_indices(:,1) + 1;
 num_trials = length(num_frames_per_trial);
 
@@ -19,6 +20,24 @@ for k = 1:num_trials
     assert(N==num_frames_per_trial(k),...
         'Error! Number of frames in TIF file (%d) does not match that in trial table (%d)!',...
         N, num_frames_per_trial(k));
+    
+    % Process opto trials as necessary
+    if isfield(trial_inds, 'real_alternate')
+        if ismember(k, trial_inds.real_alternate)
+            M_trial = dealternate_opto(M_trial);
+            
+            % Remove frames affected by IR soft shutter
+            M_trial(:,:,2) = M_trial(:,:,3);
+            M_trial(:,:,N-1) = M_trial(:,:,N-2);
+        end
+    end
+    if isfield(trial_inds, 'real_interlace')
+        if ismember(k, trial_inds.real_interlace)
+            M_trial = deinterlace_opto_fpga(M_trial);
+            M_trial(:,:,2) = M_trial(:,:,3);
+            M_trial(:,:,N-1) = M_trial(:,:,N-2);
+        end
+    end
     
     % It appears that the first and last frames in each trial are often
     % dark (likely my IR "soft" shutter implementation for ITIs)
