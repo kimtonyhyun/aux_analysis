@@ -8,7 +8,26 @@ sham_shutter_ch = [];
 
 [trial_inds, trial_times] = find_opto_trials('opto.csv', trial_clk_ch, real_shutter_ch, sham_shutter_ch);
 
-%% Incorporate analog modulation data
+%% Incorporate TEMPORAL modulation data
+
+mode1_ch = 2;
+mode0_ch = 3;
+
+data = csvread('opto.csv');
+mode1_vals = interp1(data(:,1), data(:,2+mode1_ch), trial_times + 0.1);
+mode0_vals = interp1(data(:,1), data(:,2+mode0_ch), trial_times + 0.1);
+mode_vals = 2*mode1_vals + mode0_vals; % Convert to decimal
+
+trial_inds.real_postline = find(mode_vals==1);
+trial_inds.real_interlace = find(mode_vals==2);
+trial_inds.real_alternate = find(mode_vals==3);
+
+fprintf('Temporal mod breakdown:\n');
+fprintf('  - Postline: %d trials\n', length(trial_inds.real_postline));
+fprintf('  - Interlace: %d trials\n', length(trial_inds.real_interlace));
+fprintf('  - Alternate: %d trials\n', length(trial_inds.real_alternate));
+
+%% Incorporate POWER modulation data
 
 % Format: [Time(s) Mod(V)]. Both the nVoke and OBIS/Omicron analog inputs
 % use voltage range 0 to 5 V.

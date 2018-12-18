@@ -1,7 +1,7 @@
 clear;
 %% load file
 
-movie_source = 'm895-1106s_uc_oc_nc_zsc_ti8.hdf5';
+movie_source = 'lh1-1216_uc_nc_zsc_ti8.hdf5';
 Y = load_movie(movie_source);
 
 if ~isa(Y,'double');    Y = double(Y);  end         % convert to single
@@ -57,6 +57,8 @@ if (ds.num_cells == size(A,2))
     keep = logical(ds.is_cell)';
     A = A(:,keep);
     C = C(keep,:);
+    fprintf('%s: Eliminated %d non-cells!\n',...
+        datestr(now), ds.num_cells - sum(keep));
 else
     fprintf('ERROR: Num cells in DaySummary inconsistent with CNMF variables!\n');
 end
