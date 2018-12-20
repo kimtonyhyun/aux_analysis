@@ -1,7 +1,7 @@
 clear;
 %% load file
 
-movie_source = 'lh1-1216_uc_nc_zsc_ti8.hdf5';
+movie_source = 'm911-1218_uc_oc_nc_zsc_ti8.hdf5';
 Y = load_movie(movie_source);
 
 if ~isa(Y,'double');    Y = double(Y);  end         % convert to single

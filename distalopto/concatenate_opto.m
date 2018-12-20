@@ -2,7 +2,7 @@ clear;
 
 %% Concatenate trials
 trial_indices = get_trial_frame_indices('distalopto.txt');
-load('opto.mat'); % We use 'trial_inds'
+load('opto.mat'); % Loads 'trial_inds' and 'laser_inds'
 
 num_frames_per_trial = trial_indices(:,end) - trial_indices(:,1) + 1;
 num_trials = length(num_frames_per_trial);
@@ -59,5 +59,6 @@ xlabel('Frames');
 ylabel('Fluorescence');
 
 %% Subtract off min offset
-M = M - int16(mean(F(:,1)));
-fprintf('%s: Min offset corrected!\n', datestr(now));
+offset_val = mean(F(laser_inds.off,1));
+M = M - int16(offset_val);
+fprintf('%s: Min offset (%.1f) corrected!\n', datestr(now), offset_val);
