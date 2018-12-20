@@ -100,25 +100,71 @@ D_postline = A_real_postline - A_off;
 D_interlace = A_real_interlace - A_off;
 D_alternate = A_real_alternate - A_off;
 
-d_postline = mean(D_postline(:));
+%% Fix the interlace artifact
+
+% These are the lines _following_ block transition
+transition_lines = [104 207 310 413];
+num_lines = 70; % Lines to consider _after_ each transition
+
+% First, find the average profile for the transient brightness increase
+% following block transitions
+D_interlace_y = mean(D_interlace,2); % Project out fast-axis
+subplot(121);
+plot(D_interlace_y,'.');
+num_transitions = length(transition_lines);
+
+D_interlace_y_mean = zeros(num_lines,1);
+for k = 1:num_transitions
+    tl = transition_lines(k);
+    D_interlace_y_mean = D_interlace_y_mean + ...
+        D_interlace_y(tl:tl+num_lines-1);
+end
+D_interlace_y_mean = D_interlace_y_mean / num_transitions;
+subplot(122);
+plot(D_interlace_y_mean,'.');
+
+% Next, regenerate the diff image based on the fitted increase
+% TODO: Actually _fit_ the exponential profile
+D_interlace2_y = zeros(512, 1);
+for k = 1:num_transitions
+    tl = transition_lines(k);
+    D_interlace2_y(tl:tl+num_lines-1) = D_interlace_y_mean;
+end
+
+D_interlace2 = kron(D_interlace2_y, ones(1,512));
+
+%%
+
+% Exclude PMT artifacts at edges
+D_postline2 = D_postline(:,8:505);
+
+d_postline = mean(D_postline2(:));
 d_interlace = mean(D_interlace(:));
 d_alternate = mean(D_alternate(:));
 
-subplot(131);
+subplot(2,3,[1 4]);
 imagesc(D_postline, [-0.5 0.5]);
 axis image;
 colormap redblue;
 colorbar;
 title(sprintf('AVG real postline - AVG laser off: \\mu=%.4f', d_postline));
 
-subplot(132);
+subplot(2,3,2);
 imagesc(D_interlace, [-0.5 0.5]);
 axis image;
 colormap redblue;
 colorbar;
 title(sprintf('AVG real interlace - AVG laser off: \\mu=%.4f', d_interlace));
 
-subplot(133);
+subplot(2,3,5);
+D_interlace_corrected = D_interlace - D_interlace2;
+imagesc(D_interlace_corrected, [-0.5 0.5]);
+axis image;
+colormap redblue;
+colorbar;
+title(sprintf('Interlace corrected: \\mu=%.4f', mean(D_interlace_corrected(:))));
+
+subplot(2,3,[3 6]);
 imagesc(D_alternate, [-0.5 0.5]);
 axis image;
 colormap redblue;
@@ -130,8 +176,9 @@ title(sprintf('AVG real alternate - AVG laser off: \\mu=%.4f', d_alternate));
 for k = laser_inds.real_postline
     M(:,:,k) = M(:,:,k) - d_postline;
 end
+% Note that the interlace fix is _not_ full field!
 for k = laser_inds.real_interlace
-    M(:,:,k) = M(:,:,k) - d_interlace;
+    M(:,:,k) = M(:,:,k) - D_interlace2;
 end
 for k = laser_inds.real_alternate
     M(:,:,k) = M(:,:,k) - d_alternate;
