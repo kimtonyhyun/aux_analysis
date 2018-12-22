@@ -19,12 +19,14 @@ mode0_vals = interp1(data(:,1), data(:,2+mode0_ch), trial_times + 0.1);
 mode_vals = 2*mode1_vals + mode0_vals; % Convert to decimal
 
 trial_inds.real_postline = find(mode_vals==1);
-trial_inds.real_interlace = find(mode_vals==2);
+%trial_inds.real_interlace = find(mode_vals==2);
+trial_inds.real_1in8 = find(mode_vals==2);
 trial_inds.real_alternate = find(mode_vals==3);
 
 fprintf('Temporal mod breakdown:\n');
 fprintf('  - Postline: %d trials\n', length(trial_inds.real_postline));
-fprintf('  - Interlace: %d trials\n', length(trial_inds.real_interlace));
+% fprintf('  - Interlace: %d trials\n', length(trial_inds.real_interlace));
+fprintf('  - 1 in 8: %d trials\n', length(trial_inds.real_1in8));
 fprintf('  - Alternate: %d trials\n', length(trial_inds.real_alternate));
 
 %% Incorporate POWER modulation data

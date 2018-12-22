@@ -38,6 +38,11 @@ for k = 1:num_trials
             M_trial(:,:,N-1) = M_trial(:,:,N-2);
         end
     end
+    if isfield(trial_inds, 'real_1in8')
+        if ismember(k, trial_inds.real_1in8)
+            M_trial = deopto_1in8(M_trial);
+        end
+    end
     
     % It appears that the first and last frames in each trial are often
     % dark (likely my IR "soft" shutter implementation for ITIs)
