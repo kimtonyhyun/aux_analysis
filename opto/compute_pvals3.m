@@ -3,7 +3,7 @@
 load('opto.mat');
 
 laser_off_trials = trial_inds.off;
-laser_on_type = 'real_interlace';
+laser_on_type = 'real_postline';
 
 laser_on_trials = getfield(trial_inds, laser_on_type);
 laser_on_frames = getfield(laser_inds, laser_on_type);
@@ -12,7 +12,7 @@ laser_on_frames = getfield(laser_inds, laser_on_type);
 num_cells = ds.num_classified_cells;
 num_trials = ds.num_trials;
 
-p_thresh = 0.01/2; % The 2 is for two-sided correction
+p_thresh = 0.001/2; % The 2 is for two-sided correction
 pvals = zeros(num_cells, 1);
 
 effect_type = categorical(repmat({'-'}, num_cells, 1),...
@@ -65,6 +65,8 @@ disinhibited_inds = table2array(stats_sig(disinhibited_inds, 'cell_idx'))';
 num_disinhibited = length(disinhibited_inds);
 
 other_inds = setdiff(1:num_cells, [inhibited_inds, disinhibited_inds]);
+fprintf('%s: %s, %d inhibited and %d disinhibited at p=%.4f\n',...
+    datestr(now), laser_on_type, num_inhibited, num_disinhibited, p_thresh);
 
 %% Sort cells by median shuffle event count, for visualization
 
