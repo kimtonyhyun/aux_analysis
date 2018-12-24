@@ -47,8 +47,6 @@ stats = table(sorted_pvals, sorted_inds, mean_fluorescence(sorted_inds,:),...
     distrs(sorted_inds,:), effect_type(sorted_inds),...
     'VariableNames', {'pval', 'cell_idx', 'fluorescence', 'shuffle_distr', 'effect'});
 
-%%
-
 is_significant = sorted_pvals < p_thresh;
 num_significant = sum(is_significant);
 stats_sig = stats(is_significant,:);
