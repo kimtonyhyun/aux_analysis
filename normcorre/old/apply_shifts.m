@@ -1,5 +1,11 @@
 function M_final = apply_shifts(Y,shifts,options,td1,td2,td3)
 
+% THK: Notes on usage
+%   - Currently only works with movie 'Y' loaded into memory
+%   - To apply pre-computed shifts onto a movie, use:
+%       >>  apply_shifts(M, shifts, info.nc_options);
+%     where 'shifts' and 'info' are from the saved *_nc.mat
+
 % apply shifts using fft interpolation
 
 % INPUTS
