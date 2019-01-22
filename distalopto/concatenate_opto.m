@@ -2,12 +2,18 @@ clear;
 
 %% Concatenate trials
 trial_indices = get_trial_frame_indices('distalopto.txt');
-load('opto.mat'); % Loads 'trial_inds' and 'laser_inds'
 
 num_frames_per_trial = trial_indices(:,end) - trial_indices(:,1) + 1;
 num_trials = length(num_frames_per_trial);
 
 num_total_frames = sum(num_frames_per_trial);
+if isfile('opto.mat')
+    load('opto.mat'); % Loads 'trial_inds' and 'laser_inds'
+else
+    trial_inds.off = 1:num_trials;
+    laser_inds.off = 1:num_total_frames;
+end
+
 M = zeros(512, 512, num_total_frames, 'int16');
 
 num_frames_saved = 0;
