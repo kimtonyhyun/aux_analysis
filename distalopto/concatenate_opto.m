@@ -47,6 +47,11 @@ for k = 1:num_trials
     
     % It appears that the first and last frames in each trial are often
     % dark (likely my IR "soft" shutter implementation for ITIs)
+    
+    % Uncomment to overwrite the first TWO and last TWO frames
+%     M_trial(:,:,2) = M_trial(:,:,3);
+%     M_trial(:,:,N-1) = M_trial(:,:,N-2);
+    
     M_trial(:,:,1) = M_trial(:,:,2);
     M_trial(:,:,N) = M_trial(:,:,N-1);
 

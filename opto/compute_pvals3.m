@@ -3,7 +3,7 @@
 load('opto.mat');
 
 laser_off_trials = trial_inds.off;
-laser_on_type = 'real_postline';
+laser_on_type = 'real';
 
 laser_on_trials = getfield(trial_inds, laser_on_type);
 laser_on_frames = getfield(laser_inds, laser_on_type);
