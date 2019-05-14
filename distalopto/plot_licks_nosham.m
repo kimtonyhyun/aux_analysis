@@ -1,5 +1,10 @@
 clear;
 
+load('opto.mat');
+off_trials = trial_inds.off;
+on_condition = 'real_high';
+on_trials = getfield(trial_inds, on_condition);
+
 %%
 fps = 30;
 x_ticks = fps*(-2:6);
@@ -9,12 +14,11 @@ min_l = min(ls);
 max_l = max(ls);
 l_range = [min_l max_l] + 1/10*(max_l-min_l)*[-1 1];
 
-load('opto.mat');
-ls_off = ls(trial_inds.off);
-ls_real = ls(trial_inds.real);
+ls_off = ls(off_trials);
+ls_on = ls(on_trials);
 
-hit_off = sum(rewarded(trial_inds.off))/length(trial_inds.off);
-hit_real = sum(rewarded(trial_inds.real))/length(trial_inds.real);
+hit_off = sum(rewarded(off_trials))/length(off_trials);
+hit_on = sum(rewarded(on_trials))/length(on_trials);
 
 %%
 
@@ -33,8 +37,8 @@ for k = 1:num_trials
     aligned_licks(k,:) = l(frames);
 end
 
-aligned_licks_off = aligned_licks(trial_inds.off,:);
-aligned_licks_real = aligned_licks(trial_inds.real,:);
+aligned_licks_off = aligned_licks(off_trials,:);
+aligned_licks_on = aligned_licks(on_trials,:);
 
 first_licks = zeros(num_trials, num_aligned_time);
 first_licks_times = zeros(num_trials);
@@ -48,12 +52,12 @@ for k = 1:num_trials
     end
 end
 
-first_licks_off = first_licks(trial_inds.off,:);
-first_licks_real = first_licks(trial_inds.real,:);
+first_licks_off = first_licks(off_trials,:);
+first_licks_on = first_licks(on_trials,:);
 
 % Note: 'rmmissing' removes NaN entries
-first_licks_times_off = rmmissing(first_licks_times(trial_inds.off));
-first_licks_times_real = rmmissing(first_licks_times(trial_inds.real));
+first_licks_times_off = rmmissing(first_licks_times(off_trials));
+first_licks_times_on = rmmissing(first_licks_times(on_trials));
 
 %%
 
@@ -79,9 +83,9 @@ xlim([aligned_time(1) aligned_time(end)+corr_width]);
 hold off;
 
 subplot(3,3,2);
-bar(trial_inds.off, ls_off, 'k', 'EdgeColor', 'none');
+bar(off_trials, ls_off, 'k', 'EdgeColor', 'none');
 hold on;
-bar(trial_inds.real, ls_real, 'r', 'EdgeColor', 'none');
+bar(on_trials, ls_on, 'r', 'EdgeColor', 'none');
 % bar(trial_inds.sham, ls_sham, 'm', 'EdgeColor', 'none');
 hold off;
 ylabel('Total licks in trial');
@@ -89,15 +93,20 @@ grid on;
 ylim(l_range);
 
 subplot(3,6,5);
-g = cell(num_trials,1);
-g(trial_inds.off) = {'off'};
-g(trial_inds.real) = {'real'};
-boxplot(ls, g, 'GroupOrder', {'off', 'real'});
+ls_sub = [ls_off; ls_on];
+g = cell(length(ls_sub),1);
+N_off = length(ls_off);
+g(1:N_off) = {'off'};
+g(N_off+1:end) = {on_condition};
+% g = cell(num_trials,1);
+% g(off_trials) = {'off'};
+% g(on_trials) = {'on'};
+boxplot(ls_sub, g, 'GroupOrder', {'off', on_condition});
 ylabel('Total licks in trial');
-% grid on;
+grid on;
 
 subplot(3,6,6);
-b = bar(categorical({'off', 'real'}), [hit_off hit_real], 0.75);
+b = bar(categorical({'off', strrep(on_condition,'_','\_')}), [hit_off hit_on], 0.75);
 b.FaceColor = 'flat';
 b.CData(1,:) = [0 0 0]; % 'k'
 b.CData(2,:) = [1 0 0]; % 'r'
@@ -126,19 +135,21 @@ title('FIRST licks');
 grid on;
 
 subplot(3,3,8);
-bar(aligned_time, mean(aligned_licks_real), 1, 'r');
-ylabel('Licks / Trial (real)');
+bar(aligned_time, mean(aligned_licks_on), 1, 'r');
+ylabel(sprintf('Licks / Trial (%s)',...
+    strrep(on_condition,'_','\_')));
 xlim(aligned_time([1 end]));
 xticks(x_ticks);
 xlabel('Frames relative to CS onset');
 grid on;
 
 subplot(3,3,9);
-bar(aligned_time, sum(first_licks_real), 1, 'r');
-ylabel('Licks (real)');
+bar(aligned_time, sum(first_licks_on), 1, 'r');
+ylabel(sprintf('Licks (%s)',...
+    strrep(on_condition,'_','\_')));
 xlim(aligned_time([1 end]));
 xticks(x_ticks);
-legend(sprintf('Distr: %.2f \\pm %.2f s', mean(first_licks_times_real), std(first_licks_times_real)),...
+legend(sprintf('Distr: %.2f \\pm %.2f s', mean(first_licks_times_on), std(first_licks_times_on)),...
     'Location', 'NorthEast');
 xlabel('Frames relative to CS onset');
 grid on;
