@@ -71,13 +71,15 @@ Depending on the specs of your analysis machine, the motion correction of a ~320
 The funtion `run_normcorre` generates two new files:
 
 - `ctx_uc_nc.hdf5`: The motion corrected movie ("nc" is short for NoRMCorre),
-- `ctx_uc_nc.mat`: NoRMCorre motion correction results. The contents of this MAT file can be used 
+- `ctx_uc_nc.mat`: Motion correction parameters for each frame. The contents of this MAT file can be used, for example, to correct alternative channels of the same recording.
+
+Note: I would not yet delete the original movie (`ctx_uc.hdf5`) until the motion corrected movie has been manually inspected to be of sufficient quality.
 
 ---
 
 ## Z-score the movie
 
-Next, we z-score the movie pixelwise as follows:
+Next, we z-score the movie (pixelwise) as follows:
 ```
 >> zscore_movie('ctx_uc_nc.hdf5', '');
 ```
