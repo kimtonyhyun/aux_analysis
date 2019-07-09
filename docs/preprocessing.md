@@ -88,4 +88,4 @@ Next, we z-score the movie (pixelwise) as follows:
 
 ## Temporally bin the movie
 
-For running cell extraction algorithms (_e.g._ CNMF) and for visual inspection purposes, I like to temporally downsample the movie by averaging every N frames together. Typically, I use N=8 for movies that are ~30k--50k frames long.
+For running cell extraction algorithms (_e.g._ CNMF) and for visual inspection purposes, I like to temporally downsample the movie by averaging every N frames together. Typically, I use N=8 for movies that are ~30k---50k frames long.
