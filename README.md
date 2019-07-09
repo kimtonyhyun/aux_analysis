@@ -1,4 +1,4 @@
-## Preprocessing 2P datasets
+## Analyzing 2P datasets
 
 View instructions on [Github.io](https://kimtonyhyun.github.io/aux_analysis/)
 
