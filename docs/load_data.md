@@ -54,7 +54,7 @@ With the fluorescence plot, I am looking for obvious oddities in the movie. For 
 
 ## Correct the non-zero offset of the movie
 
-In the plot of `F`, it's clear that the "baseline" of the recorded fluorescence is offset from 0. This is not surprising, as the recorded baseline can be offset by arbitrary hardware settings like the bias of the preamplifier. However, for numerical analysis of the movie, I like to "recenter" the baseline to be at 0.
+In the plot of `F` above, it's clear that the "baseline" of the recorded fluorescence is offset from 0. This is not surprising, as the recorded baseline can be offset by arbitrary hardware settings like the bias of the preamplifier. However, for numerical analysis of the movie, I like to "recenter" the baseline to be at 0.
 
 First, convert the movie into `single` format as follows:
 ```
