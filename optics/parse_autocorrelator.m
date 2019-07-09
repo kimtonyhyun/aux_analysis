@@ -24,8 +24,8 @@ title('Raw autocorrelator recording');
 %%
 
 % Input required: Identify the start/end of a single scan
-scan_start = 2.85e5;
-scan_end = 5.188e5;
+scan_start = 3.31e5;
+scan_end = 5.643e5;
 
 x = xs(scan_start:scan_end);
 x = flipud(x); % By default, scan proceeds from higher to lower delay
