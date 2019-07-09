@@ -52,6 +52,8 @@ Fit selected (exp2)!
 
 When done, `meancorr_movie` generates a new movie file (by default by appending `_uc` to the input filename, _e.g._ `ctx_uc.hdf5` in this example). The original file (_e.g._ `ctx.hdf5`) can be deleted at this point.
 
+---
+
 ## Motion correction
 
 Next, run motion correction (NoRMCorre) using the `run_normcorre` "wrapper" function as follows:
@@ -66,12 +68,16 @@ ctx_uc.hdf5: Nonrigid NC grid size is [128 128] px, with max shift of 50 px
 ```
 Depending on the specs of your analysis machine, the motion correction of a ~32000 frame movie will take a few hours.
 
+---
+
 ## Z-score the movie
 
 Next, we z-score the movie pixelwise as follows:
 ```
 >> zscore_movie('ctx_uc_nc.hdf5', '');
 ```
+
+---
 
 ## Temporally bin the movie
 
