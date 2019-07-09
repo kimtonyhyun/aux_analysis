@@ -34,7 +34,7 @@ meancorr_movie: Please select one of following fits:
 ```
 The function `meancorr_movie` computes the average fluorescence value for each frame, and then attempts to fit a decaying exponential function or a linear function to the measurements. The results are shown in a plot:
 
-->![meancorr_movie fits](meancorr_fits.png)<-
+![meancorr_movie fits](meancorr_fits.png)
 
 where the raw data are black dots, and the fits are shown in red (decaying exponential) or blue (linear fit). For this example, the decaying exponential fit is clearly better, so I type in `1` at the prompt:
 ```
