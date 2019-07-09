@@ -45,3 +45,7 @@ These fluorescence values can be visualized by:
 >> plot(F);
 ```
 which yields a plot like the following:
+
+![Plot of the min/avg/max fluorescence](fluorescence_plot.png)
+
+where the x-axis is the frame number (in the example movie there are 32100 frames) and the y-axis is the fluorescence value (a.u., digitized by ScanImage). Here, the minimum trace is blue, the average trace is red, and the max trace is orange.
