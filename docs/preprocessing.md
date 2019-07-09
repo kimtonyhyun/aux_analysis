@@ -56,7 +56,7 @@ When done, `meancorr_movie` generates a new movie file (by default by appending 
 
 ## Motion correction
 
-Next, run motion correction (NoRMCorre) using the `run_normcorre` "wrapper" function as follows:
+Next, run motion correction ([NoRMCorre](https://github.com/flatironinstitute/NoRMCorre)) using the `run_normcorre` "wrapper" function as follows:
 ```
 >> run_normcorre('ctx_uc.hdf5', '');
 run_normcorre: Output movie will be saved as "ctx_uc_nc.hdf5"
@@ -67,6 +67,11 @@ ctx_uc.hdf5: Nonrigid NC grid size is [128 128] px, with max shift of 50 px
 
 ```
 Depending on the specs of your analysis machine, the motion correction of a ~32000 frame movie will take a few hours.
+
+The funtion `run_normcorre` generates two new files:
+
+- `ctx_uc_nc.hdf5`: The motion corrected movie ("nc" is short for NoRMCorre),
+- `ctx_uc_nc.mat`: NoRMCorre motion correction results. The contents of this MAT file can be used 
 
 ---
 
