@@ -23,4 +23,4 @@ The TIFF data can be loaded into the Matlab workspace by:
 ```
 M = load_scanimage_tif('ctx_00001.tif');
 ```
-where "ctx_00001.tif" is the filename of the TIFF file.
+where "ctx_00001.tif" is the filename of the TIFF file. The analysis PC should, of course, have enough RAM to load the entire movie into memory.
