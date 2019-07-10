@@ -98,6 +98,6 @@ The temporal binning is performed by:
 ```
 >> bin_movie_in_time('ctx_uc_nc_zsc.hdf5', '', 8);
 ```
-where the last parameter (8, in the above case) is the number of frames to be averaged. The function `bin_movie_in_time` then generates a new HDF5 file with `_ti8` appended to the name.
+where the last parameter (8, in the above case) is the number of frames to be averaged. The function `bin_movie_in_time` then generates a new HDF5 file with `_tiN` appended to the name where N is the binning parameter (_e.g._ `_ti8`).
 
 __Important: Do not delete the original, non-time-binned movie.__ It is not possible to recover the full temporal resolution from the time-binned movie.
