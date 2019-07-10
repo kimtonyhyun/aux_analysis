@@ -1,6 +1,6 @@
 ## Analyzing 2P datasets
 
-View instructions on [Github.io](https://kimtonyhyun.github.io/aux_analysis/)
+View instructions on [Github.io](http://kimtonyhyun.github.io/aux_analysis/)
 
 This tutorial provides the basic workflow for processing two-photon calcium imaging datasets from the Duopus microscope for cell extraction.
 
