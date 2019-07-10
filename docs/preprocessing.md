@@ -17,7 +17,7 @@ nav_order: 3
 
 ## Correct for slow changes in the movie brightness
 
-Over the course of a recording, the brightness of the calcium movie can change (usually a gradual decrease, though not always). This effect can come from light bleaching of the indicator each day, or extraneous factors like the slow loss of immersion fluid.
+Over the course of a recording, the brightness of the calcium movie can change. This is usually a gradual decrease over the session, though not always. This effect can come from light bleaching of the indicator each day, or extraneous factors like the slow loss of immersion fluid.
 
 I correct for the slow changes in movie brightness with the function `meancorr_movie`:
 ```
@@ -50,7 +50,7 @@ Fit selected (exp2)!
 09-Jul-2019 15:58:17: Done!
 ```
 
-When done, `meancorr_movie` generates a new movie file (by default by appending `_uc` to the input filename, _e.g._ `ctx_uc.hdf5` in this example). The original file (_e.g._ `ctx.hdf5`) can be deleted at this point.
+When done, `meancorr_movie` generates a new movie file (by default by appending `_uc` to the input filename, _e.g._ `ctx_uc.hdf5` in this example). The original file (_i.e._ `ctx.hdf5`) can be deleted at this point.
 
 ---
 
@@ -72,7 +72,7 @@ Depending on the specs of your analysis machine, the motion correction of a ~320
 The funtion `run_normcorre` generates two new files:
 
 - `ctx_uc_nc.hdf5`: The motion corrected movie ("nc" is short for NoRMCorre),
-- `ctx_uc_nc.mat`: Motion correction parameters for each frame. The contents of this MAT file can be used, for example, to correct alternative channels of the same recording.
+- `ctx_uc_nc.mat`: Motion correction parameters for each frame. The contents of this MAT file can be used, for example, to correct alternative color channels of the same recording.
 
 Note: I would not yet delete the original movie (`ctx_uc.hdf5`) until the motion corrected movie has been manually inspected to be of acceptable quality.
 
@@ -111,6 +111,8 @@ Warning: Frame rate of file "ctx_uc_nc_zsc.hdf5" is unknown
 09-Jul-2019 19:31:23: Temporally binning Trial 5 of 5...
 09-Jul-2019 19:31:23: Done!
 ```
-where the last parameter (8, in the above case) is the number of frames to be averaged. The function `bin_movie_in_time` then generates a new HDF5 file with `_tiN` appended to the name where N is the binning parameter. (Note: the console output of `bin_movie_in_time` reports that it's proceeding in units of "Trials", but this can be safely ignored. The function was originally intended to bin trial-based recordings with non-imaging ITI periods---where it was important to bin frames only within the same trial.)
+where the last parameter (8, in the above case) is the number of frames to be averaged. The function `bin_movie_in_time` then generates a new HDF5 file with `_tiN` appended to the name where N is the binning parameter.
+
+(Aside: the console output of `bin_movie_in_time` reports that it's proceeding in units of "Trials", but this can be safely ignored. The function was originally intended to bin trial-based recordings with non-imaging ITI periods---where it was important to bin frames only within the same trial.)
 
 __Important: Do not delete the original, non-time-binned movie.__ It is not possible to recover the full temporal resolution from the time-binned movie.
