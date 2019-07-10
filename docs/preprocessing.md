@@ -84,6 +84,10 @@ Next, we z-score the movie (pixelwise) as follows:
 >> zscore_movie('ctx_uc_nc.hdf5', '');
 ```
 
+The function `zscore_movie` first computes, for each pixel, the mean value and the standard deviation over all frames. The "standard deviation image" is then shown, along with a prompt to continue with the z-scoring of the movie. By default, the output file has `_zsc` appended to the filename, _e.g._ `ctx_uc_nc_zsc.hdf5`.
+
+Note: For archival purposes, storing either `ctx_uc_nc.hdf5` or `ctx_uc_nc_zsc.hdf5` is sufficient. It's possible to recover one from the other. I usually store the pre-z-scored movie (_i.e._ `ctx_uc_nc.hdf5`).
+
 ---
 
 ## Temporally bin the movie
@@ -96,4 +100,4 @@ The temporal binning is performed by:
 ```
 where the last parameter (8, in the above case) is the number of frames to be averaged. The function `bin_movie_in_time` then generates a new HDF5 file with `_ti8` appended to the name.
 
-Important: Do _not_ delete the original, non-time-binned movie.
+__Important: Do not delete the original, non-time-binned movie.__ It is not possible to recover the full temporal resolution from the time-binned movie.
