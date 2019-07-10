@@ -64,7 +64,8 @@ ctx_uc.hdf5: Nonrigid NC grid size is [128 128] px, with max shift of 50 px
 <Some Matlab warnings about temporary variables>
 50 out of 32100 frames registered, iteration 1 out of 2 
 ...
-
+32100 out of 32100 frames registered, iteration 2 out of 2 
+run_normcorre: Finished in 203.7 minutes!
 ```
 Depending on the specs of your analysis machine, the motion correction of a ~32000 frame movie will take a few hours.
 
@@ -82,6 +83,11 @@ Note: I would not yet delete the original movie (`ctx_uc.hdf5`) until the motion
 Next, we z-score the movie (pixelwise) as follows:
 ```
 >> zscore_movie('ctx_uc_nc.hdf5', '');
+zscore_movie: Output movie will be saved as "ctx_uc_nc_zsc.hdf5"
+09-Jul-2019 19:26:29: Reading frames 1 to 2500 for STD image (out of 32100)...
+...
+09-Jul-2019 19:27:48: Reading frames 30001 to 32100 for STD image (out of 32100)...
+zscore_movie: Press enter to proceed >>
 ```
 
 The function `zscore_movie` first computes, for each pixel, the mean value and the standard deviation over all frames. The "standard deviation image" is then shown, along with a prompt to continue with the z-scoring of the movie. By default, the output file has `_zsc` appended to the filename, _e.g._ `ctx_uc_nc_zsc.hdf5`.
@@ -97,7 +103,14 @@ For running cell extraction algorithms (_e.g._ CNMF) and for visual inspection p
 The temporal binning is performed by:
 ```
 >> bin_movie_in_time('ctx_uc_nc_zsc.hdf5', '', 8);
+bin_movie_in_time: Output movie will be saved as "ctx_uc_nc_zsc_ti8.hdf5"
+Warning: Source HDF5 file lacks "Params" directory
+Warning: Frame rate of file "ctx_uc_nc_zsc.hdf5" is unknown
+09-Jul-2019 19:30:32: Temporally binning Trial 1 of 5...
+...
+09-Jul-2019 19:31:23: Temporally binning Trial 5 of 5...
+09-Jul-2019 19:31:23: Done!
 ```
-where the last parameter (8, in the above case) is the number of frames to be averaged. The function `bin_movie_in_time` then generates a new HDF5 file with `_tiN` appended to the name where N is the binning parameter (_e.g._ `_ti8`).
+where the last parameter (8, in the above case) is the number of frames to be averaged. The function `bin_movie_in_time` then generates a new HDF5 file with `_tiN` appended to the name where N is the binning parameter. (Note: the console output of `bin_movie_in_time` reports that it's proceeding in units of "Trials", but this can be safely ignored. The function was originally intended to bin trial-based recordings with non-imaging ITI periods---where it was important to bin frames only within the same trial.)
 
 __Important: Do not delete the original, non-time-binned movie.__ It is not possible to recover the full temporal resolution from the time-binned movie.
