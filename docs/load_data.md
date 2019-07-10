@@ -52,7 +52,7 @@ which yields a plot like the following:
 
 where the x-axis is the frame number (in the example movie there are 32100 frames) and the y-axis is the fluorescence value (a.u., digitized by ScanImage). Here, the minimum trace is blue, the average trace is red, and the max trace is orange.
 
-With the fluorescence plot, I am looking for obvious oddities in the movie. For example, if the PMT were to shut off during acquisition, the min/avg/max traces would all dip to 0 on the y-axis. If there were occluding debris in the imaging path (e.g. "floaters" in the water immersion) or the mouse's tail got in the way, then the traces would show unusual features (especially in the average trace). In this example, there aren't any obvious oddities in the recorded movie.
+With the fluorescence plot, I am looking for obvious oddities in the movie. For example, if the PMT were to shut off during acquisition, the min/avg/max traces would all dip to 0 on the y-axis. If there were occluding debris in the imaging path (e.g. "floaters" in the water immersion) or the mouse's tail got in the way, then the traces would show unusual features---especially in the average trace. In this example, there aren't any obvious oddities in the recorded movie.
 
 ---
 
@@ -76,4 +76,4 @@ After the non-zero offset has been corrected, the result can be saved onto hard 
 ```
 >> save_movie_to_hdf5(M,'ctx.hdf5');
 ```
-where `'ctx.hdf5'` is the output file name. After the HDF5 file is created the original TIFF file can be deleted (though I like to store at least one copy _somewhere_).
+where `'ctx.hdf5'` is the output file name. After the HDF5 file is created the original TIFF file can be deleted (though I like to store at least one copy _somewhere_ for archival purposes).
