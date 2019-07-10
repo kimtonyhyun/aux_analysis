@@ -88,4 +88,12 @@ Next, we z-score the movie (pixelwise) as follows:
 
 ## Temporally bin the movie
 
-For running cell extraction algorithms (_e.g._ CNMF) and for visual inspection purposes, I like to temporally downsample the movie by averaging every N frames together. Typically, I use N=8 for movies that are ~30k---50k frames long.
+For running cell extraction algorithms (_e.g._ CNMF) and for visual inspection purposes, I like to temporally downsample the movie by averaging every N frames together. Typically, I use N=8 for movies that are ~30k--50k frames long.
+
+The temporal binning is performed by:
+```
+>> bin_movie_in_time('ctx_uc_nc_zsc.hdf5', '', 8);
+```
+where the last parameter (8, in the above case) is the number of frames to be averaged. The function `bin_movie_in_time` then generates a new HDF5 file with `_ti8` appended to the name.
+
+Important: Do _not_ delete the original, non-time-binned movie.
