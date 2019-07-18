@@ -86,7 +86,7 @@ grid on;
 ylim(l_range);
 
 subplot(3,6,6);
-g = cell(160,1);
+g = cell(num_trials,1);
 g(trial_inds.off) = {'off'};
 boxplot(ls, g);
 
