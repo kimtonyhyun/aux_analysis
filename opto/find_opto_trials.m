@@ -34,10 +34,11 @@ else
     sham_shutter = zeros(size(trial_times));
 end
 
-fprintf('Found %d trials total, of which:\n', num_trials);
-fprintf('  - %d are REAL opto trials\n', sum(real_shutter));
-fprintf('  - %d are SHAM opto trials\n', sum(sham_shutter));
-
 trial_inds.real = find(real_shutter);
 trial_inds.sham = find(sham_shutter);
 trial_inds.off = setdiff(1:num_trials, [trial_inds.real trial_inds.sham]);
+
+fprintf('Found %d trials total, of which:\n', num_trials);
+fprintf('  - %d are REAL opto trials\n', length(trial_inds.real));
+fprintf('  - %d are SHAM opto trials\n', length(trial_inds.sham));
+
