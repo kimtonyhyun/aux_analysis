@@ -3,7 +3,7 @@ function plot_opto_cell(ds, cell_indices, laser_off, laser_on)
 % trace itself. The use of DS allows for additional visualization, e.g.
 % events.
 
-display_events = false;
+display_events = true;
 
 if ~iscell(laser_on) % Allow for "multiple" lasers
     laser_on = {laser_on};

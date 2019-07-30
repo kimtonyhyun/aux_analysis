@@ -1,4 +1,4 @@
-function [stats_sig, info] = compute_pvals_by_shuffle(ds, opto_trial_inds, varargin)
+function [stats_sig, info] = compute_pvals_by_shuffle(ds, opto, varargin)
 
 % Default parameters
 laser_on_type = 'real'; % e.g. 'real' or 'sham' opto trials
@@ -28,8 +28,8 @@ if ~isempty(varargin)
     end
 end
 
-laser_off_trials = opto_trial_inds.off;
-laser_on_trials = opto_trial_inds.(laser_on_type);
+laser_off_trials = opto.trial_inds.off;
+laser_on_trials = opto.trial_inds.(laser_on_type);
 
 num_cells = ds.num_classified_cells;
 pvals = zeros(num_cells, 1);
@@ -44,13 +44,13 @@ distrs = zeros(num_cells, 3); % [5th-percentile median 95-th percentile]
 fprintf('%s: Using laser_on_type=%s, score_type=%s, p_thresh=%.4f, num_shuffles=%d\n',...
     datestr(now), laser_on_type, score_type, p_thresh, num_shuffles);
 for k = 1:num_cells
-    fprintf('%s: Cell %d...\n', datestr(now), k);
+    fprintf('%s: Shuffling Cell %d...\n', datestr(now), k);
     
     % Perform shuffle test
     switch (score_type)
         case 'fluorescence'
             scores_k = compute_trial_mean_fluorescences(ds, k);
-        case 'event_rate'
+        case {'event', 'events', 'event_rate'}
             scores_k = compute_trial_event_rates(ds, k);
     end
     
@@ -95,11 +95,15 @@ fprintf('%s: %d inhibited and %d disinhibited (%s, %s, p=%.4f)\n',...
 info.dataset_name = dataset_name;
 
 info.settings.laser_on_type = laser_on_type;
-info.settings.laser_on_trials = laser_on_trials;
-info.settings.laser_off_trials = laser_off_trials;
 info.settings.score_type = score_type;
 info.settings.p_thresh = p_thresh;
 info.settings.num_shuffles = num_shuffles;
+
+% The 'opto' metadata is used for downstream visualization functions
+info.opto.trial_inds.off = laser_off_trials;
+info.opto.trial_inds.on = laser_on_trials;
+info.opto.frame_inds.off = opto.laser_inds.off;
+info.opto.frame_inds.on = opto.laser_inds.(laser_on_type);
 
 info.results.inds.inhibited = inhibited_inds;
 info.results.inds.disinhibited = disinhibited_inds;
