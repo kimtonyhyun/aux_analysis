@@ -9,7 +9,7 @@ laser_on_trials = getfield(trial_inds, laser_on_type);
 laser_on_frames = getfield(laser_inds, laser_on_type);
 
 %%
-score_type = 'event_rate';
+score_type = 'fluorescence';
 p_thresh = 0.001/2; % The 2 is for two-sided correction
 
 num_cells = ds.num_classified_cells;
