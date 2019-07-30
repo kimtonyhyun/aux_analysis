@@ -2,7 +2,7 @@
 
 opto = load('opto.mat');
 
-[stats_sig, info] = compute_pvals_by_shuffle(ds, opto.trial_inds);
+[stats_sig, info] = compute_pvals_by_shuffle(ds, opto.trial_inds, 'num_shuffles', 1e5);
 visualize_shuffle(info);
 
 %% Unpack results

@@ -1,7 +1,5 @@
-function [p_lower, p_upper, info] = shuffle_scores(scores, laser_off_trials, laser_on_trials)
-% Compute the p-value of observed opto effect, by performing shuffles. W
-
-num_shuffles = 1e4;
+function [p_lower, p_upper, info] = shuffle_scores(scores, laser_off_trials, laser_on_trials, num_shuffles)
+% Compute the p-value of observed opto effect, by performing shuffles.
 
 % Sample the same number of trials as `laser_on_trials`, but from both
 % laser_off_trials and laser_on_trials

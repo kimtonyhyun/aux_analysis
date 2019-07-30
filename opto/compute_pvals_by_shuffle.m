@@ -4,6 +4,7 @@ function [stats_sig, info] = compute_pvals_by_shuffle(ds, opto_trial_inds, varar
 laser_on_type = 'real'; % e.g. 'real' or 'sham' opto trials
 score_type = 'fluorescence';
 p_thresh = 0.001/2; % The 2 is for two-sided correction
+num_shuffles = 10000;
 
 if ~isempty(varargin)
     for k = 1:length(varargin)
@@ -16,6 +17,8 @@ if ~isempty(varargin)
                     score_type = varargin{k+1};
                 case {'p', 'p_val'}
                     p_thresh = varargin{k+1};
+                case 'num_shuffles'
+                    num_shuffles = varargin{k+1};
             end
         end
     end
@@ -34,8 +37,8 @@ distrs = zeros(num_cells, 3); % [5th-percentile median 95-th percentile]
 
 % Run shuffle
 %------------------------------------------------------------
-fprintf('%s: Using laser_on_type=%s, score_type=%s, p_thresh=%.4f\n',...
-    datestr(now), laser_on_type, score_type, p_thresh);
+fprintf('%s: Using laser_on_type=%s, score_type=%s, p_thresh=%.4f, num_shuffles=%d\n',...
+    datestr(now), laser_on_type, score_type, p_thresh, num_shuffles);
 for k = 1:num_cells
     fprintf('%s: Cell %d...\n', datestr(now), k);
     
@@ -47,7 +50,7 @@ for k = 1:num_cells
             scores_k = compute_trial_event_rates(ds, k);
     end
     
-    [p1, p2, shuffle_info] = shuffle_scores(scores_k, laser_off_trials, laser_on_trials);
+    [p1, p2, shuffle_info] = shuffle_scores(scores_k, laser_off_trials, laser_on_trials, num_shuffles);
     
     mean_scores(k,1) = shuffle_info.true_scores.off;
     mean_scores(k,2) = shuffle_info.true_scores.on;
@@ -90,7 +93,7 @@ info.settings.laser_on_trials = laser_on_trials;
 info.settings.laser_off_trials = laser_off_trials;
 info.settings.score_type = score_type;
 info.settings.p_thresh = p_thresh;
-info.settings.num_shuffles = shuffle_info.shuffle_distr.num_shuffles;
+info.settings.num_shuffles = num_shuffles;
 
 info.results.inds.inhibited = inhibited_inds;
 info.results.inds.disinhibited = disinhibited_inds;
