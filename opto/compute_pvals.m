@@ -1,8 +1,10 @@
 %% Compute p-values
 
+load('opto.mat');
+
 num_cells = ds.num_classified_cells;
 
-p_thresh = 0.01/2;
+p_thresh = 0.001/2;
 pvals = zeros(num_cells, 1);
 
 effect_type = categorical(repmat({'-'}, num_cells, 1),...

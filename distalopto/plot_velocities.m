@@ -7,7 +7,15 @@ min_v = min(vs);
 max_v = max(vs);
 v_range = [min_v max_v] + 1/10*(max_v-min_v)*[-1 1];
 
+%%
 load('opto.mat');
+
+%%
+trial_inds.off = 1:length(vs);
+trial_inds.real = [];
+trial_inds.sham = [];
+
+%%
 num_trials = length(trial_inds.off) + length(trial_inds.real) + length(trial_inds.sham);
 vs_off = vs(trial_inds.off);
 vs_real = vs(trial_inds.real);
@@ -17,8 +25,12 @@ vs_sham = vs(trial_inds.sham);
 subplot(4,3,[1 2]);
 bar(trial_inds.off, vs_off, 'k', 'EdgeColor', 'none');
 hold on;
-bar(trial_inds.real, vs_real, 'r', 'EdgeColor', 'none');
-bar(trial_inds.sham, vs_sham, 'm', 'EdgeColor', 'none');
+if ~isempty(trial_inds.real)
+    bar(trial_inds.real, vs_real, 'r', 'EdgeColor', 'none');
+end
+if ~isempty(trial_inds.sham)
+    bar(trial_inds.sham, vs_sham, 'm', 'EdgeColor', 'none');
+end
 hold off;
 xlabel('Trial index');
 ylabel('Mean velocity (cm/s)');
@@ -29,9 +41,13 @@ ylim(v_range);
 subplot(4,3,3);
 g = cell(num_trials,1);
 g(trial_inds.off) = {'off'};
-g(trial_inds.real) = {'real'};
-% g(trial_inds.sham) = {'sham'};
-boxplot(vs, g, 'GroupOrder', {'off', 'real'});
+if ~isempty(trial_inds.real)
+    g(trial_inds.real) = {'real'};
+end
+if ~isempty(trial_inds.sham)
+    g(trial_inds.sham) = {'sham'};
+end
+boxplot(vs, g);
 
 %
 bins = linspace(min_v, max_v, 50);

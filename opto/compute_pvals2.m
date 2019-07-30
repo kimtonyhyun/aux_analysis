@@ -3,13 +3,15 @@
 load('opto.mat');
 
 laser_off_trials = trial_inds.off;
-laser_on_trials = trial_inds.real;
+laser_on_type = 'real';
+
+laser_on_trials = getfield(trial_inds, laser_on_type);
 
 %%
 num_cells = ds.num_classified_cells;
 num_trials = ds.num_trials;
 
-p_thresh = 0.01/(num_cells*2); % The 2 is for two-sided correction
+p_thresh = 0.001/2; % The 2 is for two-sided correction
 pvals = zeros(num_cells, 1);
 
 effect_type = categorical(repmat({'-'}, num_cells, 1),...
@@ -43,8 +45,6 @@ end
 stats = table(sorted_pvals, sorted_inds, num_events(sorted_inds,:),...
     distrs(sorted_inds,:), effect_type(sorted_inds),...
     'VariableNames', {'pval', 'cell_idx', 'num_events', 'shuffle_distr', 'effect'});
-
-%%
 
 is_significant = sorted_pvals < p_thresh;
 num_significant = sum(is_significant);

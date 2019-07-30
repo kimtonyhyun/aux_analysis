@@ -24,9 +24,11 @@ for k = 1:num_cells
     fprintf('%s: Cell %d...\n', datestr(now), k);
     
     % Perform shuffle test
-    [p1, p2, info] = shuffle_opto_fluorescence(ds, k, laser_off_trials, laser_on_trials);
-    mean_fluorescence(k,1) = info.true_fluorescence.off;
-    mean_fluorescence(k,2) = info.true_fluorescence.on;
+    mean_fluorescences = compute_trial_mean_fluorescences(ds, k);
+    [p1, p2, info] = shuffle_scores(mean_fluorescences, laser_off_trials, laser_on_trials);
+    
+    mean_fluorescence(k,1) = info.true_scores.off;
+    mean_fluorescence(k,2) = info.true_scores.on;
     distrs(k,:) = info.shuffle_distr.y([1 3 5]);
     
     [pvals(k), type] = min([p1, p2]);
