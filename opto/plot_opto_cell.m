@@ -71,7 +71,7 @@ yticklabels(cell_labels);
 
 num_trials = ds.num_trials;
 if num_trials > 1
-    for j = 2:num_trials-1
+    for j = 2:num_trials
         plot(ds.trial_indices(j,1)*[1 1], y_range, 'Color', 0.75*[1 1 1]);
     end
     set(gca, 'XTick', ds.trial_indices(:,1));
