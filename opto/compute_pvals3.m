@@ -9,7 +9,7 @@ laser_on_trials = getfield(trial_inds, laser_on_type);
 laser_on_frames = getfield(laser_inds, laser_on_type);
 
 %%
-score_type = 'fluorescence';
+score_type = 'event_rate';
 p_thresh = 0.001/2; % The 2 is for two-sided correction
 
 num_cells = ds.num_classified_cells;
@@ -71,8 +71,8 @@ disinhibited_inds = table2array(stats_sig(disinhibited_inds, 'cell_idx'))';
 num_disinhibited = length(disinhibited_inds);
 
 other_inds = setdiff(1:num_cells, [inhibited_inds, disinhibited_inds]);
-fprintf('%s: %s, %d inhibited and %d disinhibited at p=%.4f\n',...
-    datestr(now), laser_on_type, num_inhibited, num_disinhibited, p_thresh);
+fprintf('%s: %s, %s, %d inhibited and %d disinhibited at p=%.4f\n',...
+    datestr(now), laser_on_type, score_type, num_inhibited, num_disinhibited, p_thresh);
 
 %% Sort cells by median shuffle event count, for visualization
 
