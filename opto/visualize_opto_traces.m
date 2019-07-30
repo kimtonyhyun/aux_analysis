@@ -8,8 +8,14 @@ switch display_type
         display_inds = info.results.inds.disinhibited;
 end
 
-plot_opto_cell(ds, display_inds,...
-    info.opto.frame_inds.off, info.opto.frame_inds.on);
+switch info.settings.score_type
+    case 'events'
+        plot_opto_cell(ds, display_inds,...
+            info.opto.frame_inds.off, info.opto.frame_inds.on, 'show_events');
+    otherwise
+        plot_opto_cell(ds, display_inds,...
+            info.opto.frame_inds.off, info.opto.frame_inds.on);
+end
 
 num_displayed = length(display_inds);
 num_total_cells = info.results.num_cells;

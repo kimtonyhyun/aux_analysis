@@ -1,9 +1,20 @@
-function plot_opto_cell(ds, cell_indices, laser_off, laser_on)
+function plot_opto_cell(ds, cell_indices, laser_off, laser_on, varargin)
 % Like 'plot_opto_trace' but uses DaySummary and cell index rather than the
 % trace itself. The use of DS allows for additional visualization, e.g.
 % events.
 
-display_events = true;
+display_events = false;
+if ~isempty(varargin)
+    for k = 1:length(varargin)
+        if ischar(varargin{k})
+            vararg = lower(varargin{k});
+            switch vararg
+                case 'show_events'
+                    display_events = true;
+            end
+        end
+    end
+end
 
 if ~iscell(laser_on) % Allow for "multiple" lasers
     laser_on = {laser_on};
