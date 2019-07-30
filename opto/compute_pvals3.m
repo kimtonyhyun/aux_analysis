@@ -2,8 +2,15 @@
 
 opto = load('opto.mat');
 
-[stats_sig, info] = compute_pvals_by_shuffle(ds, opto.trial_inds, 'num_shuffles', 1e5);
+[stats_sig, info] = compute_pvals_by_shuffle(ds, opto.trial_inds,...
+    'dataset_name', dirname,...
+    'score_type', 'fluorescence',...
+    'num_shuffles', 1e5);
+
 visualize_shuffle(info);
+
+shuffle_savename = sprintf('shuffle_%s.mat', datestr(now, 'yymmdd-HHMMSS'));
+save(shuffle_savename, 'info', 'stats_sig');
 
 %% Unpack results
 inhibited_inds = info.results.inds.inhibited;
@@ -13,7 +20,7 @@ num_inhibited = length(inhibited_inds);
 num_disinhibited = length(disinhibited_inds);
 num_cells = info.results.num_cells;
 
-dataset_name = dirname;
+dataset_name = info.dataset_name;
 laser_on_frames = opto.laser_inds.(info.settings.laser_on_type);
 
 %% Inhibited traces

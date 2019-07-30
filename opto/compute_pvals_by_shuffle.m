@@ -5,12 +5,16 @@ laser_on_type = 'real'; % e.g. 'real' or 'sham' opto trials
 score_type = 'fluorescence';
 p_thresh = 0.001/2; % The 2 is for two-sided correction
 num_shuffles = 10000;
+dataset_name = '';
 
 if ~isempty(varargin)
     for k = 1:length(varargin)
         if ischar(varargin{k})
             vararg = lower(varargin{k});
             switch vararg
+                case {'dataset_name', 'name'}
+                    dataset_name = varargin{k+1};
+                    fprintf('%s: Dataset name set to "%s"\n', datestr(now), dataset_name);
                 case 'laser_type'
                     laser_on_type = varargin{k+1};
                 case 'score_type'
@@ -88,6 +92,8 @@ fprintf('%s: %d inhibited and %d disinhibited (%s, %s, p=%.4f)\n',...
 
 % Prepare output
 %------------------------------------------------------------
+info.dataset_name = dataset_name;
+
 info.settings.laser_on_type = laser_on_type;
 info.settings.laser_on_trials = laser_on_trials;
 info.settings.laser_off_trials = laser_off_trials;
