@@ -9,26 +9,32 @@ laser_on_trials = getfield(trial_inds, laser_on_type);
 laser_on_frames = getfield(laser_inds, laser_on_type);
 
 %%
-num_cells = ds.num_classified_cells;
-num_trials = ds.num_trials;
-
+score_type = 'event_rate';
 p_thresh = 0.001/2; % The 2 is for two-sided correction
+
+num_cells = ds.num_classified_cells;
 pvals = zeros(num_cells, 1);
 
 effect_type = categorical(repmat({'-'}, num_cells, 1),...
     {'-', 'inhibited', 'disinhibited'});
-mean_fluorescence = zeros(num_cells, 2); % [Laser-off Laser-on]
+mean_scores = zeros(num_cells, 2); % [Laser-off Laser-on]
 distrs = zeros(num_cells, 3); % [5th-percentile median 95-th percentile]
 
 for k = 1:num_cells
     fprintf('%s: Cell %d...\n', datestr(now), k);
     
     % Perform shuffle test
-    mean_fluorescences = compute_trial_mean_fluorescences(ds, k);
-    [p1, p2, info] = shuffle_scores(mean_fluorescences, laser_off_trials, laser_on_trials);
+    switch (score_type)
+        case 'fluorescence'
+            scores_k = compute_trial_mean_fluorescences(ds, k);
+        case 'event_rate'
+            scores_k = compute_trial_event_rates(ds, k);
+    end
     
-    mean_fluorescence(k,1) = info.true_scores.off;
-    mean_fluorescence(k,2) = info.true_scores.on;
+    [p1, p2, info] = shuffle_scores(scores_k, laser_off_trials, laser_on_trials);
+    
+    mean_scores(k,1) = info.true_scores.off;
+    mean_scores(k,2) = info.true_scores.on;
     distrs(k,:) = info.shuffle_distr.y([1 3 5]);
     
     [pvals(k), type] = min([p1, p2]);
@@ -45,9 +51,9 @@ end
 % Sort by p-value
 [sorted_pvals, sorted_inds] = sort(pvals);
 
-stats = table(sorted_pvals, sorted_inds, mean_fluorescence(sorted_inds,:),...
+stats = table(sorted_pvals, sorted_inds, mean_scores(sorted_inds,:),...
     distrs(sorted_inds,:), effect_type(sorted_inds),...
-    'VariableNames', {'pval', 'cell_idx', 'fluorescence', 'shuffle_distr', 'effect'});
+    'VariableNames', {'pval', 'cell_idx', score_type, 'shuffle_distr', 'effect'});
 
 is_significant = sorted_pvals < p_thresh;
 num_significant = sum(is_significant);
@@ -85,12 +91,12 @@ for k = 1:num_cells
         case 'disinhibited'
             true_color = 'r';
     end
-    plot(k, mean_fluorescence(cell_idx,2), 'x', 'Color', true_color);
+    plot(k, mean_scores(cell_idx,2), 'x', 'Color', true_color);
 end
 hold off;
 xlim([0 num_cells+1]);
 xlabel(sprintf('Sorted cells (%d total)', num_cells));
-ylabel('Mean fluorescence over trial');
+ylabel(strrep(score_type,'_','\_'));
 grid on;
 legend('Shuffle distribution (5th-95th)', 'Shuffle median', 'Unshuffled (true) measurement',...
        'Location', 'NorthWest');
