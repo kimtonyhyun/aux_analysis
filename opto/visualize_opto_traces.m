@@ -9,7 +9,7 @@ switch display_type
 end
 
 switch info.settings.score_type
-    case 'num_events'
+    case 'event_count'
         plot_opto_cell(ds, display_inds,...
             info.opto.frame_inds.off, info.opto.frame_inds.on, 'show_events');
     otherwise

@@ -8,7 +8,7 @@ for k = 1:ds.num_trials
         e = 0;
     else
         switch event_type
-            case 'num_events'
+            case 'event_count'
                 e = size(eventdata,1);
             case 'event_amp_sum'
                 e = sum(eventdata(:,3));   

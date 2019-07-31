@@ -50,7 +50,7 @@ for k = 1:num_cells
     switch (score_type)
         case 'fluorescence'
             scores_k = compute_trial_mean_fluorescences(ds, k);
-        case {'num_events', 'event_amp_sum'}
+        case {'event_count', 'event_amp_sum'}
             scores_k = compute_trial_event_rates(ds, k, score_type);
     end
     
