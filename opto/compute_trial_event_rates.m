@@ -8,7 +8,11 @@ for k = 1:ds.num_trials
         case 'num_events'
             e = size(eventdata,1);
         case 'event_amp_sum'
-            e = sum(eventdata(:,3));
+            if ~isempty(eventdata)
+                e = sum(eventdata(:,3));
+            else
+                e = 0;
+            end
     end
     event_rate_per_trial(k) = e / ds.trials(k).time;
 end
