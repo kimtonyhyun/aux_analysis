@@ -50,8 +50,8 @@ for k = 1:num_cells
     switch (score_type)
         case 'fluorescence'
             scores_k = compute_trial_mean_fluorescences(ds, k);
-        case {'event', 'events', 'event_rate'}
-            scores_k = compute_trial_event_rates(ds, k);
+        case {'num_events', 'event_amp_sum'}
+            scores_k = compute_trial_event_rates(ds, k, score_type);
     end
     
     [p1, p2, shuffle_info] = shuffle_scores(scores_k, laser_off_trials, laser_on_trials, num_shuffles);
