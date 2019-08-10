@@ -1,4 +1,4 @@
-function [ctx, str, behavior] = parse_strmot(source)
+function [ctx, str, behavior, info] = parse_strmot(source)
 % Todo: Handle forced running signal
 
 % Define Saleae channels
@@ -92,4 +92,7 @@ str.velocity = interp1(t, velocity, str_frame_times);
 
 % Save results to file
 %------------------------------------------------------------
-save('strmot.mat', 'ctx', 'str', 'behavior');
+info.dt = dt; % Used for velocity computation
+info.recording_length = times(end);
+
+save('strmot.mat', 'ctx', 'str', 'behavior', 'info');
