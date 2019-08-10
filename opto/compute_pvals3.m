@@ -7,6 +7,7 @@ for k = 1:length(scoring_methods)
     scoring_method = scoring_methods{k};
     [stats_sig, info] = compute_pvals_by_shuffle(ds, opto,...
         'dataset_name', dirname,...
+        'p_val', 0.01/2,...
         'score_type', scoring_method,...
         'num_shuffles', 1e5);
 
@@ -15,7 +16,6 @@ for k = 1:length(scoring_methods)
 end
 
 %% Visualize shuffle stats
-figure;
 visualize_shuffle(info);
 
 %% Inhibited traces
