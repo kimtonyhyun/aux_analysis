@@ -8,7 +8,11 @@ function edges = find_edges(saleae_file, channel)
 % TODO:
 %   - Option for finding falling edges
 %
-data = csvread(saleae_file);
+if isstring(saleae_file)
+    data = csvread(saleae_file);
+else
+    data = saleae_file;
+end
 times = data(:,1);
 trace = data(:,2+channel);
 

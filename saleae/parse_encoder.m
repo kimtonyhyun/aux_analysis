@@ -9,7 +9,6 @@ else
     data = saleae_file;
 end
 
-fprintf('Parsing encoder data... '); tic;
 times = data(:,1);
 num_rows = length(times);
 encA = data(:,2+encA_ch);
@@ -30,4 +29,3 @@ for k = 2:num_rows
     end
 end
 pos = pos(1:idx,:);
-t = toc; fprintf('Done in %.1f seconds!\n', t);
