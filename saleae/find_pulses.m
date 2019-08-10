@@ -3,7 +3,11 @@ function pulses = find_pulses(saleae_file, channel)
 % Note that pulses are recorded only if BOTH the positive edge and the
 % negative edges are captured in the file.
 
-data = csvread(saleae_file);
+if isstring(saleae_file)
+    data = csvread(saleae_file);
+else
+    data = saleae_file;
+end
 times = data(:,1);
 trace = data(:,2+channel);
 
