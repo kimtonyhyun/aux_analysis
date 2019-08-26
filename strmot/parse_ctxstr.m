@@ -98,5 +98,18 @@ info.dt = dt; % Used for velocity computation
 info.recording_length = times(end);
 
 save('ctxstr.mat', 'ctx', 'str', 'behavior', 'info');
+generate_pmtext('ctx.txt', find(ctx.us));
+generate_pmtext('str.txt', find(str.us));
 
 end % parse_ctxstr
+
+function generate_pmtext(outname, reward_frames)
+    pm_filler = 'east north north 10.0';
+    fid = fopen(outname, 'w');
+    for k = 1:length(reward_frames)
+        rf = reward_frames(k);
+        fprintf(fid, '%s %d %d %d %d\n', pm_filler,...
+            rf-60, rf-30, rf, rf+30);
+    end
+    fclose(fid);
+end % generate_text
