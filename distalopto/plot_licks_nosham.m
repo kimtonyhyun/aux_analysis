@@ -2,7 +2,7 @@ clear;
 
 load('opto.mat');
 off_trials = trial_inds.off;
-on_condition = 'real_high';
+on_condition = 'real';
 on_trials = getfield(trial_inds, on_condition);
 
 %%

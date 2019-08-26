@@ -38,8 +38,10 @@ fprintf('Computed velocity over dt=%.3f second windows\n', dt);
 us_times = find_pulses(data, us_ch);
 % Each US event consists of two pulses. So skip every other pulse
 us_times = us_times(1:2:end,1);
+% First reward is an automatic one at the beginning of session
+us_times = us_times(2:end);
 num_rewards = size(us_times,1);
-fprintf('Detected %d rewards\n', num_rewards);
+fprintf('Detected %d rewards (skipped first reward)\n', num_rewards);
 
 % Licks:
 % Note: Can filter here for lick durations
