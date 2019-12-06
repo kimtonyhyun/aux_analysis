@@ -4,8 +4,8 @@ switch class(M)
     case {'uint16'}
         scale = [0 0.9*max(M(:))];
     case {'single'}
-        scale = compute_movie_scale(M);
-%         scale = [0 1];
+%         scale = compute_movie_scale(M);
+        scale = [-0.02 0.05];
 end
 
 writerObj = VideoWriter('out.avi', 'Uncompressed AVI');
