@@ -15,7 +15,9 @@ nav_order: 2
 
 ---
 
-## Load ScanImage TIFF files
+## Read in imaging data in Matlab
+
+### Loading ScanImage TIFF files
 
 Each arm of the Duopus (dual-axis) microscope is controlled by ScanImage. Thus, the data is saved in [ScanImage TIFF format](http://scanimage.vidriotechnologies.com/display/SI2019/Output+Files).
 
@@ -25,9 +27,7 @@ The TIFF data can be loaded into the Matlab workspace by:
 ```
 where `'ctx_00001.tif'` is the filename of the TIFF file. The PC needs to have, of course, enough RAM to load the entire movie into memory.
 
----
-
-## Load Bruker / Prairie TIFF files
+### Loading Bruker / Prairie TIFF files
 
 Bruker microscopes (formerly Prairie) saves individual frames as separate TIF files, where each file contains exactly one image. Thus, I recommend grouping all the saved images of a single acquisition in a single directory.
 
