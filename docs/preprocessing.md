@@ -76,6 +76,12 @@ The funtion `run_normcorre` generates two new files:
 
 Note: I would not yet delete the original movie (`ctx_uc.hdf5`) until the motion corrected movie has been manually inspected to be of acceptable quality.
 
+### (Optional) Applying pre-computed NC parameters to a new movie
+
+As discussed above, each run of `run_normcorre` will produce an auxiliary `*.mat` file that stores the motion correction parameters for each frame. These parameters can later be applied to other movies, as shown below.
+
+An important use case for this feature is when we have simultaneously-acquired multi-color recordings from a single field-of-view. For example, we may have GCaMP expressed pan-neuronally and a static fluorophor (e.g. tdTomato) expressed in a specific cellular subtype. In this case, we may want to compute the motion correction parameters from the static (red, in the case of tdTomato) channel, then apply those parameters onto the active (green, in the case of GCaMP) channel.
+
 ---
 
 ## Z-score the movie
