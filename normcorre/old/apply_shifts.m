@@ -36,8 +36,9 @@ if isa(Y,'char')
     elseif strcmpi(ext,'hdf5') || strcmpi(ext,'h5');
         filetype = 'hdf5';
         fileinfo = hdf5info(Y);
-        data_name = fileinfo.GroupHierarchy.Datasets.Name;
-        sizY = fileinfo.GroupHierarchy.Datasets.Dims;
+        dataset = fileinfo.GroupHierarchy.Groups(1).Datasets; % THK: Points to '/Data/Images'
+        data_name = dataset.Name;
+        sizY = dataset.Dims;
     elseif strcmpi(ext,'raw')
         filetype = 'raw';
         fid = fopen(Y);
@@ -114,14 +115,26 @@ switch lower(options.output_type)
         if nd == 3; M_final.Y(d1,d2,d3,T) = single(0); end
         M_final.Yr(d1*d2*d3,T) = single(0);        
     case {'hdf5','h5'}
-        if exist(options.h5_filename,'file')
-            [pathstr,fname,ext] = fileparts(options.h5_filename);             
+        % THK: Generate output filename
+        if isa(Y,'char')
+            % If we're applying correction parameters to a file, derive the
+            % output filename from the name of the input file
+            [~,out_name] = fileparts(Y);
+            out_name = strcat(out_name,'_nc.hdf5');
+        else
+            % Otherwise, derive the filename from the options struct (this
+            % was the old behavior)
+            out_name = options.h5_filename;
+        end
+        if exist(out_name,'file')
+            [pathstr,fname,ext] = fileparts(out_name);             
             new_filename = fullfile(pathstr,[fname,'_',datestr(now,30),ext]);
-            warning_msg = ['File ',options.h5_filename,'already exists. Saving motion corrected file as',new_filename];            
+            warning_msg = ['File ',out_name,'already exists. Saving motion corrected file as ',new_filename];            
             warning('%s',warning_msg);
-            options.h5_filename = new_filename;
+            out_name = new_filename;
         end   
-        M_final = options.h5_filename;
+        options.h5_filename = out_name;
+        fprintf('%s: Output file will be saved as "%s"\n', datestr(now), options.h5_filename);
         if nd == 2
             h5create(options.h5_filename,['/',options.h5_groupname],[d1,d2,Inf],'Chunksize',[d1,d2,options.mem_batch_size],'Datatype','single');
         elseif nd == 3
@@ -149,7 +162,9 @@ for t = 1:bin_width:T
                 Ytm(:,:,tt) = single(imread(Y,'Index',t+tt-1,'Info',tiffInfo));
             end
         case 'hdf5'
-            Ytm = single(h5read(Y,data_name,[ones(1,length(sizY)-1),t],[sizY(1:end-1),min(t+bin_width-1,T)-t+1]));
+            % h5read(filename,data_name,start,count,stride)
+%             Ytm = single(h5read(Y,data_name,[ones(1,length(sizY)-1),t],[sizY(1:end-1),min(t+bin_width-1,T)-t+1]));
+            Ytm = load_movie_from_hdf5(Y, [t min(t+bin_width-1,T)]); % THK
         case 'mem'
             if nd == 2; Ytm = single(Y.Y(:,:,t:min(t+bin_width-1,T))); end
             if nd == 3; Ytm = single(Y.Y(:,:,:,t:min(t+bin_width-1,T))); end
