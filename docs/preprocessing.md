@@ -82,6 +82,24 @@ As discussed above, each run of `run_normcorre` will produce an auxiliary `*.mat
 
 An important use case for this feature is when we have simultaneously-acquired multi-color recordings from a single field-of-view. For example, we may have GCaMP expressed pan-neuronally and a static fluorophor (e.g. tdTomato) expressed in a specific cellular subtype. In this case, we may want to compute the motion correction parameters from the static (red, in the case of tdTomato) channel, then apply those parameters onto the active (green, in the case of GCaMP) channel.
 
+Suppose we applied NoRMCorre to a tdTomato movie, and have the following files:
+- `str-tdt_uc_nc.hdf5`: Motion corrected movie (`-tdt` indicates tdTomato),
+- `str-tdt_uc_nc.mat`: Associated motion correction parameters.
+
+And our goal is to apply the motion correction parameters to the GCaMP channel:
+- `str_uc.hdf5`: Pre-motion corrected GCaMP movie.
+
+First, load the contents of `str-tdt_uc_nc.mat` into the Matlab workspace. This can be performed by double-clicking the file in the "Current Folder" window of Matlab, or by the following command:
+```
+>> load('str-tdt_uc_nc.mat')
+```
+which loads the variables `info` and `shifts` into the workspace.
+
+The motion correction parameters can then be applied to the GCaMP movie as follows:
+```
+>> apply_shifts('str_uc.hdf5', shifts, info.nc_options);
+```
+
 ---
 
 ## Z-score the movie
