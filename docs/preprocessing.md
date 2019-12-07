@@ -80,13 +80,13 @@ Note: I would not yet delete the original movie (`ctx_uc.hdf5`) until the motion
 
 As discussed above, each run of `run_normcorre` will produce an auxiliary `*.mat` file that stores the motion correction parameters for each frame. These parameters can later be applied to other movies, as shown below.
 
-An important use case for this feature is when we have simultaneously-acquired multi-color recordings from a single field-of-view. For example, we may have GCaMP expressed pan-neuronally and a static fluorophor (e.g. tdTomato) expressed in a specific cellular subtype. In this case, we may want to compute the motion correction parameters from the static (red, in the case of tdTomato) channel, then apply those parameters onto the active (green, in the case of GCaMP) channel.
+An important use case for this feature is when we have simultaneously-acquired multi-color recordings from a single field-of-view. For example, we may have GCaMP expressed pan-neuronally and a static fluorophor (e.g. tdTomato) expressed in a specific cellular subtype. In this case, we may want to compute the motion correction parameters from the static channel, then apply those parameters onto the active (i.e. GCaMP) channel.
 
-Suppose we applied NoRMCorre to a tdTomato movie, and have the following files:
+Suppose we applied NoRMCorre to the tdTomato channel, and obtained the following files:
 - `str-tdt_uc_nc.hdf5`: Motion corrected movie (`-tdt` indicates tdTomato),
 - `str-tdt_uc_nc.mat`: Associated motion correction parameters.
 
-And our goal is to apply the motion correction parameters to the GCaMP channel:
+Our goal now is to apply the tdTomato motion correction parameters to the GCaMP movie:
 - `str_uc.hdf5`: Pre-motion corrected GCaMP movie.
 
 First, load the contents of `str-tdt_uc_nc.mat` into the Matlab workspace. This can be performed by double-clicking the file in the "Current Folder" window of Matlab, or by the following command:
@@ -95,7 +95,7 @@ First, load the contents of `str-tdt_uc_nc.mat` into the Matlab workspace. This 
 ```
 which loads the variables `info` and `shifts` into the workspace.
 
-The motion correction parameters can then be applied to the GCaMP movie as follows:
+Next, the motion correction parameters can be applied to the GCaMP movie as follows:
 ```
 >> apply_shifts('str_uc.hdf5', shifts, info.nc_options);
 ```
