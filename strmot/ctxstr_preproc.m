@@ -55,9 +55,9 @@ fprintf('%s: DONE with meancorr_movie!\n', datestr(now));
 %% Normcorre
 
 % ctx
-run_normcorre([ctx_stem '-tdt_uc.hdf5'], '');
-A = compute_mean_image([ctx_stem '-tdt_uc_nc.hdf5']);
-save([ctx_stem '-tdt.mat'], A);
+% run_normcorre([ctx_stem '-tdt_uc.hdf5'], '');
+% A = compute_mean_image([ctx_stem '-tdt_uc_nc.hdf5']);
+save([ctx_stem '-tdt.mat'], 'A');
 
 load([ctx_stem '-tdt_uc_nc.mat']);
 apply_shifts([ctx_stem '_uc.hdf5'], shifts, info.nc_options);
@@ -65,7 +65,7 @@ apply_shifts([ctx_stem '_uc.hdf5'], shifts, info.nc_options);
 % str
 run_normcorre([str_stem '-tdt_uc.hdf5'], '');
 A = compute_mean_image([str_stem '-tdt_uc_nc.hdf5']);
-save([str_stem '-tdt.mat'], A);
+save([str_stem '-tdt.mat'], 'A');
 
 load([str_stem '-tdt_uc_nc.mat']);
 apply_shifts([str_stem '_uc.hdf5'], shifts, info.nc_options);
