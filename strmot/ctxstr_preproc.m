@@ -42,7 +42,7 @@ clear Mr Fr;
 
 delete(str_source); clear str_source;
 
-fprintf('%s: DONE with HDF5 conversion!\n', datestr(now));
+fprintf('<strong>%s: DONE with HDF5 conversion!</strong>\n', datestr(now));
 
 %% Meancorr
 
@@ -60,7 +60,7 @@ meancorr_movie([str_stem '-tdt.hdf5'], '');
 delete([str_stem '.hdf5']);
 delete([str_stem '-tdt.hdf5']);
 
-fprintf('%s: DONE with meancorr_movie!\n', datestr(now));
+fprintf('<strong>%s: DONE with meancorr_movie!</strong>\n', datestr(now));
 
 %% Normcorre
 
@@ -100,4 +100,4 @@ delete([str_stem '_uc.hdf5']);
 
 bin_movie_in_time([str_stem '_uc_nc.hdf5'], '', 12);
 
-fprintf('%s: DONE with run_normcorre!\n', datestr(now));
+fprintf('<strong>%s: DONE with run_normcorre!</strong>\n', datestr(now));
