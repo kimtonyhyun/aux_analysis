@@ -9,6 +9,8 @@ output_name = 'out.avi';
 
 if ~exist('scale', 'var') % Scaling not provided
     switch class(M)
+        case {'uint8'}
+            scale = [0 255];
         case {'uint16'}
             scale = [0 0.9*max(M(:))];
         case {'single'}
