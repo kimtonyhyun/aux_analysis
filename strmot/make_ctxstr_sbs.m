@@ -1,7 +1,7 @@
 clear all; close all;
 
 % Source filenames
-stem = dirname;
+stem = dirname; % e.g. "oh09-0204"
 str_source = sprintf('%s-str_uc_nc.hdf5', stem);
 ctx_source = sprintf('%s-ctx_uc_nc.hdf5', stem);
 beh_source = 'test.mp4';
@@ -78,7 +78,7 @@ M_beh = load_movie('sbs-beh.hdf5');
 % M_beh = M_beh(1:1024,:,:); % Keep top
 M_beh = M_beh(end-1023:end,:,:); % Keep bottom
 
-%% Generate side-by-side movie M
+%% Scale neural data to uint8 scale
 
 ctx_clim = [0 5];
 M_ctx2 = uint8(255*(M_ctx-ctx_clim(1))/(ctx_clim(2)-ctx_clim(1)));
@@ -86,9 +86,51 @@ M_ctx2 = uint8(255*(M_ctx-ctx_clim(1))/(ctx_clim(2)-ctx_clim(1)));
 str_clim = [0 5];
 M_str2 = uint8(255*(M_str-str_clim(1))/(str_clim(2)-str_clim(1)));
 
+%% Generate GRAYSCALE side-by-side movie M
+
 M = cat(1, M_ctx2, M_str2);
 M = cat(2, M_beh, M);
 
 clear M_ctx2 M_str2;
 
+%% Generate RGB movies
 
+% Retrieve tdTomato overlays
+stem = dirname;
+str_tdt_source = sprintf('%s-str-tdt.mat', stem);
+str_tdt = load(str_tdt_source);
+ctx_tdt_source = sprintf('%s-ctx-tdt.mat', stem);
+ctx_tdt = load(ctx_tdt_source);
+
+str_tdt_clim = [0 4.5];
+str_tdt.A2 = uint8(255*(str_tdt.A-str_tdt_clim(1))/...
+    (str_tdt_clim(2)-str_tdt_clim(1)));
+
+ctx_tdt_clim = [0 4];
+ctx_tdt.A2 = uint8(255*(ctx_tdt.A-ctx_tdt_clim(1))/...
+    (ctx_tdt_clim(2)-ctx_tdt_clim(1)));
+
+num_frames = size(M_str2,3);
+M_str3 = zeros(512, 512, 3, num_frames, 'uint8');
+M_ctx3 = zeros(512, 512, 3, num_frames, 'uint8');
+for k = 1:num_frames
+    M_str3(:,:,1,k) = str_tdt.A2; % red
+    M_str3(:,:,2,k) = M_str2(:,:,k); % green
+    
+    M_ctx3(:,:,1,k) = ctx_tdt.A2;
+    M_ctx3(:,:,2,k) = M_ctx2(:,:,k);
+end
+
+% Convert behavior video to RGB
+[h, w, num_frames] = size(M_beh);
+M_beh3 = zeros(h, w, 3, num_frames, 'uint8');
+for k = 1:num_frames
+    M_beh3(:,:,1,k) = M_beh(:,:,k);
+    M_beh3(:,:,2,k) = M_beh(:,:,k);
+    M_beh3(:,:,3,k) = M_beh(:,:,k);
+end
+
+%% Generate RGB side-by-side movie M
+
+M = cat(1, M_ctx3, M_str3);
+M = cat(2, M_beh3, M);
