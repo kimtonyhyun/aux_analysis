@@ -1,8 +1,9 @@
 clear all; close all;
 
 % Source filenames
-str_source = 'oh06-0206-str_uc_nc.hdf5';
-ctx_source = 'oh06-0206-ctx_uc_nc.hdf5';
+stem = dirname;
+str_source = sprintf('%s-str_uc_nc.hdf5', stem);
+ctx_source = sprintf('%s-ctx_uc_nc.hdf5', stem);
 beh_source = 'test.mp4';
 
 % Output (side-by-side) video parameters
@@ -25,7 +26,7 @@ beh_skip = sum(data.behavior.frame_times < data.str.frame_times(1));
 beh_frames = find_nearest_frames(data.str.frame_times, 1:str_bin:str_bin*num_output_frames,...
     data.behavior.frame_times);
 
-%% Extract Str sub-movie
+%% Generate Str sub-movie (sbs-str.hdf5)
 
 num_str_frames_to_load = num_output_frames * str_bin;
 M_str = load_movie_from_hdf5(str_source, [1 num_str_frames_to_load]);
@@ -34,7 +35,7 @@ clear M_str;
 bin_movie_in_time('str_chunk.hdf5', 'sbs-str.hdf5', str_bin);
 delete('str_chunk.hdf5');
 
-%% Extract Ctx sub-movie
+%% Generate Ctx sub-movie (sbs-ctx.hdf5)
 
 num_ctx_frames_to_load = num_output_frames * ctx_bin;
 M_ctx = load_movie_from_hdf5(ctx_source, [ctx_skip+1 ctx_skip+num_ctx_frames_to_load]);
@@ -43,7 +44,7 @@ clear M_ctx;
 bin_movie_in_time('ctx_chunk.hdf5', 'sbs-ctx.hdf5', ctx_bin);
 delete('ctx_chunk.hdf5');
 
-%% Extract Behavior sub-movie
+%% Generate Behavior sub-movie (sbs-beh.hdf5)
 
 vid = VideoReader(beh_source);
 
