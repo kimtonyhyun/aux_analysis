@@ -47,7 +47,7 @@ delete('ctx_chunk.hdf5');
 
 vid = VideoReader(beh_source);
 
-M = zeros(1080, 810, num_output_frames, 'uint8');
+M = zeros(vid.Height, vid.Width, num_output_frames, 'uint8');
 m = 1; % output frame
 
 k = 0;
@@ -58,16 +58,12 @@ while (k < beh_frames(end))
         fprintf('%s: Reading frame %d (%d of %d)\n',...
             datestr(now), k, m, num_output_frames);
         
-%         % Following conversion due to Handbrake encoding
-%         A = A(:);
-%         A = reshape(A, [1080 1080, 4]);
-        
         M(:,:,m) = A(:,:,1);
         m = m + 1;
     end
 end
 save_movie_to_hdf5(M, 'sbs-beh.hdf5');
-clear M;
+clear vid M;
 
 %% Load all sub-movies
 clear all;
@@ -75,15 +71,15 @@ clear all;
 M_ctx = load_movie('sbs-ctx.hdf5');
 M_str = load_movie('sbs-str.hdf5');
 M_beh = load_movie('sbs-beh.hdf5');
-% M_beh = M_beh(1:1024,:,:); % Keep top
-M_beh = M_beh(end-1023:end,:,:); % Keep bottom
+M_beh = M_beh(1:1024,:,:); % Keep top
+% M_beh = M_beh(end-1023:end,:,:); % Keep bottom
 
 %% Scale neural data to uint8 scale
 
-ctx_clim = [0 5];
+ctx_clim = [0 7];
 M_ctx2 = uint8(255*(M_ctx-ctx_clim(1))/(ctx_clim(2)-ctx_clim(1)));
 
-str_clim = [0 5];
+str_clim = [0 4];
 M_str2 = uint8(255*(M_str-str_clim(1))/(str_clim(2)-str_clim(1)));
 
 %% Generate GRAYSCALE side-by-side movie M
@@ -97,18 +93,19 @@ clear M_ctx2 M_str2;
 
 % Retrieve tdTomato overlays
 stem = dirname;
-str_tdt_source = sprintf('%s-str-tdt.mat', stem);
+str_tdt_source = sprintf('%s-str-tdt_A.mat', stem);
 str_tdt = load(str_tdt_source);
-ctx_tdt_source = sprintf('%s-ctx-tdt.mat', stem);
-ctx_tdt = load(ctx_tdt_source);
 
-str_tdt_clim = [0 4.5];
+str_tdt_clim = [0 3.5];
 str_tdt.A2 = uint8(255*(str_tdt.A-str_tdt_clim(1))/...
     (str_tdt_clim(2)-str_tdt_clim(1)));
 
-ctx_tdt_clim = [0 4];
-ctx_tdt.A2 = uint8(255*(ctx_tdt.A-ctx_tdt_clim(1))/...
-    (ctx_tdt_clim(2)-ctx_tdt_clim(1)));
+% ctx_tdt_source = sprintf('%s-ctx-tdt.mat', stem);
+% ctx_tdt = load(ctx_tdt_source);
+% 
+% ctx_tdt_clim = [0 4];
+% ctx_tdt.A2 = uint8(255*(ctx_tdt.A-ctx_tdt_clim(1))/...
+%     (ctx_tdt_clim(2)-ctx_tdt_clim(1)));
 
 num_frames = size(M_str2,3);
 M_str3 = zeros(512, 512, 3, num_frames, 'uint8');
@@ -117,7 +114,7 @@ for k = 1:num_frames
     M_str3(:,:,1,k) = str_tdt.A2; % red
     M_str3(:,:,2,k) = M_str2(:,:,k); % green
     
-    M_ctx3(:,:,1,k) = ctx_tdt.A2;
+%     M_ctx3(:,:,1,k) = ctx_tdt.A2;
     M_ctx3(:,:,2,k) = M_ctx2(:,:,k);
 end
 
@@ -134,3 +131,4 @@ end
 
 M = cat(1, M_ctx3, M_str3);
 M = cat(2, M_beh3, M);
+fprintf('%s: Done generating RGB side-by-side!\n', datestr(now));
