@@ -70,7 +70,7 @@ end
 save_movie_to_hdf5(M, 'sbs-beh.hdf5');
 clear M;
 
-%%
+%% Load all sub-movies
 clear all;
 
 M_ctx = load_movie('sbs-ctx.hdf5');
@@ -79,7 +79,7 @@ M_beh = load_movie('sbs-beh.hdf5');
 % M_beh = M_beh(1:1024,:,:); % Keep top
 M_beh = M_beh(end-1023:end,:,:); % Keep bottom
 
-%%
+%% Generate side-by-side movie M
 
 ctx_clim = [0 6];
 M_ctx2 = uint8(255*(M_ctx-ctx_clim(1))/(ctx_clim(2)-ctx_clim(1)));
@@ -89,5 +89,7 @@ M_str2 = uint8(255*(M_str-str_clim(1))/(str_clim(2)-str_clim(1)));
 
 M = cat(1, M_ctx2, M_str2);
 M = cat(2, M_beh, M);
+
+clear M_ctx2 M_str2;
 
 
