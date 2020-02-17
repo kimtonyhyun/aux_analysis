@@ -80,7 +80,7 @@ M_beh = M_beh(end-1023:end,:,:); % Keep bottom
 
 %% Generate side-by-side movie M
 
-ctx_clim = [0 6];
+ctx_clim = [0 5];
 M_ctx2 = uint8(255*(M_ctx-ctx_clim(1))/(ctx_clim(2)-ctx_clim(1)));
 
 str_clim = [0 5];

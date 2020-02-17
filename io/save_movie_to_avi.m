@@ -5,7 +5,9 @@ function save_movie_to_avi(M, scale)
 
 % Default parameters:
 frame_rate = 30; % Hz. Going below 30 Hz usually doesn't look good.
-output_name = 'out.avi';
+
+timestamp = datestr(now, 'yymmdd-HHMMSS');
+output_name = sprintf('out_%s.avi', timestamp);
 
 if ~exist('scale', 'var') % Scaling not provided
     switch class(M)
@@ -21,13 +23,14 @@ end
 writerObj = VideoWriter(output_name, 'Uncompressed AVI');
 writerObj.FrameRate = frame_rate;
 open(writerObj);
+
+h = imagesc(M(:,:,1), scale);
+axis image;
+truesize;
+colormap gray;
+set(gca, 'Visible', 'off');
 for i = 1:size(M,3)
-    m = M(:,:,i);
-    imagesc(m, scale);
-    axis image;
-    truesize;
-    colormap gray;
-    set(gca,'Visible','Off');
+    set(h, 'CData', M(:,:,i));
     writeVideo(writerObj, getframe);
 end
 close(writerObj);
