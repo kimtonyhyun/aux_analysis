@@ -21,7 +21,6 @@ data = load('ctxstr.mat'); % Output of 'parse_ctxstr.m'
 
 % Str recording is always the last to start
 ctx_skip = sum(data.ctx.frame_times < data.str.frame_times(1));
-beh_skip = sum(data.behavior.frame_times < data.str.frame_times(1));
 
 beh_frames = find_nearest_frames(data.str.frame_times, 1:str_bin:str_bin*num_output_frames,...
     data.behavior.frame_times);
