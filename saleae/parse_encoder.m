@@ -19,7 +19,7 @@ idx = 0;
 curr_pos = 0;
 for k = 2:num_rows
     if (~encA(k-1) && encA(k)) % Rising edge on encA
-        if encB(k)
+        if ~encB(k)
             curr_pos = curr_pos + 1;
         else
             curr_pos = curr_pos - 1;

@@ -20,7 +20,7 @@ t = toc; fprintf('Done in %.1f seconds!\n', t);
 % Parse behavioral data at full resolution
 %------------------------------------------------------------
 % Encoder
-pos = parse_encoder(data, encA_ch, encB_ch);
+pos = parse_encoder(data, encA_ch, encB_ch); % [time enc_count]
 cpr = 500; % clicks per rotation
 R = 5.5; % cm, approximate effective radius on InnoWheel
 pos(:,2) = 2*pi*R/cpr*pos(:,2); % Convert to cm
@@ -45,7 +45,7 @@ fprintf('Detected %d rewards (skipped first reward)\n', num_rewards);
 
 % Licks:
 % Note: Can filter here for lick durations
-lick_times = find_pulses(data, lick_ch);
+lick_times = find_pulses(data, lick_ch); % [Rise_time Fall_time]
 lick_times = lick_times(:,1);
 
 % Behavior camera
@@ -57,7 +57,7 @@ fprintf('Found %d behavior frames at %.2f FPS\n',...
 % Package for output
 behavior.frame_times = behavior_frame_times;
 behavior.position = pos;
-behavior.velocity = [t' velocity'];
+behavior.velocity = [t' velocity']; % [time cm/s]
 behavior.us_times = us_times;
 behavior.lick_times = lick_times;
 
