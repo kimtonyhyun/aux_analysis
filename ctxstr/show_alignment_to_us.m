@@ -15,7 +15,7 @@ NT = length(t0);
 
 V = zeros(num_rewards, NT); % Velocity matrix
 L = cell(num_rewards, 1); % Lick cell
-R = zeros(num_rewards, 1); % 1 if mouse licked within 'response_window' of us
+R = false(num_rewards, 1); % 1 if mouse licked within 'response_window' of us
 for k = 1:num_rewards
     us_time = bdata.us_times(k);
     t = t0 + us_time;
@@ -31,10 +31,11 @@ for k = 1:num_rewards
     
     % Licks within the response window?
     lt = lt(lt>0); 
-    if any(lt<response_window)
-        R(k) = 1;
-    end
+    R(k) = any(lt<response_window);
 end
+
+num_correct = sum(R); % Licked within response window
+num_incorrect = num_rewards - num_correct;
 
 % Display results
 figure;
@@ -45,15 +46,27 @@ title('Velocity');
 set(gca,'TickLength',[0 0]);
 
 v_avg = mean(V);
-v_min = min(v_avg);
-v_max = max(v_avg);
+v_min = min([0 min(V(:))]);
+v_max = max(V(:));
 subplot(3,2,5);
 shadedErrorBar(t0, v_avg, std(V)/sqrt(num_rewards));
+hold on;
+if num_correct >= 2 % Need at least 2 for STD
+    V_corr = V(R,:);
+    shadedErrorBar(t0, mean(V_corr), std(V_corr)/sqrt(num_correct), 'g', 1);
+end
+if num_incorrect >= 2
+    V_incorr = V(~R,:);
+    shadedErrorBar(t0, mean(V_incorr), std(V_incorr)/sqrt(num_incorrect), 'r', 1);
+end
+hold off;
 grid on;
 xlabel('Time relative to reward (s)');
 ylabel('Velocity (mean\pms.e.m.)');
-ylim(0.05*(v_max-v_min)*[-1 1] + [v_min v_max]);
+ylim(0.1*(v_max-v_min)*[-1 1] + [v_min v_max]);
 set(gca,'TickLength',[0 0]);
+title(sprintf('All trials (%d); \\color{DarkGreen}Correct (%d); \\color{Red}Incorrect (%d)',...
+    num_rewards, num_correct, num_incorrect));
 
 subplot(3,2,[2 4]);
 rectangle('Position', [0 0.5 response_window num_rewards+0.5],...
@@ -88,11 +101,12 @@ set(gca,'TickLength',[0 0]);
 
 all_lick_times = cell2mat(L);
 subplot(3,2,6);
-histogram(all_lick_times, t0);
+histogram(all_lick_times, t0, 'FaceColor', 0.25*[1 1 1]);
 xlim([t0(1) t0(end)+resp_ind_width]);
 xlabel('Time relative to reward (s)');
 ylabel('Lick counts');
 grid on;
 set(gca,'TickLength',[0 0]);
+title('All trials');
 
 end % align_to_us
