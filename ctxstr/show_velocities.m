@@ -2,7 +2,9 @@
 % FIXME: Clean up...
 close all;
 
-Vs = {V1, V2, V3, V4, V5, V6, V7, V8};
+Vs = {V4, V5, V6};
+% Vs = {V1, V2, V3, V4, V5, V6, V7, V8, V9, V10};
+% Vs = {V6, V7, V8, V9, V10};
 
 num_days = length(Vs);
 colors = summer(num_days+2);
