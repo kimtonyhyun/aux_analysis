@@ -9,6 +9,6 @@ The tutorial assumes that you already have access to the following repositories,
 - [kimtonyhyun/analysis](https://github.com/kimtonyhyun/analysis)
 - [kimtonyhyun/aux_analysis](https://github.com/kimtonyhyun/aux_analysis)
 
-(Historically, `aux_analysis` consisted of less-polished scripts that were excluded from `analysis`, which was more rigorously maintained.)
+(Historically, `aux_analysis` consisted of less-polished scripts that were excluded from `analysis`, which was maintained to a more rigorous standard.)
 
 Use the navigation bar on the left to proceed.
