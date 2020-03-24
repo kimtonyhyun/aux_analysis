@@ -14,10 +14,10 @@ for k = 1:num_matches
     match_name = matches(k).name;
     match_data = load(matches(k).name);
     
-    [~, match_name] = fileparts(match_name);
+    [~, match_name] = fileparts(match_name); % Skip the extension
     match_date = match_name(end-3:end);
     
-    rec_savename = get_dff_traces(match_data.info.filters_2to1.im, M, 'fix');
+    [~, rec_savename] = get_dff_traces(match_data.info.filters_2to1.im, M, 'fix');
     
     rec_dirname = sprintf('from_%s', match_date);
     mkdir(rec_dirname);
