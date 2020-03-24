@@ -8,13 +8,10 @@ data = h5read(dlc_filename, '/df_with_missing/table');
 data = data.values_block_0;
 
 % The behavior video captures animal movement from two vantage points, one
-% from the "side" and the other from the "bottom". For each vantage point,
-% we detect the following points:
-%   Side: Eye, front-limb, hind-limb, tail (4 points total)
-%   Bottom: Nose, 4 limbs, tail (6 points total)
-%
-% Thus, we can use the number of tracked points to determine whether the H5
-% file corresponds to the Side vs. Bottom view
+% from the "side" and the other from the "bottom". Each vantage point
+% tracks a different number of points (side=4; bottom=6), thus we can use
+% the number of tracked points to determine whether the H5 file corresponds
+% to the side or bottom view
 
 info.dlc_filename = dlc_filename;
 info.num_frames = size(data,2);
@@ -30,6 +27,8 @@ switch size(data,1)
             'hindlimb', 'forelimb', 'eye', 'tail');
         
     case 18 % 6 tracked points * (X,Y,C)
+        num_tracked_points = 6;
+        
         forelimb1 = data(1:3,:)';
         forelimb2 = data(4:6,:)';
         hindlimb1 = data(7:9,:)';

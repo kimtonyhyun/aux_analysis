@@ -1,29 +1,20 @@
-clear all;
+function check_dlc(dlc_coords)
 
-vid = VideoReader('oh5_19-11-06_downDeepCut_resnet50_DualLowerNov22shuffle1_1030000_labeled.mp4');
-dlc = load('dlc_bottom.mat');
+num_frames = size(dlc_coords,1);
 
-%%
-clear all;
+ax1 = subplot(311);
+plot(dlc_coords(:,1),'.-');
+ylabel('x');
+xlim([1 num_frames]);
 
-vid = VideoReader('oh5_19-11-06_upDeepCut_resnet50_DualUpperNov13shuffle1_1030000_labeled.mp4');
-dlc = load('dlc_side.mat');
+ax2 = subplot(312);
+plot(dlc_coords(:,2),'.-');
+ylabel('y');
+xlim([1 num_frames]);
 
-%%
+ax3 = subplot(313);
+plot(dlc_coords(:,3),'.-');
+ylabel('conf');
+xlim([1 num_frames]);
 
-coords = dlc.tail;
-
-A = vid.readFrame;
-h = image(A);
-axis image;
-hold on;
-dot = plot(1, 1, 'wx');
-hold off;
-
-for k = 2:1000
-    A = vid.readFrame;
-    coord = coords(k,:);
-    
-    set(h, 'CData', A);
-    set(dot, 'XData', coord(1), 'YData', coord(2)); 
-end
+linkaxes([ax1 ax2 ax3], 'x');
