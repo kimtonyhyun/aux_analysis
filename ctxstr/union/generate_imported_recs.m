@@ -1,6 +1,9 @@
 clear all;
 
-M = load_movie('oh12-0126-ctx_uc_nc_ti8_zsc.hdf5');
+zsc_movie = dir('*_zsc.hdf5');
+zsc_movie = zsc_movie.name;
+fprintf('%s: Loading "%s"...\n', datestr(now), zsc_movie);
+M = load_movie(zsc_movie);
 
 dataset_name = dirname;
 dataset_date = dataset_name(end-3:end);

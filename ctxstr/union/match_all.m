@@ -20,7 +20,8 @@ clear k dataset_name dataset_date path_to_rec;
 
 %% Select primary day, and match all others to it
 
-primary_day = 4;
+primary_day = 8;
+fprintf('%s: Selected "%d" as primary day\n', datestr(now), ds_list{primary_day,1});
 other_days = setdiff(1:num_datasets, primary_day);
 
 ds1 = ds_list{primary_day,2};
@@ -38,5 +39,5 @@ ds2 = ds_list{other_day,2};
 
 savename = sprintf('match_%s_%s.mat', ds_list{primary_day,1}, ds_list{other_day,1});
 save(savename, 'm_1to2', 'm_2to1', 'info');
-
+fprintf('%s: Saved "%s"\n', datestr(now), savename);
 k = k + 1;
