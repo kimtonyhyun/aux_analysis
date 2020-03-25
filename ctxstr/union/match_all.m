@@ -21,7 +21,7 @@ clear k dataset_name dataset_date path_to_rec;
 %% Select primary day, and match all others to it
 
 primary_day = 1;
-fprintf('%s: Selected "%d" as primary day\n', datestr(now), ds_list{primary_day,1});
+fprintf('%s: Selected "%s" as primary day\n', datestr(now), ds_list{primary_day,1});
 other_days = setdiff(1:num_datasets, primary_day);
 
 ds1 = ds_list{primary_day,2};
