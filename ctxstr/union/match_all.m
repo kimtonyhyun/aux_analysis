@@ -4,7 +4,7 @@ mouse_name = 'oh12';
 
 datasets = dir(sprintf('%s-*', mouse_name));
 num_datasets = length(datasets);
-fprintf('%s: For "%s" found %d imported datasets\n',...
+fprintf('%s: For "%s" found %d datasets\n',...
     datestr(now), mouse_name, num_datasets);
 
 ds_list = cell(num_datasets, 2); % [Name(string) DaySummary]
@@ -20,7 +20,7 @@ clear k dataset_name dataset_date path_to_rec;
 
 %% Select primary day, and match all others to it
 
-primary_day = 8;
+primary_day = 1;
 fprintf('%s: Selected "%d" as primary day\n', datestr(now), ds_list{primary_day,1});
 other_days = setdiff(1:num_datasets, primary_day);
 
