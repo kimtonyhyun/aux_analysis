@@ -42,9 +42,17 @@ set(gca, 'FontSize', 18);
 
 md = create_merge_md([{ds}; imports(:,2)]);
 
+% Load z-scored movie
+zsc_movie = dir('*_zsc.hdf5');
+zsc_movie = zsc_movie.name;
+fprintf('%s: Loading "%s"...\n', datestr(now), zsc_movie);
+M = load_movie(zsc_movie);
+
 %% Resolve duplicates
 
-res_list = resolve_recs(md, 'norm_traces', 'names', [{'Original'}; imports(:,1)]);
+res_list = resolve_recs(md, 'norm_traces',...
+                'movie', M,...
+                'names', [{'Original'}; imports(:,1)]);
 save_resolved_recs(res_list, md);
 
 % Finally, use 'classify_cells' to manually remove possible duplicates
