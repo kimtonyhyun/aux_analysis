@@ -20,7 +20,7 @@ for k = 1:num_imports
 end
 clear imported_datasets import_name k;
 
-%% Produce diagnostic plot
+%% (Optional) Produce diagnostic plot
 
 image_file = dir(sprintf('%s-*.mat', dataset_name)); % Be careful
 load(image_file.name);
@@ -44,8 +44,7 @@ md = create_merge_md([{ds}; imports(:,2)]);
 
 %% Resolve duplicates
 
-res_list = resolve_recs(md, 'norm_traces');
-
-%% Generate "resolved" rec file
-
+res_list = resolve_recs(md, 'norm_traces', 'names', [{'Original'}; imports(:,1)]);
 save_resolved_recs(res_list, md);
+
+% Finally, use 'classify_cells' to manually remove possible duplicates
