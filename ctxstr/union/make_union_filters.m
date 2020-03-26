@@ -20,7 +20,8 @@ clear imported_datasets import_name k;
 
 %%
 
-load(sprintf('%s-ctx.mat', dataset_name)); % FIXME: Striatum?
+image_file = dir(sprintf('%s-*.mat', dataset_name)); % Be careful
+load(image_file.name);
 imagesc(A, [0.5 3]);
 axis image; colormap gray;
 hold on;
