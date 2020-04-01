@@ -98,18 +98,25 @@ info.dt = dt; % Used for velocity computation
 info.recording_length = times(end);
 
 save('ctxstr.mat', 'ctx', 'str', 'behavior', 'info');
-generate_pmtext('ctx.txt', find(ctx.us));
-generate_pmtext('str.txt', find(str.us));
+generate_pmtext('ctx.txt', find(ctx.us), 30);
+generate_pmtext('str.txt', find(str.us), 45);
 
 end % parse_ctxstr
 
-function generate_pmtext(outname, reward_frames)
+function generate_pmtext(outname, reward_frames, imaging_frame_rate)
+    frame_offsets = [-3 -2 0 1] * imaging_frame_rate;
     pm_filler = 'east north north 10.0';
     fid = fopen(outname, 'w');
     for k = 1:length(reward_frames)
         rf = reward_frames(k);
-        fprintf(fid, '%s %d %d %d %d\n', pm_filler,...
-            rf-60, rf-30, rf, rf+30);
+        tf = rf + frame_offsets; % trial frames
+        if (tf(1) > 0)
+            fprintf(fid, '%s %d %d %d %d\n', pm_filler,...
+                tf(1), tf(2), tf(3), tf(4));
+        else
+            cprintf('r', 'Warning: Skipped Trial %d in "%s" because trial window not fully captured by recording\n',...
+                k, outname);
+        end
     end
     fclose(fid);
 end % generate_text
