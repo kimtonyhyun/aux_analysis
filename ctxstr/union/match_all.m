@@ -1,6 +1,6 @@
 clear all;
 
-mouse_name = 'oh12';
+mouse_name = 'oh08';
 
 datasets = dir(sprintf('%s-*', mouse_name));
 num_datasets = length(datasets);
@@ -20,7 +20,7 @@ clear k dataset_name dataset_date path_to_rec;
 
 %% Select primary day, and match all others to it
 
-primary_day = 8;
+primary_day = 6;
 fprintf('%s: Selected "%s" as primary day\n', datestr(now), ds_list{primary_day,1});
 other_days = setdiff(1:num_datasets, primary_day);
 
@@ -33,7 +33,7 @@ close all;
 
 other_day = other_days(k);
 ds2 = ds_list{other_day,2};
-[m_1to2, m_2to1, info] = run_alignment(ds1, ds2, 'num_points', 5);
+[m_1to2, m_2to1, info] = run_alignment(ds1, ds2, 'num_points', 4);
 
 %% Happy with alignment? Save and move on
 
