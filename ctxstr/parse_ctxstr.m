@@ -98,23 +98,23 @@ info.dt = dt; % Used for velocity computation
 info.recording_length = times(end);
 
 save('ctxstr.mat', 'ctx', 'str', 'behavior', 'info');
-generate_pmtext('ctx.txt', find(ctx.us), 30);
-generate_pmtext('str.txt', find(str.us), 45);
+generate_pmtext('ctx.txt', find(ctx.us), 30, num_ctx_frames); % FIXME: Hard-coded FPS
+generate_pmtext('str.txt', find(str.us), 45, num_str_frames);
 
 end % parse_ctxstr
 
-function generate_pmtext(outname, reward_frames, imaging_frame_rate)
-    frame_offsets = [-3 -2 0 1] * imaging_frame_rate;
+function generate_pmtext(outname, reward_frames, imaging_fps, max_frames)
+    frame_offsets = [-3 -2 0 2] * imaging_fps;
     pm_filler = 'east north north 10.0';
     fid = fopen(outname, 'w');
     for k = 1:length(reward_frames)
         rf = reward_frames(k);
-        tf = rf + frame_offsets; % trial frames
-        if (tf(1) > 0)
+        tf = rf + frame_offsets; % "trial frames"
+        if (tf(1) > 0) && (tf(4) < max_frames)
             fprintf(fid, '%s %d %d %d %d\n', pm_filler,...
                 tf(1), tf(2), tf(3), tf(4));
         else
-            cprintf('r', 'Warning: Skipped Trial %d in "%s" because trial window not fully captured by recording\n',...
+            fprintf('  Warning: Skipped Trial %d in "%s" because trial window not fully captured by recording\n',...
                 k, outname);
         end
     end
