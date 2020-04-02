@@ -41,7 +41,7 @@ us_times = us_times(1:2:end,1);
 % First reward is an automatic one at the beginning of session
 us_times = us_times(2:end);
 num_rewards = size(us_times,1);
-fprintf('Detected %d rewards (skipped first reward)\n', num_rewards);
+fprintf('Detected %d rewards, omitting the first (free) reward\n', num_rewards);
 
 % Licks:
 % Note: Can filter here for lick durations
@@ -100,22 +100,24 @@ end
 
 % Package for output
 ctx.frame_times = ctx_frame_times;
-[ctx.us, first_reward_idx_ctx] = assign_edge_to_frames(us_times, ctx_frame_times);
+[ctx.us, ctx.first_reward_idx] = assign_edge_to_frames(us_times, ctx_frame_times);
 ctx.lick = assign_edge_to_frames(lick_times, ctx_frame_times);
 ctx.velocity = interp1(t, velocity, ctx_frame_times);
 
 num_rewards_in_ctx_movie = sum(ctx.us);
-lick_responses_ctx = lick_responses(first_reward_idx_ctx:first_reward_idx_ctx+num_rewards_in_ctx_movie-1);
-fprintf('%d rewards occur during the ctx movie\n', num_rewards_in_ctx_movie);
+lick_responses_ctx = lick_responses(ctx.first_reward_idx:ctx.first_reward_idx+num_rewards_in_ctx_movie-1);
+fprintf('%d rewards occur during the ctx movie, ', num_rewards_in_ctx_movie);
+fprintf('starting from reward #%d\n', ctx.first_reward_idx);
 
 str.frame_times = str_frame_times;
-[str.us, first_reward_idx_str] = assign_edge_to_frames(us_times, str_frame_times);
+[str.us, str.first_reward_idx] = assign_edge_to_frames(us_times, str_frame_times);
 str.lick = assign_edge_to_frames(lick_times, str_frame_times);
 str.velocity = interp1(t, velocity, str_frame_times);
 
 num_rewards_in_str_movie = sum(str.us);
-lick_responses_str = lick_responses(first_reward_idx_str:first_reward_idx_str+num_rewards_in_str_movie-1);
-fprintf('%d rewards occur during the str movie\n', sum(str.us));
+lick_responses_str = lick_responses(str.first_reward_idx:str.first_reward_idx+num_rewards_in_str_movie-1);
+fprintf('%d rewards occur during the str movie, ', num_rewards_in_str_movie);
+fprintf('starting from reward #%d\n', str.first_reward_idx);
 
 % Save results to file
 %------------------------------------------------------------
@@ -145,8 +147,8 @@ function generate_pmtext(outname, reward_frames, responses, imaging_fps, max_fra
             fprintf(fid, '%s %d %d %d %d\n', pm_filler,...
                 tf(1), tf(2), tf(3), tf(4));
         else
-            fprintf('  Warning: Skipped Trial %d in "%s" because trial window not fully captured by recording\n',...
-                k, outname);
+            fprintf('  Warning: In "%s", skipped Trial %d because trial window not fully captured by recording\n',...
+                outname, k);
         end
     end
     fclose(fid);
