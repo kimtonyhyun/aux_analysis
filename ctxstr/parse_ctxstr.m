@@ -48,6 +48,22 @@ fprintf('Detected %d rewards (skipped first reward)\n', num_rewards);
 lick_times = find_pulses(data, lick_ch); % [Rise_time Fall_time]
 lick_times = lick_times(:,1);
 
+% Lick response: Is there a detected lick within 1 s of water reward?
+lick_response_window = 1;
+lick_responses = zeros(num_rewards, 1);
+for k = 1:num_rewards
+    us_time = us_times(k);
+    ind = find(lick_times > us_time, 1, 'first');
+    if ~isempty(ind)
+        lick_time = lick_times(ind); % Timing of first lick after k-th US
+        if (lick_time - us_time < lick_response_window)
+            lick_responses(k) = 1;
+        end
+    end
+end
+fprintf('Lick responses in %d out of %d rewards (%.1f%% hit rate, using %.1f second response window)\n',...
+    sum(lick_responses), num_rewards, sum(lick_responses)/num_rewards*100, lick_response_window);
+
 % Behavior camera
 behavior_frame_times = find_edges(data, behavior_clock_ch);
 T_beh = mean(diff(behavior_frame_times));
@@ -60,6 +76,7 @@ behavior.position = pos;
 behavior.velocity = [t' velocity']; % [time cm/s]
 behavior.us_times = us_times;
 behavior.lick_times = lick_times;
+behavior.lick_responses = lick_responses;
 
 % Parse imaging clocks
 %------------------------------------------------------------
@@ -83,31 +100,45 @@ end
 
 % Package for output
 ctx.frame_times = ctx_frame_times;
-ctx.us = assign_edge_to_frames(us_times, ctx_frame_times);
+[ctx.us, first_reward_idx_ctx] = assign_edge_to_frames(us_times, ctx_frame_times);
 ctx.lick = assign_edge_to_frames(lick_times, ctx_frame_times);
 ctx.velocity = interp1(t, velocity, ctx_frame_times);
 
+num_rewards_in_ctx_movie = sum(ctx.us);
+lick_responses_ctx = lick_responses(first_reward_idx_ctx:first_reward_idx_ctx+num_rewards_in_ctx_movie-1);
+fprintf('%d rewards occur during the ctx movie\n', num_rewards_in_ctx_movie);
+
 str.frame_times = str_frame_times;
-str.us = assign_edge_to_frames(us_times, str_frame_times);
+[str.us, first_reward_idx_str] = assign_edge_to_frames(us_times, str_frame_times);
 str.lick = assign_edge_to_frames(lick_times, str_frame_times);
 str.velocity = interp1(t, velocity, str_frame_times);
+
+num_rewards_in_str_movie = sum(str.us);
+lick_responses_str = lick_responses(first_reward_idx_str:first_reward_idx_str+num_rewards_in_str_movie-1);
+fprintf('%d rewards occur during the str movie\n', sum(str.us));
 
 % Save results to file
 %------------------------------------------------------------
 info.dt = dt; % Used for velocity computation
+info.lick_response_window = lick_response_window; % seconds
 info.recording_length = times(end);
 
 save('ctxstr.mat', 'ctx', 'str', 'behavior', 'info');
-generate_pmtext('ctx.txt', find(ctx.us), 30, num_ctx_frames); % FIXME: Hard-coded FPS
-generate_pmtext('str.txt', find(str.us), 45, num_str_frames);
+
+generate_pmtext('ctx.txt', find(ctx.us), lick_responses_ctx, 30, num_ctx_frames); % FIXME: Hard-coded FPS
+generate_pmtext('str.txt', find(str.us), lick_responses_str, 45, num_str_frames);
 
 end % parse_ctxstr
 
-function generate_pmtext(outname, reward_frames, imaging_fps, max_frames)
-    frame_offsets = [-3 -2 0 2] * imaging_fps;
-    pm_filler = 'east north north 10.0';
+function generate_pmtext(outname, reward_frames, responses, imaging_fps, max_frames)
+    frame_offsets = imaging_fps * [-3 -2 0 2];
     fid = fopen(outname, 'w');
     for k = 1:length(reward_frames)
+        if responses(k)
+            pm_filler = 'east north north 10.0'; % "Correct" trial
+        else
+            pm_filler = 'east north south 10.0'; % "Incorrect" trial
+        end
         rf = reward_frames(k);
         tf = rf + frame_offsets; % "trial frames"
         if (tf(1) > 0) && (tf(4) < max_frames)

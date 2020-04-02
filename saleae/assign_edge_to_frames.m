@@ -1,4 +1,4 @@
-function has_edge = assign_edge_to_frames(edge_times, frame_times)
+function [has_edge, first_assigned_edge] = assign_edge_to_frames(edge_times, frame_times)
 % Compute a Boolean trace `has_edge' with the same number of frames as
 % `frame_times` where `has_edge(k)` is 1 if there is an edge that occurs
 % between the start of the k-th and (k+1)-th frame.
@@ -8,8 +8,9 @@ num_frames = length(frame_times);
 has_edge = false(num_frames, 1);
 
 % First edge that takes place after the time of the first frame
-edge_idx = find(edge_times > frame_times(1), 1);
+first_assigned_edge = find(edge_times > frame_times(1), 1);
 
+edge_idx = first_assigned_edge;
 for k = 1:num_frames-1
     if (edge_times(edge_idx) < frame_times(k+1))
         has_edge(k) = true;
