@@ -1,4 +1,4 @@
-% clear all;
+clear all;
 
 dff_movie = dir('*.hdf5');
 dff_movie = dff_movie.name;
@@ -55,6 +55,15 @@ res_list = resolve_merged_recs(md, 'norm_traces',...
 save_resolved_recs(res_list, md);
 
 %%
+
+clearvars -except ds M;
+
 % Final steps:
 %   1) Copy labels from original rec to the resolved rec
 %   2) Manually classify remaining cells (i.e. newly imported cells)
+
+dsr = DaySummary('', 'union/resolved');
+
+% The first 'ds.num_cells' cells in the resolved DS are taken directly from
+% the original DS.
+dsr.set_labels(1:ds.num_cells);
