@@ -40,9 +40,6 @@ for k = 1:num_imports
     imports{k,1} = import_name;
     imports{k,2} = DaySummary([], fullfile('imports', import_name));
 end
-% clear imported_datasets import_name k;
-
-%%
 
 ds = DaySummary([], 'cm/clean'); % Original rec. FIXME: Hard-coded
 md = create_merge_md([{ds}; imports(:,2)]);
@@ -56,14 +53,16 @@ save_resolved_recs(res_list, md);
 
 %%
 
-clearvars -except ds M;
-
 % Final steps:
 %   1) Copy labels from original rec to the resolved rec
 %   2) Manually classify remaining cells (i.e. newly imported cells)
 
+clearvars -except ds M;
+
 dsr = DaySummary('', 'union/resolved');
 
 % The first 'ds.num_cells' cells in the resolved DS are taken directly from
-% the original DS.
+% the original DS. Sort the rest!
 dsr.set_labels(1:ds.num_cells);
+
+classify_cells(dsr, M);
