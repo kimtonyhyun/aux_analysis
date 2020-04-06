@@ -51,7 +51,7 @@ save_resolved_recs(res_list, md);
 %   1) Copy labels from original rec to the resolved rec
 %   2) Manually classify remaining cells (i.e. newly imported cells)
 
-clearvars -except M;
+clearvars -except num_orig_cells M;
 
 dsr = DaySummary('', 'union/resolved');
 
