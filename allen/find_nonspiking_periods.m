@@ -10,7 +10,7 @@ for k = 1:num_spikes
     
     % The range [t1, t2] represents the vicinity of the spike
     t1 = t_spike - 1000; % ms; 1000 in Huang
-    t2 = t_spike + 1000; % ms; 4000 in Huang
+    t2 = t_spike + 4000; % ms; 4000 in Huang
     
     i1 = find(t_opt > t1, 1, 'first');
     i2 = find(t_opt < t2, 1, 'last');
