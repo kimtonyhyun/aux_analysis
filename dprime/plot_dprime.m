@@ -3,8 +3,8 @@ clear;
 DFF = 0.19; % GCaMP6f, Chen et al. 2013
 tau = 0.142 / log(2); % GCaMP6f (s)
 
-fovs = linspace(10, 500, 3e2); % Length of FOV edge (um)
-nus = [linspace(0.1, 10, 100) linspace(10, 200, 100)]; % Frame rates
+fovs = 10:5:500; % Length of FOV edge (um)
+nus = logspace(-1, log10(200), 100); % Frame rates (fps)
 
 [N,F] = meshgrid(nus, fovs);
 
@@ -25,11 +25,13 @@ for i = 1:size(F,1)
     end
 end
 
-%% d-prime values for Svoboda mesoscope
+FPR = 0.05; % False positive rate (5% in Huang et al.)
+z0 = icdf('Normal', 1-FPR, 0, 1);
+compute_tpr = @(x) 1-normcdf(z0-x);
+TPRs = compute_tpr(Ds);
+TPRs_approx = compute_tpr(Ds_approx);
 
-[d, d_approx] = compute_dprime(F0 * fov0_a / (4*600*600), 9.5, DFF, tau);
-
-%%
+%% Plot d-prime values
 
 close all;
 
@@ -46,8 +48,9 @@ hold on;
 
 %%
 
-contour(N,F,log10(Ds),log10([0.125/2 0.125 0.25 0.5 1 2]),'k');
+contour(N,F,log10(Ds),log10([0.125/2 0.125 0.25 0.5 1.0]),'k');
 hold on;
+contour(N,F,log10(Ds),log10([0.0846 1.7]),'k--');
 view(2);
 colorbar;
 set(gca, 'Xscale', 'log');
@@ -56,6 +59,7 @@ ylabel('FOV (\mum)');
 xlim(nus([1 end]));
 ylim([0 fovs(end)]);
 
-plot3(158, 20, 10, 'k.');
-plot3(30, 400, 10, 'k.');
+% Empirical operating points
+plot3(158, 20, 100, 'k.');
+plot3(30, 400, 100, 'k.');
 set(gcf, 'Renderer', 'painters');

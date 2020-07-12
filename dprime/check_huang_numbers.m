@@ -18,6 +18,7 @@ z1 = icdf('Normal', 1-sdr_highzoom, 0, 1);
 d_highzoom = z0 - z1; % This is discriminability index d' for high zoom
 
 % Estimate F0 for the high zoom condition, using approximate d' formula
+% Note that for DFF = ~0.2, the approximation actually isn't very good.
 %------------------------------------------------------------
 DFF = 0.19; % GCaMP6f, Chen et al. 2013
 tau = 0.142 / log(2); % GCaMP6f (s)
@@ -28,6 +29,6 @@ F0_highzoom = 2/tau * (d_highzoom/DFF)^2;
 % - Low zoom FOV is 400 um
 % - High zoom FOV is 20 um
 %------------------------------------------------------------
-d_lowzoom = d_highzoom / sqrt(20);
+d_lowzoom = d_highzoom / 20; % Scaling is 1/sqrt(Area)
 
 sdr_lowzoom = 1-normcdf(z0-d_lowzoom);
