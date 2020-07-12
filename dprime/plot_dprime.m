@@ -36,6 +36,7 @@ TPRs_approx = compute_tpr(Ds_approx);
 close all;
 
 surf(N,F,log10(Ds));
+grid off;
 view(2);
 shading interp;
 colorbar;
@@ -45,12 +46,13 @@ ylabel('FOV (\mum)');
 xlim(nus([1 end]));
 ylim([0 fovs(end)]);
 hold on;
+set(gcf, 'Renderer', 'painters');
 
 %%
 
 contour(N,F,log10(Ds),log10([0.125/2 0.125 0.25 0.5 1.0]),'k');
 hold on;
-contour(N,F,log10(Ds),log10([0.0846 1.7]),'k--');
+contour(N,F,log10(Ds),log10([0.0846 1.7]),'k');
 view(2);
 colorbar;
 set(gca, 'Xscale', 'log');
