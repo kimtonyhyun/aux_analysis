@@ -34,6 +34,10 @@ ctx_tr_matched = interp1(meta.ctx.frame_times, ctx_traces, t, 'linear');
 
 str_data.info.type = 'resampled';
 str_rec = save_rec(str_data.info, str_data.filters, str_tr_matched);
+mkdir('str/union/resampled');
+movefile(str_rec, 'str/union/resampled');
 
 ctx_data.info.type = 'resample';
 ctx_rec = save_rec(ctx_data.info, ctx_data.filters, ctx_tr_matched);
+mkdir('ctx/union/resampled');
+movefile(ctx_rec, 'ctx/union/resampled');
