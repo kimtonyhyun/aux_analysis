@@ -13,7 +13,9 @@ segment_durations = (dto * num_frames_in_segment) - pre_buf - post_buf;
 p = segment_durations / sum(segment_durations);
 seg_idx = randsample(num_segments, 1, true, p);
 
-sample_idx = pre_buf + randsample(num_frames_in_segment(seg_idx), 1);
+pre_buf_frames = ceil(pre_buf / dto);
+post_buf_frames = ceil(post_buf / dto);
+sample_idx = pre_buf_frames + randsample(num_frames_in_segment(seg_idx) - pre_buf_frames - post_buf_frames, 1);
 sample_idx = (non_spiking_segments(seg_idx,1)-1) + sample_idx;
 
 t_spike = t_opt(sample_idx);
