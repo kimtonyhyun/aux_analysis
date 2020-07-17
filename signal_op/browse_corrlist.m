@@ -1,6 +1,7 @@
 function browse_corrlist(corrlist, ds1, ds2, varargin)
 
 ds_labels = {'ds1', 'ds2'};
+frames = [];
 for k = 1:length(varargin)
     if ischar(varargin{k})
         switch lower(varargin{k})
@@ -10,6 +11,8 @@ for k = 1:length(varargin)
                 elseif ischar(varargin{k+1})
                     ds_labels = {varargin{k+1}};
                 end
+            case 'frames' % Indicate frames with vertical bar
+                frames = varargin{k+1};
         end
     end
 end
@@ -34,6 +37,9 @@ hold on;
 h_tr2 = plot(tr);
 for k = 2:ds1.num_trials % Trial boundaries
     plot(ds1.trial_indices(k,1)*[1 1], y_range, 'k:');
+end
+for k = 1:length(frames) % Extra vertical markers
+    plot(frames(k)*[1 1], y_range, 'b:');
 end
 hold off;
 legend(ds_labels, 'Location', 'NorthWest');
@@ -134,6 +140,7 @@ end % while (1)
         else
             subplot(h_cellmap1);
             draw_cellmap(ds1, {i, color1; j, color2});
+            title(ds_labels{1});
         end
     end % update_fig
 
