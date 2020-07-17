@@ -18,12 +18,12 @@ corrlists = compute_ctxstr_corrlists(ds_ctx, ds_str);
 
 %% Examine Ctx-Str correlations
 
-show_ctxstr_corrs(corrlists.ctxstr, ds_ctx, ds_str);
+browse_corrlist(corrlists.ctxstr, ds_ctx, ds_str, 'names', {'ctx', 'str'});
 
 %%
 
-show_ctxstr_corrs(corrlists.ctx, ds_ctx, ds_ctx);
+browse_corrlist(corrlists.ctx, ds_ctx, ds_ctx, 'names', 'ctx');
 
 %%
 
-show_ctxstr_corrs(corrlists.str, ds_str, ds_str);
+browse_corrlist(corrlists.str, ds_str, ds_str, 'names', 'str');
