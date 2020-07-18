@@ -2,6 +2,9 @@
 
 clear all;
 
+dataset_name = dirname;
+names = {sprintf('%s-ctx', dataset_name), sprintf('%s-str', dataset_name)};
+
 meta = load('ctxstr.mat');
 us_times = find(meta.str.us);
 
@@ -14,12 +17,12 @@ corrlists = compute_ctxstr_corrlists(ds_ctx, ds_str);
 
 %% Examine Ctx-Str correlations
 
-browse_corrlist(corrlists.ctxstr, ds_ctx, ds_str, 'names', {'ctx', 'str'});
+browse_corrlist(corrlists.ctxstr, ds_ctx, ds_str, 'names', names, 'frames', us_times);
 
 %%
 
-browse_corrlist(corrlists.ctx, ds_ctx, ds_ctx, 'names', 'ctx');
+browse_corrlist(corrlists.ctx, ds_ctx, ds_ctx, 'names', names{1}, 'frames', us_times);
 
 %%
 
-browse_corrlist(corrlists.str, ds_str, ds_str, 'names', 'str');
+browse_corrlist(corrlists.str, ds_str, ds_str, 'names', names{2}, 'frames', us_times);
