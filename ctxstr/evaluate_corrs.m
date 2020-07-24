@@ -12,7 +12,9 @@ ds_ctx = DaySummary('str.txt', 'ctx/union/resampled');
 ds_str = DaySummary('str.txt', 'str/union/resampled');
 
 % Compute correlations
-corrlists = compute_ctxstr_corrlists(ds_ctx, ds_str);
+corrlists.ctxstr = compute_corrlist(ds_ctx, ds_str);
+corrlists.ctx = compute_corrlist(ds_ctx);
+corrlists.str = compute_corrlist(ds_str);
 
 %% Examine Ctx-Str correlations
 
