@@ -1,10 +1,13 @@
 function browse_corrlist(corrlist, ds1, ds2, varargin)
 
+trace_norm_method = 'norm';
 ds_labels = {'ds1', 'ds2'};
 frames = [];
 for k = 1:length(varargin)
     if ischar(varargin{k})
         switch lower(varargin{k})
+            case 'zsc'
+                trace_norm_method = 'zsc';
             case {'name', 'names'}
                 if iscell(varargin{k+1})
                     ds_labels = varargin{k+1};
@@ -19,7 +22,6 @@ end
 
 % Display parameters
 y_offset = 0.0;
-y_range = [-0.1 1.1+y_offset];
 
 color1 = [0 0.4470 0.7410];
 color2 = [0.85 0.325 0.098];
@@ -36,15 +38,15 @@ h_tr1 = plot(tr);
 hold on;
 h_tr2 = plot(tr);
 for k = 2:ds1.num_trials % Trial boundaries
-    plot(ds1.trial_indices(k,1)*[1 1], y_range, 'k:');
+    xline(ds1.trial_indices(k,1), 'k:');
 end
 for k = 1:length(frames) % Extra vertical markers
-    plot(frames(k)*[1 1], y_range, 'b:');
+    xline(frames(k), 'b:');
 end
 hold off;
 legend(ds_labels, 'Location', 'NorthWest');
 xlim([1 length(tr)]);
-ylim(y_range);
+xlabel('Frames');
 set(gca, 'TickLength', [0 0]);
 
 if ~same_ds
@@ -62,10 +64,16 @@ if same_ds
 else
     ylabel(ds_labels{2});
 end
-xlim([-0.1 1.1]);
-ylim([-0.1 1.1]);
 grid on;
-axis square;
+switch trace_norm_method
+    case 'norm'
+        xlim([-0.1 1.1]);
+        ylim([-0.1 1.1]);
+    case 'zsc'
+        set(gca, 'XTick', -50:5:50); % Hack for setting square tickmarks
+        set(gca, 'YTick', -50:5:50);
+end
+axis equal;
 
 % Interactive loop
 %------------------------------------------------------------
@@ -110,14 +118,13 @@ end % while (1)
         j = corrlist(k,2);
         c = corrlist(k,3);
 
-        tr_i = ds1.get_trace(i, 'norm');
-        tr_j = ds2.get_trace(j, 'norm');
+        tr_i = ds1.get_trace(i, trace_norm_method);
+        tr_j = ds2.get_trace(j, trace_norm_method);
 
         subplot(h_traces);
         h_tr1.YData = tr_i + y_offset; 
         h_tr2.YData = tr_j;
         xlim([1 length(tr_i)]);
-        ylim(y_range);
         if ~same_ds
             title(sprintf('%s cell=%d\n%s cell=%d\ncorr=%.4f',...
                     ds_labels{1}, i, ds_labels{2}, j, c));
