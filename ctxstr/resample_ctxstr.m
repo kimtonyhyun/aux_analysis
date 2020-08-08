@@ -2,8 +2,8 @@ clear all; close all;
 
 % Load traces
 
-ctx_data = load(get_most_recent_file('ctx/union/ls', 'rec_*'));
-str_data = load(get_most_recent_file('str/union/ls', 'rec_*'));
+ctx_data = load(get_most_recent_file('ctx/cnmf1/ls', 'rec_*'));
+str_data = load(get_most_recent_file('str/cnmf1/ls', 'rec_*'));
 
 ctx_traces = ctx_data.traces; % [Frames x num_cells]
 str_traces = str_data.traces;

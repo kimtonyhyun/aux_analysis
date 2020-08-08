@@ -12,7 +12,8 @@ us_times = find(meta.str.us);
 ds_ctx = DaySummary('', 'ctx/union/resampled');
 ds_str = DaySummary('', 'str/union/resampled');
 
-% Compute correlations
+%% Compute correlations
+
 corrlists.ctxstr = compute_corrlist(ds_ctx, ds_str);
 corrlists.ctx = compute_corrlist(ds_ctx);
 corrlists.str = compute_corrlist(ds_str);
