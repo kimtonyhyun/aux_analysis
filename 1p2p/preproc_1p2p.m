@@ -27,16 +27,18 @@ linkaxes([ax1 ax2], 'x');
 
 %% Decide number of frames to chop
 
-keep_frames = 501:8000;
+keep_frames = 201:8000;
 
 M_1p_chopped = M_1p(:,:,keep_frames);
 M_2p_chopped = M_2p(:,:,keep_frames);
 
 %% Crop the 2P movie, to remove chopper and other edge effects
 
+% view_movie(M_2p_chopped, 'clim', [0 6000]);
+
 horiz_trim = 20;
 keep_cols_2p = (1+horiz_trim):(size(M_2p_chopped,2)-horiz_trim);
-keep_rows_2p = 25:430;
+keep_rows_2p = 40:460;
 
 M_2p_chopped = M_2p_chopped(keep_rows_2p, keep_cols_2p, :);
 
@@ -59,3 +61,27 @@ mkdir('1P');
 movefile(savename_1p, '1P');
 mkdir('2P');
 movefile(savename_2p, '2P');
+
+%% 1P cell extraction: EXTRACT
+
+% Prior to cell extraction, run:
+%   - Motion correction (TurboReg)
+%   - Cropping (for motion correction edge artifacts)
+
+filename_1p = get_most_recent_file('', '*.hdf5');
+
+config = get_defaults([]);
+config.num_partitions_x = 1;
+config.num_partitions_y = 1;
+config.avg_cell_radius = 10;
+
+output = extractor(sprintf('%s:/Data/Images', filename_1p), config);
+import_extract(output);
+
+% Retrieve the version of the movie that EXTRACT "sees"
+M_orig = load_movie(filename_1p);
+M = preprocess_movie(M_orig, config);
+clear M_orig;
+
+[~, name] = fileparts(filename_1p);
+save_movie_to_hdf5(M, sprintf('%s_ext.hdf5', name));

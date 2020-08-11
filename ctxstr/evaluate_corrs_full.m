@@ -9,8 +9,9 @@ meta = load('ctxstr.mat');
 us_times = find(meta.str.us);
 
 % Use all frames irrespective of trial structure
-ds_ctx = DaySummary('', 'ctx/union/resampled');
-ds_str = DaySummary('', 'str/union/resampled');
+ds_path = 'cnmf1/resampled';
+ds_ctx = DaySummary('', fullfile('ctx', ds_path));
+ds_str = DaySummary('', fullfile('str', ds_path));
 
 %% Compute correlations
 

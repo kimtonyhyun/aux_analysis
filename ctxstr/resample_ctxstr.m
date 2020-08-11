@@ -32,12 +32,15 @@ ctx_tr_matched = interp1(meta.ctx.frame_times, ctx_traces, t, 'linear');
 
 %% Save resampled data to Rec file
 
+str_rec_path = 'str/cnmf1/resampled';
+ctx_rec_path = 'ctx/cnmf1/resampled';
+
 str_data.info.type = 'resampled';
 str_rec = save_rec(str_data.info, str_data.filters, str_tr_matched);
-mkdir('str/union/resampled');
-movefile(str_rec, 'str/union/resampled');
+mkdir(str_rec_path);
+movefile(str_rec, str_rec_path);
 
 ctx_data.info.type = 'resample';
 ctx_rec = save_rec(ctx_data.info, ctx_data.filters, ctx_tr_matched);
-mkdir('ctx/union/resampled');
-movefile(ctx_rec, 'ctx/union/resampled');
+mkdir(ctx_rec_path);
+movefile(ctx_rec, ctx_rec_path);

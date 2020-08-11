@@ -80,44 +80,64 @@ behavior.lick_responses = lick_responses;
 
 % Parse imaging clocks
 %------------------------------------------------------------
+
+% Ctx
 ctx_frame_times = find_edges(data, ctx_clock_ch);
 num_ctx_frames = length(ctx_frame_times);
-T_ctx = mean(diff(ctx_frame_times));
-fprintf('Found %d ctx frames at %.2f FPS\n', num_ctx_frames, 1/T_ctx);
 
-str_frame_times = find_edges(data, str_clock_ch);
-num_str_frames = length(str_frame_times);
-T_str = mean(diff(str_frame_times));
-fprintf('Found %d str frames at %.2f FPS\n', num_str_frames, 1/T_str);
-
-if (ctx_frame_times(1) < str_frame_times(1))
-    fprintf('%d ctx frames precede the first str frame\n',...
-        sum(ctx_frame_times < str_frame_times(1)));
+if num_ctx_frames == 0
+    cprintf('Blue', 'Warning: Ctx frame clock NOT detected\n');
+    ctx = [];
 else
-    fprintf('%d str frames precede the first ctx frame\n',...
-        sum(str_frame_times < ctx_frame_times(1)));
+    T_ctx = mean(diff(ctx_frame_times));
+    fprintf('Found %d ctx frames at %.2f FPS\n', num_ctx_frames, 1/T_ctx);
+    
+    ctx.frame_times = ctx_frame_times;
+    [ctx.us, ctx.first_reward_idx] = assign_edge_to_frames(us_times, ctx_frame_times);
+    ctx.lick = assign_edge_to_frames(lick_times, ctx_frame_times);
+    ctx.velocity = interp1(t, velocity, ctx_frame_times);
+
+    num_rewards_in_ctx_movie = sum(ctx.us);
+    lick_responses_ctx = lick_responses(ctx.first_reward_idx:ctx.first_reward_idx+num_rewards_in_ctx_movie-1);
+    fprintf('%d rewards occur during the ctx movie, ', num_rewards_in_ctx_movie);
+    fprintf('starting from reward #%d\n', ctx.first_reward_idx);
+    
+    generate_pmtext('ctx.txt', find(ctx.us), lick_responses_ctx, 30, num_ctx_frames); % FIXME: Hard-coded FPS
 end
 
-% Package for output
-ctx.frame_times = ctx_frame_times;
-[ctx.us, ctx.first_reward_idx] = assign_edge_to_frames(us_times, ctx_frame_times);
-ctx.lick = assign_edge_to_frames(lick_times, ctx_frame_times);
-ctx.velocity = interp1(t, velocity, ctx_frame_times);
+% Str
+str_frame_times = find_edges(data, str_clock_ch);
+num_str_frames = length(str_frame_times);
 
-num_rewards_in_ctx_movie = sum(ctx.us);
-lick_responses_ctx = lick_responses(ctx.first_reward_idx:ctx.first_reward_idx+num_rewards_in_ctx_movie-1);
-fprintf('%d rewards occur during the ctx movie, ', num_rewards_in_ctx_movie);
-fprintf('starting from reward #%d\n', ctx.first_reward_idx);
+if num_str_frames == 0
+    cprintf('Blue', 'Warning: Str frame clock NOT detected\n');
+    str = [];
+else
+    T_str = mean(diff(str_frame_times));
+    fprintf('Found %d str frames at %.2f FPS\n', num_str_frames, 1/T_str);
+    
+    str.frame_times = str_frame_times;
+    [str.us, str.first_reward_idx] = assign_edge_to_frames(us_times, str_frame_times);
+    str.lick = assign_edge_to_frames(lick_times, str_frame_times);
+    str.velocity = interp1(t, velocity, str_frame_times);
 
-str.frame_times = str_frame_times;
-[str.us, str.first_reward_idx] = assign_edge_to_frames(us_times, str_frame_times);
-str.lick = assign_edge_to_frames(lick_times, str_frame_times);
-str.velocity = interp1(t, velocity, str_frame_times);
+    num_rewards_in_str_movie = sum(str.us);
+    lick_responses_str = lick_responses(str.first_reward_idx:str.first_reward_idx+num_rewards_in_str_movie-1);
+    fprintf('%d rewards occur during the str movie, ', num_rewards_in_str_movie);
+    fprintf('starting from reward #%d\n', str.first_reward_idx);
+    
+    generate_pmtext('str.txt', find(str.us), lick_responses_str, 45, num_str_frames);
+end
 
-num_rewards_in_str_movie = sum(str.us);
-lick_responses_str = lick_responses(str.first_reward_idx:str.first_reward_idx+num_rewards_in_str_movie-1);
-fprintf('%d rewards occur during the str movie, ', num_rewards_in_str_movie);
-fprintf('starting from reward #%d\n', str.first_reward_idx);
+if (num_ctx_frames > 0) && (num_str_frames > 0)
+    if (ctx_frame_times(1) < str_frame_times(1))
+        fprintf('%d ctx frames precede the first str frame\n',...
+            sum(ctx_frame_times < str_frame_times(1)));
+    else
+        fprintf('%d str frames precede the first ctx frame\n',...
+            sum(str_frame_times < ctx_frame_times(1)));
+    end
+end
 
 % Save results to file
 %------------------------------------------------------------
@@ -126,9 +146,6 @@ info.lick_response_window = lick_response_window; % seconds
 info.recording_length = times(end);
 
 save('ctxstr.mat', 'ctx', 'str', 'behavior', 'info');
-
-generate_pmtext('ctx.txt', find(ctx.us), lick_responses_ctx, 30, num_ctx_frames); % FIXME: Hard-coded FPS
-generate_pmtext('str.txt', find(str.us), lick_responses_str, 45, num_str_frames);
 
 end % parse_ctxstr
 
