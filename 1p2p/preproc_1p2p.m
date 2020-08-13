@@ -27,7 +27,7 @@ linkaxes([ax1 ax2], 'x');
 
 %% Decide number of frames to chop
 
-keep_frames = 201:8000;
+keep_frames = 301:20000;
 
 M_1p_chopped = M_1p(:,:,keep_frames);
 M_2p_chopped = M_2p(:,:,keep_frames);
@@ -38,7 +38,7 @@ M_2p_chopped = M_2p(:,:,keep_frames);
 
 horiz_trim = 20;
 keep_cols_2p = (1+horiz_trim):(size(M_2p_chopped,2)-horiz_trim);
-keep_rows_2p = 40:460;
+keep_rows_2p = 40:440;
 
 M_2p_chopped = M_2p_chopped(keep_rows_2p, keep_cols_2p, :);
 
@@ -69,8 +69,10 @@ movefile(savename_2p, '2P');
 %   - Cropping (for motion correction edge artifacts)
 
 filename_1p = get_most_recent_file('', '*.hdf5');
+fprintf('Running EXTRACT on "%s"...\n', filename_1p);
 
 config = get_defaults([]);
+% config.preprocess = 0;
 config.num_partitions_x = 1;
 config.num_partitions_y = 1;
 config.avg_cell_radius = 10;

@@ -72,5 +72,6 @@ info.nc_nonrigid = use_nonrigid;
 info.nc_options = options;
 info.nc_runtime = t;
 
-save_name = sprintf('%s_nc.mat', name);
+[~, movie_out_name] = fileparts(movie_out);
+save_name = sprintf('%s.mat', movie_out_name);
 save(save_name, 'info', 'shifts', '-v7.3');
