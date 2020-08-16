@@ -24,10 +24,11 @@ plot(F_2p);
 grid on;
 title(filename_2p, 'Interpreter', 'none');
 linkaxes([ax1 ax2], 'x');
+xlim([0 1000]);
 
 %% Decide number of frames to chop
 
-keep_frames = 501:8000;
+keep_frames = 401:8000;
 
 M_1p_chopped = M_1p(:,:,keep_frames);
 M_2p_chopped = M_2p(:,:,keep_frames);
@@ -38,7 +39,7 @@ M_2p_chopped = M_2p(:,:,keep_frames);
 
 horiz_trim = 20;
 keep_cols_2p = (1+horiz_trim):(size(M_2p_chopped,2)-horiz_trim);
-keep_rows_2p = 25:430;
+keep_rows_2p = 60:480;
 
 M_2p_chopped = M_2p_chopped(keep_rows_2p, keep_cols_2p, :);
 
@@ -71,13 +72,59 @@ movefile(savename_2p, '2P');
 %   - DFF movie
 
 filename_1p = get_most_recent_file('', '*.hdf5');
-fprintf('Running EXTRACT on "%s"...\n', filename_1p);
+cprintf('Blue', '%s: Running EXTRACT on "%s"...\n', datestr(now), filename_1p);
 
 config = get_defaults([]);
 config.preprocess = 0;
 config.num_partitions_x = 1;
 config.num_partitions_y = 1;
-config.avg_cell_radius = 15;
+config.avg_cell_radius = 5;
 
 output = extractor(sprintf('%s:/Data/Images', filename_1p), config);
-import_extract(output);
+cprintf('Blue', 'Done with EXTRACT. Found %d cells in %.1f min\n',...
+    size(output.spatial_weights, 3), output.info.runtime / 60);
+ext_filename = import_extract(output);
+
+mkdir('ext1/orig');
+movefile(ext_filename, 'ext1/orig');
+
+%% CELLMax
+
+options.CELLMaxoptions.maxSqSize = 201;
+options.CELLMaxoptions.sqOverlap = 20;
+options.eventOptions.framerate = 30;
+
+cprintf('Blue', '%s: Running CELLMax...\n', datestr(now));
+output = runCELLMax(filename_1p, 'options', options);
+cprintf('Blue', 'Done with CELLMax. Found %d cells in %.1f min\n',...
+    size(output.cellImages, 3), output.runtime / 60);
+cm_filename = import_cellmax(output);
+
+mkdir('cm1/orig');
+movefile(cm_filename, 'cm1/orig');
+
+%% Compare EXTRACT vs. CELLMax
+
+ds_cm = DaySummary('', 'cm1/ls');
+ds_ext = DaySummary('', 'ext1/ls');
+
+plot_boundaries_with_transform(ds_ext, 'b', 2);
+hold on;
+plot_boundaries_with_transform(ds_cm, 'r');
+hold off;
+title_str = sprintf('%s: EXTRACT (%d cells; blue) vs. CELLMax (%d cells; red)',...
+    dirname(1), ds_ext.num_classified_cells, ds_cm.num_classified_cells);
+title(title_str);
+set(gca, 'FontSize', 18);
+
+%% Merge EXTRACT and CELLMax
+
+filename_1p = get_most_recent_file('', '*.hdf5');
+M = load_movie(filename_1p);
+
+md = create_merge_md([ds_ext ds_cm]);
+res_list = resolve_merged_recs(md, M);
+resolved_filename = save_resolved_recs(res_list, md);
+
+mkdir('cm1_ext1/orig');
+movefile(resolved_filename, 'cm1_ext1/orig');
