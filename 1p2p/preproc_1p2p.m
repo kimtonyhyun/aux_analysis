@@ -28,7 +28,8 @@ xlim([0 1000]);
 
 %% Decide number of frames to chop
 
-keep_frames = 401:8000;
+max_frames = min(size(M_1p,3), size(M_2p,3));
+keep_frames = 101:max_frames;
 
 M_1p_chopped = M_1p(:,:,keep_frames);
 M_2p_chopped = M_2p(:,:,keep_frames);
@@ -39,7 +40,7 @@ M_2p_chopped = M_2p(:,:,keep_frames);
 
 horiz_trim = 20;
 keep_cols_2p = (1+horiz_trim):(size(M_2p_chopped,2)-horiz_trim);
-keep_rows_2p = 60:480;
+keep_rows_2p = 55:485;
 
 M_2p_chopped = M_2p_chopped(keep_rows_2p, keep_cols_2p, :);
 
@@ -90,12 +91,13 @@ movefile(ext_filename, 'ext1/orig');
 
 %% CELLMax
 
+cellmax.loadRepoFunctions;
 options.CELLMaxoptions.maxSqSize = 201;
 options.CELLMaxoptions.sqOverlap = 20;
 options.eventOptions.framerate = 30;
 
 cprintf('Blue', '%s: Running CELLMax...\n', datestr(now));
-output = runCELLMax(filename_1p, 'options', options);
+output = cellmax.runCELLMax(filename_1p, 'options', options);
 cprintf('Blue', 'Done with CELLMax. Found %d cells in %.1f min\n',...
     size(output.cellImages, 3), output.runtime / 60);
 cm_filename = import_cellmax(output);
@@ -105,8 +107,8 @@ movefile(cm_filename, 'cm1/orig');
 
 %% Compare EXTRACT vs. CELLMax
 
-ds_cm = DaySummary('', 'cm1/ls');
-ds_ext = DaySummary('', 'ext1/ls');
+ds_cm = DaySummary('', 'cm1/orig');
+ds_ext = DaySummary('', 'ext1/orig');
 
 plot_boundaries_with_transform(ds_ext, 'b', 2);
 hold on;
@@ -128,3 +130,38 @@ resolved_filename = save_resolved_recs(res_list, md);
 
 mkdir('cm1_ext1/orig');
 movefile(resolved_filename, 'cm1_ext1/orig');
+
+%% Merge cross-modality
+
+switch dirname
+    case '1P'
+        rec1_path = 'cm1_ext1/ls';
+        rec2_path = 'from_2p/orig';
+        rec_out_path = 'from_2p/merged';
+        
+    case '2P'
+        rec1_path = 'cnmf1/ls';
+        rec2_path = 'from_1p/orig';
+        rec_out_path = 'from_1p/merged';
+end
+
+rec1 = load(get_most_recent_file(rec1_path, 'rec_*.mat'));
+rec2 = load(get_most_recent_file(rec2_path, 'rec_*.mat'));
+
+filters = cat(3, rec1.filters, rec2.filters);
+traces = cat(2, rec1.traces, rec2.traces);
+
+info.type = 'merge';
+info.num_pairs = rec1.info.num_pairs + rec2.info.num_pairs;
+info.merge = {rec1_path, rec2_path};
+
+merged_rec = save_rec(info, filters, traces);
+fprintf('Merged "%s" (%d cells) and "%s" (%d cells)\n',...
+    rec1_path, rec1.info.num_pairs,...
+    rec2_path, rec2.info.num_pairs);
+
+mkdir(rec_out_path);
+movefile(merged_rec, rec_out_path);
+
+ds = DaySummary([], rec_out_path);
+ds.set_labels(1:rec1.info.num_pairs);

@@ -1,17 +1,17 @@
 clear;
 %% load file
 
-movie_source = 'mR389-0807-s02-2P_uc_nc_zsc.hdf5';
-Y = load_movie(movie_source);
+movie_source = 'm5R3-0824-s02-2P_uc_nc_zsc_ti4.hdf5';
+M = load_movie(movie_source);
 
-if ~isa(Y,'double');    Y = double(Y);  end         % convert to single
+if ~isa(M,'double');    M = double(M);  end         % convert to single
 
-[d1,d2,T] = size(Y);                                % dimensions of dataset
+[d1,d2,T] = size(M);                                % dimensions of dataset
 d = d1*d2;                                          % total number of pixels
 
 %% Set parameters
 
-K = 150;                                           % number of components to be found
+K = 60;                                           % number of components to be found
 tau = 7;                                          % std of gaussian kernel (size of neuron) 
 p = 2;                                            % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
 merge_thr = 1;                                  % merging threshold
@@ -29,14 +29,14 @@ options = CNMFSetParms(...
     'maxthr',0.2 ...
     );
 %% Data pre-processing
-[Pin,Y] = preprocess_data(Y,p);
-Yr = reshape(Y,d,T);
-Cn =  correlation_image(Y,8);
+[Pin,M] = preprocess_data(M,p);
+Yr = reshape(M,d,T);
+Cn =  correlation_image(M,8);
 
 %% fast initialization of spatial components using greedyROI and HALS
 tic;
 fprintf('%s: Begin initialization...\n', datestr(now));
-[A,C,b,f,center] = initialize_components(Y,K,tau,options,Pin);  % initialize
+[A,C,b,f,center] = initialize_components(M,K,tau,options,Pin);  % initialize
 t_init = toc;
 fprintf('%s: Initialization took %.1f minutes\n', datestr(now), t_init / 60);
 
@@ -75,6 +75,6 @@ if exist('poi', 'var')
     end
     center = fliplr(center);
     tau = options.gSig;
-    [A, C] = manually_refine_components2(Y,A,C,center,Cn,tau,options,poi(:,1:2));
+    [A, C] = manually_refine_components2(M,A,C,center,Cn,tau,options,poi(:,1:2));
 end
 clear poi;
