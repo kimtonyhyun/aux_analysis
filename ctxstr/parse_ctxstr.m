@@ -36,8 +36,12 @@ fprintf('Computed velocity over dt=%.3f second windows\n', dt);
 
 % Rewards
 us_times = find_pulses(data, us_ch);
+% Determine the number of pulses per reward. We assume pulses that occur in
+% a rapid (sub-second) succession are part of a single reward
+num_pulses_per_reward = sum((us_times(:,1) - us_times(1,1)) < 0.1);
+fprintf('Detected %d pulses per reward\n', num_pulses_per_reward);
 % Each US event consists of two pulses. So skip every other pulse
-us_times = us_times(1:2:end,1);
+us_times = us_times(1:num_pulses_per_reward:end,1);
 % First reward is an automatic one at the beginning of session
 us_times = us_times(2:end);
 num_rewards = size(us_times,1);
