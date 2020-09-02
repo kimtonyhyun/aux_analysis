@@ -1,7 +1,7 @@
 clear all;
 
 ds = DaySummary([], '1P/ext1/ls');
-ds2 = DaySummary([], '2P/cnmf1/ls');
+ds2 = DaySummary([], '2P/ext1/ls');
 
 %%
 

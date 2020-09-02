@@ -1,7 +1,7 @@
 clear;
 %% load file
 
-movie_source = 'm5R3-0824-s02-2P_uc_nc_zsc_ti4.hdf5';
+movie_source = 'mR389-0825-s05-2P_uc_nc_zsc_ti4.hdf5';
 M = load_movie(movie_source);
 
 if ~isa(M,'double');    M = double(M);  end         % convert to single
@@ -11,7 +11,7 @@ d = d1*d2;                                          % total number of pixels
 
 %% Set parameters
 
-K = 60;                                           % number of components to be found
+K = 150;                                           % number of components to be found
 tau = 7;                                          % std of gaussian kernel (size of neuron) 
 p = 2;                                            % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
 merge_thr = 1;                                  % merging threshold

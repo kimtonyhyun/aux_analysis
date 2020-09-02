@@ -29,7 +29,7 @@ xlim([0 1000]);
 %% Decide number of frames to chop
 
 max_frames = min(size(M_1p,3), size(M_2p,3));
-keep_frames = 101:max_frames;
+keep_frames = 201:max_frames;
 
 M_1p_chopped = M_1p(:,:,keep_frames);
 M_2p_chopped = M_2p(:,:,keep_frames);
@@ -40,7 +40,7 @@ M_2p_chopped = M_2p(:,:,keep_frames);
 
 horiz_trim = 20;
 keep_cols_2p = (1+horiz_trim):(size(M_2p_chopped,2)-horiz_trim);
-keep_rows_2p = 55:485;
+keep_rows_2p = 40:465;
 
 M_2p_chopped = M_2p_chopped(keep_rows_2p, keep_cols_2p, :);
 
@@ -92,8 +92,8 @@ movefile(ext_filename, 'ext1/orig');
 %% CELLMax
 
 cellmax.loadRepoFunctions;
-options.CELLMaxoptions.maxSqSize = 201;
-options.CELLMaxoptions.sqOverlap = 20;
+options.CELLMaxoptions.maxSqSize = 250;
+options.CELLMaxoptions.sqOverlap = 50;
 options.eventOptions.framerate = 30;
 
 cprintf('Blue', '%s: Running CELLMax...\n', datestr(now));
