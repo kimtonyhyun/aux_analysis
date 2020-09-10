@@ -127,8 +127,8 @@ movefile(cm_filename, 'cm1/orig');
 
 clear all;
 
-ds_cm = DaySummary('', 'cm1/fix');
-ds_ext = DaySummary('', 'ext1/orig2');
+ds_cm = DaySummary('', 'cm1/orig');
+ds_ext = DaySummary('', 'ext1/orig');
 
 plot_boundaries_with_transform(ds_ext, 'b', 2);
 hold on;

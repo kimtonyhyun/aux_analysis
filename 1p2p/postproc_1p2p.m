@@ -1,8 +1,8 @@
-%% Post-processing: Merge 1P and 2P filters
+%% PART 1: Initial assessment and filter transfer across 1P-2P
 
 clear all;
 
-ds = DaySummary([], '1P/cm_ext1/ls');
+ds = DaySummary([], '1P/ext1/ls');
 ds2 = DaySummary([], '2P/ext1/ls');
 
 %% Temporal correlations facilitate identification of matched cells
@@ -29,6 +29,8 @@ print('-dpng', 'overlay_pre');
 
 %% Transfer cell filters across modalities
 
+close all;
+
 cprintf('blue', 'Transferring filters from 2P to 1P...\n');
 filename_1p = get_most_recent_file('1P', '*_dff.hdf5');
 [~, recname_2to1] = get_dff_traces(info.filters_2to1.im, filename_1p, 'ls', 'fix', 'percentile');
@@ -43,23 +45,22 @@ movefile(recname_1to2, '2P/merge/from_1p');
 
 cprintf('blue', 'Done with transfers!\n');
 
-%% Classify 1P-2P merged filters
+%% PART 2: Classify 1P-2P merged filters
 
-clear all;
+clear all; close all;
 
 switch dirname
     case '1P'
-        rec1_path = 'cm_ext1/ls';
+        rec1_path = 'ext1/ls';
         rec2_path = 'merge/from_2p';
-        rec_out_path = 'merge/concat';
         movie_filename = get_most_recent_file('', '*_dff.hdf5');
         
     case '2P'
         rec1_path = 'ext1/ls';
         rec2_path = 'merge/from_1p';
-        rec_out_path = 'merge/concat';
         movie_filename = get_most_recent_file('', '*_zsc.hdf5');
 end
+rec_out_path = 'merge/concat';
 
 rec1 = load(get_most_recent_file(rec1_path, 'rec_*.mat'));
 rec2 = load(get_most_recent_file(rec2_path, 'rec_*.mat'));
@@ -72,7 +73,7 @@ info.num_pairs = rec1.info.num_pairs + rec2.info.num_pairs;
 info.merge = {rec1_path, rec2_path};
 
 merged_rec = save_rec(info, filters, traces);
-fprintf('Merged "%s" (%d cells) and "%s" (%d cells)\n',...
+cprintf('blue', 'Merged "%s" (%d cells) and "%s" (%d cells)\n',...
     rec1_path, rec1.info.num_pairs,...
     rec2_path, rec2.info.num_pairs);
 
@@ -85,6 +86,7 @@ ds.set_labels(1:rec1.info.num_pairs);
 M = load_movie(movie_filename);
 clearvars -except ds M;
 
+cprintf('blue', 'Please classify "merge/concat"...\n');
 classify_cells(ds, M);
 
 %% After classification, generate combined LS traces
@@ -96,28 +98,3 @@ ds = DaySummary([], 'merge/ls');
 ds.set_labels;
 class_file = ds.save_class;
 movefile(class_file, 'merge/ls');
-
-%% Match post-merge 1P/2P filters
-
-clear all;
-
-ds = DaySummary([], '1P/merge/ls');
-ds2 = DaySummary([], '2P/merge/ls');
-
-%% Perform spatial alignment
-
-[m_1to2, m_2to1, info] = run_alignment(ds, ds2);
-save('match_post', 'm_1to2', 'm_2to1', 'info');
-
-%% Save image of the initial spatial alignment
-
-dataset_name = dirname;
-num_cells_1p = ds.num_classified_cells;
-num_cells_2p = ds2.num_classified_cells;
-
-title_str = sprintf('%s (POST-merge)\n1P (%d cells; blue) vs. 2P (%d cells; red)',...
-    dataset_name, num_cells_1p, num_cells_2p);
-title(title_str);
-set(gca, 'FontSize', 18);
-print('-dpng', 'overlay_post');
-
