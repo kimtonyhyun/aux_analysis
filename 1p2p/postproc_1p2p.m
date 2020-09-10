@@ -2,7 +2,7 @@
 
 clear all;
 
-ds = DaySummary([], '1P/cm1/ls');
+ds = DaySummary([], '1P/cm_ext1/ls');
 ds2 = DaySummary([], '2P/ext1/ls');
 
 %% Temporal correlations facilitate identification of matched cells
@@ -12,7 +12,7 @@ browse_corrlist(corrlist_1p2p, ds, ds2, 'names', {'1P', '2P'}, 'zsc');
 
 %% Perform spatial alignment
 
-[m_1to2, m_2to1, info] = run_alignment(ds, ds2);
+[m_1to2, m_2to1, info] = run_alignment(ds, ds2); %#ok<*ASGLU>
 save('match_pre', 'm_1to2', 'm_2to1', 'info');
 
 %% Save image of the initial spatial alignment
@@ -21,8 +21,8 @@ dataset_name = dirname;
 num_cells_1p = ds.num_classified_cells;
 num_cells_2p = ds2.num_classified_cells;
 
-title_str = sprintf('%s (PRE-merge):\n1P (%d cells; blue) vs. 2P (%d cells; red)\n%d matched cells',...
-    dataset_name, num_cells_1p, num_cells_2p, info.num_matches);
+title_str = sprintf('%s (PRE-merge)\n1P (%d cells; blue) vs. 2P (%d cells; red)',...
+    dataset_name, num_cells_1p, num_cells_2p);
 title(title_str);
 set(gca, 'FontSize', 18);
 print('-dpng', 'overlay_pre');
@@ -49,7 +49,7 @@ clear all;
 
 switch dirname
     case '1P'
-        rec1_path = 'cm1/ls';
+        rec1_path = 'cm_ext1/ls';
         rec2_path = 'merge/from_2p';
         rec_out_path = 'merge/concat';
         movie_filename = get_most_recent_file('', '*_dff.hdf5');
@@ -96,3 +96,28 @@ ds = DaySummary([], 'merge/ls');
 ds.set_labels;
 class_file = ds.save_class;
 movefile(class_file, 'merge/ls');
+
+%% Match post-merge 1P/2P filters
+
+clear all;
+
+ds = DaySummary([], '1P/merge/ls');
+ds2 = DaySummary([], '2P/merge/ls');
+
+%% Perform spatial alignment
+
+[m_1to2, m_2to1, info] = run_alignment(ds, ds2);
+save('match_post', 'm_1to2', 'm_2to1', 'info');
+
+%% Save image of the initial spatial alignment
+
+dataset_name = dirname;
+num_cells_1p = ds.num_classified_cells;
+num_cells_2p = ds2.num_classified_cells;
+
+title_str = sprintf('%s (POST-merge)\n1P (%d cells; blue) vs. 2P (%d cells; red)',...
+    dataset_name, num_cells_1p, num_cells_2p);
+title(title_str);
+set(gca, 'FontSize', 18);
+print('-dpng', 'overlay_post');
+

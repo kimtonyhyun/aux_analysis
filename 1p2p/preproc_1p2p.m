@@ -125,8 +125,10 @@ movefile(cm_filename, 'cm1/orig');
 
 %% Compare EXTRACT vs. CELLMax
 
-ds_cm = DaySummary('', 'cm1/orig');
-ds_ext = DaySummary('', 'ext1/orig');
+clear all;
+
+ds_cm = DaySummary('', 'cm1/fix');
+ds_ext = DaySummary('', 'ext1/orig2');
 
 plot_boundaries_with_transform(ds_ext, 'b', 2);
 hold on;
@@ -146,5 +148,10 @@ md = create_merge_md([ds_ext ds_cm]);
 res_list = resolve_merged_recs(md, M);
 resolved_filename = save_resolved_recs(res_list, md);
 
-mkdir('cm1_ext1/orig');
+mkdir('cm_ext1/orig');
 movefile(resolved_filename, 'cm_ext1/orig');
+
+ds = DaySummary([], 'cm_ext1/orig');
+clearvars -except ds M;
+
+classify_cells(ds, M);
