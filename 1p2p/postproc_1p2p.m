@@ -1,8 +1,8 @@
-%% PRE 1P-2P merge
+%% Post-processing: Merge 1P and 2P filters
 
 clear all;
 
-ds = DaySummary([], '1P/cm_ext1/ls');
+ds = DaySummary([], '1P/cm1/ls');
 ds2 = DaySummary([], '2P/ext1/ls');
 
 %% Temporal correlations facilitate identification of matched cells
@@ -41,13 +41,15 @@ filename_2p = get_most_recent_file('2P', '*_zsc.hdf5');
 mkdir 2P/merge/from_1p
 movefile(recname_1to2, '2P/merge/from_1p');
 
+cprintf('blue', 'Done with transfers!\n');
+
 %% Classify 1P-2P merged filters
 
 clear all;
 
 switch dirname
     case '1P'
-        rec1_path = 'cm_ext1/ls';
+        rec1_path = 'cm1/ls';
         rec2_path = 'merge/from_2p';
         rec_out_path = 'merge/concat';
         movie_filename = get_most_recent_file('', '*_dff.hdf5');
@@ -83,6 +85,8 @@ ds.set_labels(1:rec1.info.num_pairs);
 M = load_movie(movie_filename);
 clearvars -except ds M;
 
+classify_cells(ds, M);
+
 %% After classification, generate combined LS traces
 
 [~, recname_ls] = get_dff_traces(ds, M, 'ls', 'fix', 'percentile');
@@ -92,8 +96,3 @@ ds = DaySummary([], 'merge/ls');
 ds.set_labels;
 class_file = ds.save_class;
 movefile(class_file, 'merge/ls');
-
-%% POST 1P-2P merge
-
-% ds = DaySummary([], '1P/merge/ls');
-% ds2 = DaySummary([], '2P/merge/ls');
