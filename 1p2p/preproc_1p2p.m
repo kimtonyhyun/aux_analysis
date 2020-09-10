@@ -4,10 +4,10 @@ clear all; close all;
 
 dataset_name = dirname;
 
-filename_1p = get_most_recent_file('', '*.h5');
+movie_filename = get_most_recent_file('', '*.h5');
 filename_2p = get_most_recent_file('', '*.tif');
 
-M_1p = h5read(filename_1p, '/1');
+M_1p = h5read(movie_filename, '/1');
 M_2p = load_scanimage_tif(filename_2p);
 
 %%
@@ -18,7 +18,7 @@ F_2p = compute_fluorescence_stats(M_2p);
 ax1 = subplot(211);
 plot(F_1p);
 grid on;
-title(filename_1p, 'Interpreter', 'none');
+title(movie_filename, 'Interpreter', 'none');
 ax2 = subplot(212);
 plot(F_2p);
 grid on;
@@ -40,7 +40,7 @@ M_2p_chopped = M_2p(:,:,keep_frames);
 
 horiz_trim = 20;
 keep_cols_2p = (1+horiz_trim):(size(M_2p_chopped,2)-horiz_trim);
-keep_rows_2p = 40:465;
+keep_rows_2p = 40:470;
 
 M_2p_chopped = M_2p_chopped(keep_rows_2p, keep_cols_2p, :);
 
@@ -64,16 +64,32 @@ movefile(savename_1p, '1P');
 mkdir('2P');
 movefile(savename_2p, '2P');
 
-%% 1P cell extraction: EXTRACT
+%% Splitting up multi-plane 2P data
 
-% Prior to cell extraction, run:
+movie_filename = get_most_recent_file('', '*.hdf5');
+M0 = load_movie(movie_filename);
+
+num_planes = 10;
+M = cell(num_planes,1);
+for k = 1:num_planes
+    M{k} = M0(:,:,k:num_planes:end);
+end
+
+%% Cell extraction: EXTRACT
+
+% 1P: Prior to cell extraction, run:
 %   - Motion correction (TurboReg)
 %   - Cropping (for motion correction edge artifacts)
 %   - Norm movie by Miji
 %   - DFF movie
+%
+% 2P:
+%   - Mean correction
+%   - NormCorre
+%   - zscore movie
 
-filename_1p = get_most_recent_file('', '*.hdf5');
-cprintf('Blue', '%s: Running EXTRACT on "%s"...\n', datestr(now), filename_1p);
+movie_filename = get_most_recent_file('', '*.hdf5');
+cprintf('Blue', '%s: Running EXTRACT on "%s"...\n', datestr(now), movie_filename);
 
 config = get_defaults([]);
 config.preprocess = 0;
@@ -81,7 +97,7 @@ config.num_partitions_x = 1;
 config.num_partitions_y = 1;
 config.avg_cell_radius = 5;
 
-output = extractor(sprintf('%s:/Data/Images', filename_1p), config);
+output = extractor(sprintf('%s:/Data/Images', movie_filename), config);
 cprintf('Blue', 'Done with EXTRACT. Found %d cells in %.1f min\n',...
     size(output.spatial_weights, 3), output.info.runtime / 60);
 ext_filename = import_extract(output);
@@ -91,13 +107,15 @@ movefile(ext_filename, 'ext1/orig');
 
 %% CELLMax
 
+movie_filename = get_most_recent_file('', '*.hdf5');
+
 cellmax.loadRepoFunctions;
 options.CELLMaxoptions.maxSqSize = 250;
 options.CELLMaxoptions.sqOverlap = 50;
 options.eventOptions.framerate = 30;
 
 cprintf('Blue', '%s: Running CELLMax...\n', datestr(now));
-output = cellmax.runCELLMax(filename_1p, 'options', options);
+output = cellmax.runCELLMax(movie_filename, 'options', options);
 cprintf('Blue', 'Done with CELLMax. Found %d cells in %.1f min\n',...
     size(output.cellImages, 3), output.runtime / 60);
 cm_filename = import_cellmax(output);
@@ -107,7 +125,7 @@ movefile(cm_filename, 'cm1/orig');
 
 %% Compare EXTRACT vs. CELLMax
 
-ds_cm = DaySummary('', 'cm1/orig');
+ds_cm = DaySummary('', 'cm1/fix');
 ds_ext = DaySummary('', 'ext1/orig');
 
 plot_boundaries_with_transform(ds_ext, 'b', 2);
@@ -121,47 +139,12 @@ set(gca, 'FontSize', 18);
 
 %% Merge EXTRACT and CELLMax
 
-filename_1p = get_most_recent_file('', '*.hdf5');
-M = load_movie(filename_1p);
+movie_filename = get_most_recent_file('', '*.hdf5');
+M = load_movie(movie_filename);
 
 md = create_merge_md([ds_ext ds_cm]);
 res_list = resolve_merged_recs(md, M);
 resolved_filename = save_resolved_recs(res_list, md);
 
 mkdir('cm1_ext1/orig');
-movefile(resolved_filename, 'cm1_ext1/orig');
-
-%% Merge cross-modality
-
-switch dirname
-    case '1P'
-        rec1_path = 'cm1_ext1/ls';
-        rec2_path = 'from_2p/orig';
-        rec_out_path = 'from_2p/merged';
-        
-    case '2P'
-        rec1_path = 'cnmf1/ls';
-        rec2_path = 'from_1p/orig';
-        rec_out_path = 'from_1p/merged';
-end
-
-rec1 = load(get_most_recent_file(rec1_path, 'rec_*.mat'));
-rec2 = load(get_most_recent_file(rec2_path, 'rec_*.mat'));
-
-filters = cat(3, rec1.filters, rec2.filters);
-traces = cat(2, rec1.traces, rec2.traces);
-
-info.type = 'merge';
-info.num_pairs = rec1.info.num_pairs + rec2.info.num_pairs;
-info.merge = {rec1_path, rec2_path};
-
-merged_rec = save_rec(info, filters, traces);
-fprintf('Merged "%s" (%d cells) and "%s" (%d cells)\n',...
-    rec1_path, rec1.info.num_pairs,...
-    rec2_path, rec2.info.num_pairs);
-
-mkdir(rec_out_path);
-movefile(merged_rec, rec_out_path);
-
-ds = DaySummary([], rec_out_path);
-ds.set_labels(1:rec1.info.num_pairs);
+movefile(resolved_filename, 'cm_ext1/orig');
