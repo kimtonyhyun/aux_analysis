@@ -145,7 +145,7 @@ movie_filename = get_most_recent_file('', '*.hdf5');
 M = load_movie(movie_filename);
 
 md = create_merge_md([ds_ext ds_cm]);
-res_list = resolve_merged_recs(md, M);
+res_list = resolve_merged_recs(md, M, 'norm_traces');
 resolved_filename = save_resolved_recs(res_list, md);
 
 mkdir('cm_ext1/orig');

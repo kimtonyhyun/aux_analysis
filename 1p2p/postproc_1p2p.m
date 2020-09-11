@@ -12,6 +12,8 @@ browse_corrlist(corrlist_1p2p, ds, ds2, 'names', {'1P', '2P'}, 'zsc');
 
 %% Perform spatial alignment
 
+close all;
+
 [m_1to2, m_2to1, info] = run_alignment(ds, ds2); %#ok<*ASGLU>
 save('match_pre', 'm_1to2', 'm_2to1', 'info');
 
