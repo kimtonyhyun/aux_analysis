@@ -24,7 +24,8 @@ pos = parse_encoder(data, encA_ch, encB_ch); % [time enc_count]
 cpr = 500; % clicks per rotation
 R = 5.5; % cm, approximate effective radius on InnoWheel
 pos(:,2) = 2*pi*R/cpr*pos(:,2); % Convert to cm
-fprintf('Encoder: %.1f cm traveled over %.1f seconds\n', pos(end,2), pos(end,1));
+fprintf('Encoder: %.1f cm traveled over %.1f seconds (%.1f minutes)\n',...
+    pos(end,2), pos(end,1), pos(end,1)/60);
 
 % Compute velocity
 dt = 0.25; % seconds, used for velocity estimation
