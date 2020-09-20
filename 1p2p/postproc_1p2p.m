@@ -2,7 +2,7 @@
 
 clear all;
 
-ds = DaySummary([], '1P/ext1/ls');
+ds = DaySummary([], '1P/ext1_cr/ls_transpose');
 ds2 = DaySummary([], '2P/ext1/ls');
 
 %% Temporal correlations facilitate identification of matched cells

@@ -4,10 +4,11 @@ clear all; close all;
 
 dataset_name = dirname;
 
-movie_filename = get_most_recent_file('', '*.h5');
+filename_1p = get_most_recent_file('', '*.hdf5');
 filename_2p = get_most_recent_file('', '*.tif');
 
-M_1p = h5read(movie_filename, '/1');
+% M_1p = h5read(filename_1p, '/1');
+M_1p = load_movie(filename_1p);
 M_2p = load_scanimage_tif(filename_2p);
 
 %%
@@ -18,7 +19,7 @@ F_2p = compute_fluorescence_stats(M_2p);
 ax1 = subplot(211);
 plot(F_1p);
 grid on;
-title(movie_filename, 'Interpreter', 'none');
+title(filename_1p, 'Interpreter', 'none');
 ax2 = subplot(212);
 plot(F_2p);
 grid on;
@@ -40,7 +41,7 @@ M_2p_chopped = M_2p(:,:,keep_frames);
 
 horiz_trim = 20;
 keep_cols_2p = (1+horiz_trim):(size(M_2p_chopped,2)-horiz_trim);
-keep_rows_2p = 40:470;
+keep_rows_2p = 60:480;
 
 M_2p_chopped = M_2p_chopped(keep_rows_2p, keep_cols_2p, :);
 
@@ -93,8 +94,8 @@ cprintf('Blue', '%s: Running EXTRACT on "%s"...\n', datestr(now), movie_filename
 
 config = get_defaults([]);
 config.preprocess = 0;
-config.num_partitions_x = 1;
-config.num_partitions_y = 1;
+config.num_partitions_x = 5;
+config.num_partitions_y = 5;
 config.avg_cell_radius = 5;
 
 output = extractor(sprintf('%s:/Data/Images', movie_filename), config);
