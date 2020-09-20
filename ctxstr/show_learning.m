@@ -45,6 +45,8 @@ close all; % 'show_alignment_to_us' generates plots
 
 %% Figure 1: Plot velocity profiles over learning
 
+close all;
+
 colors = summer(num_datasets+2);
 colors = flipud(colors(1:num_datasets,:));
 
@@ -73,8 +75,8 @@ days_cell = num2cell(days);
 max_num_rewards = max(num_rewards);
 
 
-%% Row 1: Num rewards over learning
-
+% Row 1: Num rewards over learning
+%------------------------------------------------------------
 subplot(3,3,[1 2]);
 x_range = [0.5 num_datasets+0.5];
 
@@ -98,8 +100,8 @@ ylim([0 1.1]);
 xlabel('Days in training');
 ylabel('Consumed fraction');
 
-%% Row 2: IRI stats over learning
-
+% Row 2: IRI stats over learning
+%------------------------------------------------------------
 subplot(3,3,[4 5]);
 boxplot_wrapper([days_cell IRIs_corr], 'Notch', 'off', 'OutlierSize', 4);
 % xlabel('Days in training');
@@ -115,7 +117,8 @@ xlabel('Num consumed rewards');
 ylabel('1/median(IRI)');
 % ylim([0 0.15]);
 
-%% Row 3: Average velocity over learning
+% Row 3: Average velocity over learning
+%------------------------------------------------------------
 
 % Time window for computing mean velocities
 t1 = -3.0;
