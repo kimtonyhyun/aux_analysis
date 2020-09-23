@@ -146,6 +146,7 @@ end
 
 % Save results to file
 %------------------------------------------------------------
+info.saleae_time_window = times([1 end]); % seconds
 info.dt = dt; % Used for velocity computation
 info.lick_response_window = lick_response_window; % seconds
 info.recording_length = times(end);
