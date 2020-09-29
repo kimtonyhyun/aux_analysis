@@ -8,6 +8,7 @@ clear all; close all;
 mouse_name = dirname;
 
 datasets = dir(sprintf('%s-*', mouse_name));
+datasets(~[datasets.isdir]) = [];
 num_datasets = length(datasets);
 
 cprintf('blue', 'Found %d datasets for mouse "%s"!\n', num_datasets, mouse_name);
@@ -107,7 +108,7 @@ boxplot_wrapper([days_cell IRIs_corr], 'Notch', 'off', 'OutlierSize', 4);
 % xlabel('Days in training');
 ylabel({'Inter-reward interval (s)', 'Consumed trials only'});
 grid on;
-ylim([0 40]);
+% ylim([0 50]);
 
 subplot(3,3,6);
 plot(num_rewards_corr, 1./cellfun(@median, IRIs_corr, 'UniformOutput', true),...
@@ -133,7 +134,7 @@ for k = 1:num_datasets
 end
 
 subplot(3,3,[7 8]);
-boxplot_wrapper([days_cell V_means_corr], 'Notch', 'on', 'OutlierSize', 4);
+boxplot_wrapper([days_cell V_means_corr], 'OutlierSize', 4);
 xlabel('Days in training');
 ylabel({'Avg. velocity between',...
     sprintf('%.1f to %.1f s (cm/s)', t1, t2),...
