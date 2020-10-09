@@ -21,3 +21,10 @@ title_str = sprintf('%s (POST-merge)\n1P (%d cells; blue) vs. 2P (%d cells; red)
 title(title_str);
 set(gca, 'FontSize', 18);
 print('-dpng', 'overlay_post');
+
+%% Match 1P/2P
+
+load('match_post.mat', 'info');
+matched_corrlist = match_1p2p(ds, ds2, info.tform);
+
+save('matched_corrlist', 'matched_corrlist');
