@@ -94,8 +94,8 @@ cprintf('Blue', '%s: Running EXTRACT on "%s"...\n', datestr(now), movie_filename
 
 config = get_defaults([]);
 config.preprocess = 0;
-config.num_partitions_x = 5;
-config.num_partitions_y = 5;
+config.num_partitions_x = 1;
+config.num_partitions_y = 1;
 config.avg_cell_radius = 5;
 
 output = extractor(sprintf('%s:/Data/Images', movie_filename), config);

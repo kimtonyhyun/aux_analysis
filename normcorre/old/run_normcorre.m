@@ -4,13 +4,19 @@ function shifts = run_normcorre(movie_in, movie_out, varargin)
 % NormCorre obtained from https://github.com/simonsfoundation/NoRMCorre
 %   on 2017 June 02 (latest commit f050cc1 / Apr 26).
 
+% Default parameters
 use_nonrigid = true;
+grid_size = [128, 128];
+max_shift = 50;
+
 for k = 1:length(varargin)
     vararg = varargin{k};
     if ischar(vararg)
         switch lower(vararg)
             case 'rigid'
                 use_nonrigid = false;
+            case 'grid'
+                grid_size = varargin{k+1}*[1 1];
         end
     end
 end
@@ -34,12 +40,8 @@ switch lower(ext)
         [movie_size, ~] = get_dataset_info(movie_in, '/Data/Images');
 end
 
-% Some common parameters
-max_shift = 50;
-
 if use_nonrigid
     % Non-rigid settings
-    grid_size = 2*[64, 64];
     fprintf('%s: Nonrigid NC grid size is [%d %d] px, with max shift of %d px\n',...
         movie_in, grid_size(1), grid_size(2), max_shift);
     options = NoRMCorreSetParms('d1',movie_size(1),'d2',movie_size(2),...
