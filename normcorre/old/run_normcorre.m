@@ -6,7 +6,7 @@ function shifts = run_normcorre(movie_in, movie_out, varargin)
 
 % Default parameters
 use_nonrigid = true;
-grid_size = [128, 128];
+grid_size = 128;
 max_shift = 50;
 
 for k = 1:length(varargin)
@@ -16,7 +16,7 @@ for k = 1:length(varargin)
             case 'rigid'
                 use_nonrigid = false;
             case 'grid'
-                grid_size = varargin{k+1}*[1 1];
+                grid_size = varargin{k+1};
         end
     end
 end
@@ -43,9 +43,9 @@ end
 if use_nonrigid
     % Non-rigid settings
     fprintf('%s: Nonrigid NC grid size is [%d %d] px, with max shift of %d px\n',...
-        movie_in, grid_size(1), grid_size(2), max_shift);
+        movie_in, grid_size, grid_size, max_shift);
     options = NoRMCorreSetParms('d1',movie_size(1),'d2',movie_size(2),...
-                        'grid_size',grid_size,...
+                        'grid_size',grid_size*[1 1],...
                         'mot_uf',4,'bin_width',50,...
                         'max_shift',max_shift,'max_dev',3,'us_fac',50,...
                         'iter', 2,...
