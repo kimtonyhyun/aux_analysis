@@ -9,6 +9,9 @@ behavior_clock_ch = 4;
 ctx_clock_ch = 6;
 str_clock_ch = 7;
 
+ctx_fps = 30;
+str_fps = 45;
+
 % Load data
 %------------------------------------------------------------
 fprintf('Loading Saleae data into memory... '); tic;
@@ -18,6 +21,7 @@ t = toc; fprintf('Done in %.1f seconds!\n', t);
 
 % Parse behavioral data at full resolution
 %------------------------------------------------------------
+
 % Encoder
 cpr = 500; % clicks per rotation
 pos = parse_encoder(data, encA_ch, encB_ch); % [time enc_count]
@@ -25,7 +29,7 @@ fprintf('Encoder: %.1f rotations over %.1f seconds (%.1f minutes)\n',...
     pos(end,2)/cpr, pos(end,1), pos(end,1)/60);
 
 % Velocity
-R = 5.5; % cm, approximate effective radius on InnoWheel FIXME
+R = 14.5/2; % cm, measured 2020 Nov 17
 pos_cm = 2*pi*R/cpr*pos(:,2); % Convert to distance (cm)
 
 dt = 0.25; % seconds, used for velocity estimation
@@ -50,10 +54,10 @@ us_times = us_times(1:num_pulses_per_reward:end);
 % First, determine the reward threshold from the position data. To do this,
 % split the position trace across individual trials, defined by the US.
 num_rewards = length(us_times);
-trial_inds = zeros(num_rewards,1);
+inds = zeros(num_rewards,1);
 for k = 1:num_rewards
     us_time = us_times(k);
-    trial_inds(k) = find(pos(:,1) > us_time, 1, 'first');
+    inds(k) = find(pos(:,1) > us_time, 1, 'first');
 end
 
 % The first US is a freebie at the beginning of each session, unrelated to
@@ -64,7 +68,7 @@ fprintf('Detected %d rewards, excluding the first (free) reward\n', num_rewards)
 
 pos_by_trial = cell(num_rewards, 1);
 for k = 1:num_rewards
-    inds_k = trial_inds(k):trial_inds(k+1)-1;
+    inds_k = inds(k):inds(k+1)-1;
     pos_k = pos(inds_k,:);
     pos_k(:,2) = pos_k(:,2) - pos_k(1,2); % "Reset" position after each US
     pos_by_trial{k} = pos_k;
@@ -123,10 +127,39 @@ behavior.lick_responses = lick_responses;
 % Parse imaging clocks
 %------------------------------------------------------------
 
-% Ctx
 ctx_frame_times = find_edges(data, ctx_clock_ch);
 num_ctx_frames = length(ctx_frame_times);
 
+str_frame_times = find_edges(data, str_clock_ch);
+num_str_frames = length(str_frame_times);
+
+% Find USes that occured during imaging
+if (num_ctx_frames == 0) && (num_str_frames == 0) % Behavior only
+    imaging_start_time = Inf;
+    imaging_end_time = -Inf;
+elseif (num_str_frames == 0) % Ctx-only imaging
+    imaging_start_time = ctx_frame_times(1);
+    imaging_end_time = ctx_frame_times(end);
+elseif (num_ctx_frames == 0) % Str-only imaging
+    imaging_start_time = str_frame_times(1);
+    imaging_end_time = str_frame_times(end);
+else % Dual-site imaging
+    imaging_start_time = max(ctx_frame_times(1), str_frame_times(1));
+    imaging_end_time = min(ctx_frame_times(end), str_frame_times(end));
+end
+
+% For a trial to be considered to be "contained" in the imaging period, the
+% motion onset time must also be covered by the imaging period.
+first_imaged_trial = find(movement_onset_times > imaging_start_time, 1, 'first');
+last_imaged_trial = find(us_times < imaging_end_time, 1, 'last');
+imaged_trials = first_imaged_trial:last_imaged_trial;
+fprintf('%d of %d trials (rewards) fully contained in the imaging period\n', length(imaged_trials), num_rewards);
+
+imaged_us_times = us_times(imaged_trials);
+imaged_movement_onset_times = movement_onset_times(imaged_trials);
+imaged_lick_responses = lick_responses(imaged_trials);
+
+% Ctx
 if num_ctx_frames == 0
     cprintf('Blue', 'Warning: Ctx frame clock NOT detected\n');
     ctx = [];
@@ -135,22 +168,20 @@ else
     fprintf('Found %d ctx frames at %.2f FPS\n', num_ctx_frames, 1/T_ctx);
     
     ctx.frame_times = ctx_frame_times;
-    [ctx.us, ctx.first_reward_idx] = assign_edge_to_frames(us_times, ctx_frame_times);
-    ctx.lick = assign_edge_to_frames(lick_times, ctx_frame_times);
-    ctx.velocity = interp1(t, velocity, ctx_frame_times);
-
-    num_rewards_in_ctx_movie = sum(ctx.us);
-    lick_responses_ctx = lick_responses(ctx.first_reward_idx:ctx.first_reward_idx+num_rewards_in_ctx_movie-1);
-    fprintf('%d rewards occur during the ctx movie, ', num_rewards_in_ctx_movie);
-    fprintf('starting from reward #%d\n', ctx.first_reward_idx);
     
-    generate_pmtext('ctx.txt', find(ctx.us), lick_responses_ctx, 30, num_ctx_frames); % FIXME: Hard-coded FPS
+    ctx.us = assign_edge_to_frames(imaged_us_times, ctx_frame_times);
+    ctx_us_frames = find(ctx.us);
+    
+    ctx.movement_onset = assign_edge_to_frames(imaged_movement_onset_times, ctx_frame_times);
+    ctx_movement_onset_frames = find(ctx.movement_onset);
+    
+    ctx.lick = assign_edge_to_frames(lick_times, ctx_frame_times);
+    ctx.velocity = interp1(t, velocity, ctx_frame_times);  
+    
+    generate_pmtext('ctx.txt', ctx_movement_onset_frames, ctx_us_frames, imaged_lick_responses, ctx_fps, num_ctx_frames);
 end
 
 % Str
-str_frame_times = find_edges(data, str_clock_ch);
-num_str_frames = length(str_frame_times);
-
 if num_str_frames == 0
     cprintf('Blue', 'Warning: Str frame clock NOT detected\n');
     str = [];
@@ -159,26 +190,18 @@ else
     fprintf('Found %d str frames at %.2f FPS\n', num_str_frames, 1/T_str);
     
     str.frame_times = str_frame_times;
-    [str.us, str.first_reward_idx] = assign_edge_to_frames(us_times, str_frame_times);
+    
+    str.us = assign_edge_to_frames(imaged_us_times, str_frame_times);
+    str_us_frames = find(str.us);
+    
+    str.movement_onset = assign_edge_to_frames(imaged_movement_onset_times, str_frame_times);
+    str_movement_onset_frames = find(str.movement_onset);
+    
     str.lick = assign_edge_to_frames(lick_times, str_frame_times);
     str.velocity = interp1(t, velocity, str_frame_times);
 
-    num_rewards_in_str_movie = sum(str.us);
-    lick_responses_str = lick_responses(str.first_reward_idx:str.first_reward_idx+num_rewards_in_str_movie-1);
-    fprintf('%d rewards occur during the str movie, ', num_rewards_in_str_movie);
-    fprintf('starting from reward #%d\n', str.first_reward_idx);
     
-    generate_pmtext('str.txt', find(str.us), lick_responses_str, 45, num_str_frames);
-end
-
-if (num_ctx_frames > 0) && (num_str_frames > 0)
-    if (ctx_frame_times(1) < str_frame_times(1))
-        fprintf('%d ctx frames precede the first str frame\n',...
-            sum(ctx_frame_times < str_frame_times(1)));
-    else
-        fprintf('%d str frames precede the first ctx frame\n',...
-            sum(str_frame_times < ctx_frame_times(1)));
-    end
+    generate_pmtext('str.txt', str_movement_onset_frames, str_us_frames, imaged_lick_responses, str_fps, num_str_frames);
 end
 
 % Save results to file
@@ -189,6 +212,8 @@ end
 %------------------------------------------------------------
 info.hw_params.cpr = cpr; % Encoder counts per rotation
 info.hw_params.R = R; % radius of wheel (cm)
+info.hw_params.ctx_fps = ctx_fps;
+info.hw_params.str_fps = str_fps;
 info.saleae.time_window = times([1 end]); % seconds
 info.params.velocity_dt = dt; % Used for velocity computation
 info.params.movement_onset_threshold = movement_onset_threshold;
@@ -198,11 +223,7 @@ save('ctxstr.mat', 'ctx', 'str', 'behavior', 'info');
 
 end % parse_ctxstr
 
-function generate_pmtext(outname, reward_frames, responses, imaging_fps, max_frames)
-    % Trial frames: [Trial-start Motion-onset US Trial-end]
-    %   Trial-start: 5 s prior to US
-    %   Motion-onset
-    frame_offsets = imaging_fps * [-5 -1 0 5];
+function generate_pmtext(outname, movement_onset_frames, reward_frames, responses, imaging_fps, max_frames)
     fid = fopen(outname, 'w');
     for k = 1:length(reward_frames)
         if responses(k)
@@ -210,8 +231,13 @@ function generate_pmtext(outname, reward_frames, responses, imaging_fps, max_fra
         else
             pm_filler = 'east north south 10.0'; % "Incorrect" trial
         end
+        
+        mof = movement_onset_frames(k);
         rf = reward_frames(k);
-        tf = rf + frame_offsets; % "trial frames"
+        
+        % Trial frames
+        % Note: We provide a 2 s buffer around motion onset and reward
+        tf = [mof-2*imaging_fps mof rf rf+2*imaging_fps];
         if (tf(1) > 0) && (tf(4) < max_frames)
             fprintf(fid, '%s %d %d %d %d\n', pm_filler,...
                 tf(1), tf(2), tf(3), tf(4));
