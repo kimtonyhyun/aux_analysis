@@ -7,7 +7,8 @@ clear all; close all;
 
 mouse_name = dirname;
 
-datasets = dir(sprintf('%s-*', mouse_name));
+% strtok(..., '-') converts names like "oh14-spokes" to just "oh14"
+datasets = dir(sprintf('%s-*', strtok(mouse_name, '-')));
 datasets(~[datasets.isdir]) = [];
 num_datasets = length(datasets);
 
@@ -108,7 +109,7 @@ boxplot_wrapper([days_cell IRIs_corr], 'Notch', 'off', 'OutlierSize', 4);
 % xlabel('Days in training');
 ylabel({'Inter-reward interval (s)', 'Consumed trials only'});
 grid on;
-% ylim([0 60]);
+ylim([0 60]);
 
 subplot(3,3,6);
 plot(num_rewards_corr, 1./cellfun(@median, IRIs_corr, 'UniformOutput', true),...

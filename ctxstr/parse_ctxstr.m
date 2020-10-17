@@ -146,6 +146,8 @@ end
 
 % Save results to file
 %------------------------------------------------------------
+info.cpr = cpr; % Encoder counts per rotation
+info.R = R; % radius of wheel (cm)
 info.saleae_time_window = times([1 end]); % seconds
 info.dt = dt; % Used for velocity computation
 info.lick_response_window = lick_response_window; % seconds
@@ -156,7 +158,7 @@ save('ctxstr.mat', 'ctx', 'str', 'behavior', 'info');
 end % parse_ctxstr
 
 function generate_pmtext(outname, reward_frames, responses, imaging_fps, max_frames)
-    frame_offsets = imaging_fps * [-3 -2 0 2];
+    frame_offsets = imaging_fps * [-5 -1 0 5];
     fid = fopen(outname, 'w');
     for k = 1:length(reward_frames)
         if responses(k)

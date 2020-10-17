@@ -9,7 +9,7 @@ meta = load('ctxstr.mat');
 us_times = find(meta.str.us);
 
 % Use all frames irrespective of trial structure
-ds_path = 'cnmf1/resampled';
+ds_path = 'union/resampled';
 ds_ctx = DaySummary('', fullfile('ctx', ds_path));
 ds_str = DaySummary('', fullfile('str', ds_path));
 
