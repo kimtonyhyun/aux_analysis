@@ -79,7 +79,7 @@ us_threshold = mean(cellfun(@(x) x(end,2), pos_by_trial));
 fprintf('On average, reward delivered after %.1f encoder clicks\n', us_threshold);
 
 % Finally, determine the movement onset based on distance traveled
-movement_onset_threshold = 0.2;
+movement_onset_threshold = 0.1;
 movement_onset_times = zeros(num_rewards,1);
 for k = 1:num_rewards
     pos_k = pos_by_trial{k};
@@ -214,7 +214,7 @@ info.hw_params.cpr = cpr; % Encoder counts per rotation
 info.hw_params.R = R; % radius of wheel (cm)
 info.hw_params.ctx_fps = ctx_fps;
 info.hw_params.str_fps = str_fps;
-info.saleae.time_window = times([1 end]); % seconds
+info.saleae.time_window = times([1 end])'; % seconds
 info.params.velocity_dt = dt; % Used for velocity computation
 info.params.movement_onset_threshold = movement_onset_threshold;
 info.params.lick_response_window = lick_response_window; % seconds
