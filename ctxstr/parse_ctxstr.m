@@ -122,7 +122,7 @@ behavior.velocity = [t' velocity']; % [time cm/s]
 behavior.movement_onset_times = movement_onset_times;
 behavior.us_times = us_times;
 behavior.lick_times = lick_times;
-behavior.lick_responses = lick_responses;
+behavior.lick_responses = logical(lick_responses);
 
 % Parse imaging clocks
 %------------------------------------------------------------
@@ -200,7 +200,6 @@ else
     str.lick = assign_edge_to_frames(lick_times, str_frame_times);
     str.velocity = interp1(t, velocity, str_frame_times);
 
-    
     generate_pmtext('str.txt', str_movement_onset_frames, str_us_frames, imaged_lick_responses, str_fps, num_str_frames);
 end
 

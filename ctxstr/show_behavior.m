@@ -10,11 +10,13 @@ v_lims = compute_range(velocity(:,2));
 position = cat(1, behavior.position.by_trial{:}); % Wrapped position
 p_lims = compute_range(position(:,2));
 
-movement_onset_times = behavior.movement_onset_times;
-us_times = behavior.us_times;
+% We plot only consumed trials
+movement_onset_times = behavior.movement_onset_times(behavior.lick_responses);
+us_times = behavior.us_times(behavior.lick_responses);
 runtimes = us_times - movement_onset_times;
 avg_runtime = mean(runtimes);
 num_trials = length(us_times);
+num_total_trials = length(behavior.lick_responses);
 
 % Show velocity and position over the session
 %------------------------------------------------------------
@@ -25,6 +27,8 @@ plot(velocity(:,1), velocity(:,2));
 ylabel('Velocity (cm/s)');
 hold on;
 plot(x_lims, [0 0], 'k--');
+plot(behavior.lick_times,...
+     0.9*v_lims(2)*ones(size(behavior.lick_times)), 'k.');
 hold off;
 ylim(v_lims);
 
@@ -39,17 +43,27 @@ xlim(x_lims);
 ylim(p_lims);
 zoom xon;
 xlabel('Time (s)');
-title(sprintf('%s (%d trials)', dataset_name, num_trials));
+title(sprintf('%s (%d consumed out of %d total trials)',...
+        dataset_name, num_trials, num_total_trials));
 set(ax1, 'TickLength', [0 0]);
 
 
 % Align to movement onset
 %------------------------------------------------------------
 t = -2:0.1:(avg_runtime+2);
-V_movement_onset = get_aligned_raster(velocity, movement_onset_times, t);
-P_movement_onset = get_aligned_raster(position, movement_onset_times, t);
 
-ax2 = subplot(3,2,3);
+% Omission of the last US is a hack. This is necessary because "position"
+% terminates with the very last US, which shortens the plots.
+V_movement_onset = get_aligned_raster(velocity, movement_onset_times(1:end-1), t);
+P_movement_onset = get_aligned_raster(position, movement_onset_times(1:end-1), t);
+
+% Velocity
+subplot(3,4,5);
+imagesc(t, 1:size(V_movement_onset,1), V_movement_onset);
+ylabel('Consumed trials');
+title('Velocity');
+
+subplot(3,4,9);
 plotShadedErrorBar(t, V_movement_onset, [0 0.447 0.741]);
 hold on;
 plot(t([1 end]), [0 0], 'k--');
@@ -57,11 +71,17 @@ my_xline(0, v_lims, 'r');
 my_xline(runtimes, v_lims, 'b:');
 hold off;
 ylabel('Velocity (cm/s)');
+xlim(t([1 end]));
 ylim(v_lims);
 % grid on;
-title('Align to movement onset');
+xlabel('Time relative to movement onset (s)');
 
-ax3 = subplot(3,2,5);
+% Position
+subplot(3,4,6);
+imagesc(t, 1:size(P_movement_onset,1), P_movement_onset);
+title('Position');
+
+subplot(3,4,10);
 plotShadedErrorBar(t, P_movement_onset, [0.85 0.325 0.098]);
 hold on;
 plot(t([1 end]), [0 0], 'k--');
@@ -69,48 +89,53 @@ my_xline(0, p_lims, 'r');
 my_xline(runtimes, p_lims, 'b:');
 hold off;
 ylabel('Position (encoder count)');
+xlim(t([1 end]));
 ylim(p_lims);
 % grid on;
 xlabel('Time relative to movement onset (s)');
-
-linkaxes([ax2 ax3], 'x');
-xlim(t([1 end]));
 
 % Align to US
 %------------------------------------------------------------
 t = -(avg_runtime+2):0.1:2;
 
-% Omission of the last US is a hack. This is necessary because "position"
-% terminates with the very last US.
 V_us = get_aligned_raster(velocity, us_times(1:end-1), t);
 P_us = get_aligned_raster(position, us_times(1:end-1), t);
 
-ax4 = subplot(3,2,4);
-plotShadedErrorBar(t, V_us, [0 0.447 0.741]);
+% Velocity
+subplot(3,4,7);
+imagesc(t, 1:size(V_us,1), V_us);
+title('Velocity');
+
+subplot(3,4,11);
+plotShadedErrorBar(t, V_us, [0 0.447 0.741]); % New Matlab "blue" color
 hold on;
 plot(t([1 end]), [0 0], 'k--');
 my_xline(0, v_lims, 'b');
 my_xline(-runtimes, v_lims, 'r:');
 hold off;
 ylabel('Velocity (cm/s)');
+xlim(t([1 end]));
 ylim(v_lims);
 % grid on;
-title('Align to US');
+xlabel('Time relative to US (s)');
 
-ax5 = subplot(3,2,6);
-plotShadedErrorBar(t, P_us, [0.85 0.325 0.098]);
+% Position
+subplot(3,4,8);
+imagesc(t, 1:size(P_us,1), P_us);
+title('Position');
+
+subplot(3,4,12);
+plotShadedErrorBar(t, P_us, [0.85 0.325 0.098]); % New Matlab "red" color
 hold on;
 plot(t([1 end]), [0 0], 'k--');
 my_xline(0, p_lims, 'b');
 my_xline(-runtimes, p_lims, 'r:');
 hold off;
 ylabel('Position (encoder count)');
+xlim(t([1 end]));
 ylim(p_lims);
 % grid on;
 xlabel('Time relative to US (s)');
-
-linkaxes([ax4 ax5], 'x');
-xlim(t([1 end]));
 
 end
 
