@@ -27,8 +27,9 @@ plot(velocity(:,1), velocity(:,2));
 ylabel('Velocity (cm/s)');
 hold on;
 plot(x_lims, [0 0], 'k--');
+y_pos = v_lims(1) + 0.95*diff(v_lims);
 plot(behavior.lick_times,...
-     0.9*v_lims(2)*ones(size(behavior.lick_times)), 'k.');
+     y_pos*ones(size(behavior.lick_times)), 'k.');
 hold off;
 ylim(v_lims);
 
