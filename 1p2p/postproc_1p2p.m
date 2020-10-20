@@ -2,7 +2,7 @@
 
 clear all;
 
-ds = DaySummary([], '1P/ext1_cr/ls_transpose');
+ds = DaySummary([], '1P/cm1/ls');
 ds2 = DaySummary([], '2P/ext1/ls');
 
 %% Temporal correlations facilitate identification of matched cells
@@ -53,7 +53,7 @@ clear all; close all;
 
 switch dirname
     case '1P'
-        rec1_path = 'ext1/ls';
+        rec1_path = 'cm1/ls';
         rec2_path = 'merge/from_2p';
         movie_filename = get_most_recent_file('', '*_dff.hdf5');
         

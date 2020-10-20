@@ -1,7 +1,8 @@
 clear all; close all;
 
 %% Load data
-
+% DCIMG files can be converted using:
+%   convert_dcimg('m5R1_d200911_s09_1p00001.dcimg');
 dataset_name = dirname;
 
 filename_1p = get_most_recent_file('', '*.hdf5');
@@ -30,7 +31,7 @@ xlim([0 1000]);
 %% Decide number of frames to chop
 
 max_frames = min(size(M_1p,3), size(M_2p,3));
-keep_frames = 201:max_frames;
+keep_frames = 201:15000;
 
 M_1p_chopped = M_1p(:,:,keep_frames);
 M_2p_chopped = M_2p(:,:,keep_frames);
