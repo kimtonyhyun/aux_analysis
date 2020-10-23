@@ -1,4 +1,4 @@
-function [ctx, str, behavior, info] = parse_ctxstr(source)
+function [ctx, str, behavior, info] = parse_saleae(source)
 
 % Define Saleae channels
 encA_ch = 0;
