@@ -28,3 +28,7 @@ load('match_post.mat', 'info');
 matched_corrlist = match_1p2p(ds, ds2, info.tform);
 
 save('matched_corrlist', 'matched_corrlist');
+
+%% Temporal correlations of matched corrlist
+
+browse_corrlist(matched_corrlist, ds, ds2, 'names', {'1P', '2P'}, 'zsc');
