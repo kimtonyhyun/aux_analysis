@@ -31,7 +31,7 @@ for k = 1:num_datasets
     %   V: Velocity raster
     %   R: Consumed US within 1 s (default)?
     %   t0: Time window for the velocity trace
-    [V, R, t0] = show_alignment_to_us(d.behavior);
+    [V, R, t0] = ctxstr.show_alignment_to_us(d.behavior);
     IRI = diff(d.behavior.us_times);    
     
     V_corr{k} = V(R,:); % Correct trials only
@@ -56,7 +56,7 @@ for k = 1:num_datasets
     V = V_corr{k};
     color = colors(k,:);
     shadedErrorBar(t0, mean(V), std(V)/sqrt(size(V,1)),...
-        {'Color', color}, 1);
+        'lineProps', {'Color', color, 'LineWidth', 1});
     hold on;
 end
 hold off;
@@ -105,7 +105,7 @@ ylabel('Consumed fraction');
 % Row 2: IRI stats over learning
 %------------------------------------------------------------
 subplot(3,3,[4 5]);
-boxplot_wrapper([days_cell IRIs_corr], 'Notch', 'off', 'OutlierSize', 4);
+boxplot_wrapper(days_cell, IRIs_corr, 'Notch', 'off', 'OutlierSize', 4);
 % xlabel('Days in training');
 ylabel({'Inter-reward interval (s)', 'Consumed trials only'});
 grid on;
@@ -135,7 +135,7 @@ for k = 1:num_datasets
 end
 
 subplot(3,3,[7 8]);
-boxplot_wrapper([days_cell V_means_corr], 'OutlierSize', 4);
+boxplot_wrapper(days_cell, V_means_corr, 'OutlierSize', 4);
 xlabel('Days in training');
 ylabel({'Avg. velocity between',...
     sprintf('%.1f to %.1f s (cm/s)', t1, t2),...

@@ -53,11 +53,11 @@ shadedErrorBar(t0, v_avg, std(V)/sqrt(num_rewards));
 hold on;
 if num_correct >= 2 % Need at least 2 for STD
     V_corr = V(R,:);
-    shadedErrorBar(t0, mean(V_corr), std(V_corr)/sqrt(num_correct), 'g', 1);
+    shadedErrorBar(t0, mean(V_corr), std(V_corr)/sqrt(num_correct), 'lineProps', {'Color', 'g', 'LineWidth', 1});
 end
 if num_incorrect >= 2
     V_incorr = V(~R,:);
-    shadedErrorBar(t0, mean(V_incorr), std(V_incorr)/sqrt(num_incorrect), 'r', 1);
+    shadedErrorBar(t0, mean(V_incorr), std(V_incorr)/sqrt(num_incorrect), 'lineProps', {'Color', 'r', 'LineWidth', 1});
 end
 hold off;
 grid on;
