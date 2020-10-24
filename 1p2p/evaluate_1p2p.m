@@ -29,6 +29,18 @@ matched_corrlist = match_1p2p(ds, ds2, info.tform);
 
 save('matched_corrlist', 'matched_corrlist');
 
-%% Temporal correlations of matched corrlist
+%% Compute all 1P:2P transfer function slopes. Note:
+%   - slope > 1 means that 1P had higher SNR
+%   - slope < 1 means that 2P had higher SNR
 
-browse_corrlist(matched_corrlist, ds, ds2, 'names', {'1P', '2P'}, 'zsc');
+load('matched_corrlist.mat');
+num_matches = size(matched_corrlist, 1);
+snr_slopes = zeros(num_matches, 1);
+for k = 1:num_matches
+    match = matched_corrlist(k,:);
+    tr1 = ds.get_trace(match(1), 'zsc');
+    tr2 = ds2.get_trace(match(2), 'zsc');
+    snr_slopes(k) = fit_1p2p_slope(tr2, tr1);
+end
+
+save('matched_snr', 'snr_slopes');
