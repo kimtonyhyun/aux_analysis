@@ -26,11 +26,24 @@ num_behavior_frames = length(t);
 fprintf('Expected %d behavioral frames from Saleae log\n', num_behavior_frames);
 
 if num_dlc_frames < num_behavior_frames
-    error('Found fewer DLC frames than expected!');
+    num_missing_frames = num_behavior_frames - num_dlc_frames;
+    if num_missing_frames == 1
+        cprintf('blue', 'Found one fewer DLC frame than expected. Most likely spurious behavior frame clock at end.\n');
+        
+        num_behavior_frames = num_behavior_frames - 1;
+        t = t(1:end-1);
+    else
+        error('Found %d fewer DLC frames than expected!', num_missing_frames);
+    end
 elseif num_dlc_frames > num_behavior_frames
     cprintf('blue', 'There are more DLC frames than recorded by Saleae. Taking first %d frames only.\n', num_behavior_frames);
 end
 
+if medfilt_window == 1
+    fprintf('No median filtering applied\n');
+else
+    fprintf('Median filtering window is %d\n', medfilt_window);
+end
 inds = 1:num_behavior_frames;
 front_left = medfilt1(data(inds,2:4), medfilt_window); % [x, y, likelihood]
 front_right = medfilt1(data(inds,5:7), medfilt_window);
@@ -86,7 +99,7 @@ ylabel('tail y');
 info.dlc_filename = dlc_filename;
 info.medfilt_window = medfilt_window;
 
-save('dlc.mat', 't', 'front_right', 'front_left', 'hind_right', 'hind_left', 'nose', 'tail');
+save('dlc.mat', 't', 'front_right', 'front_left', 'hind_right', 'hind_left', 'nose', 'tail', 'info');
 
 end % import_dlc
 
