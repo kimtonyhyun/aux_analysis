@@ -2,15 +2,15 @@
 
 clear all;
 
-ds = DaySummary([], '1P/merge/ls');
+ds = DaySummary([], '1P/merge/proj');
 ds2 = DaySummary([], '2P/merge/ls');
 
 %% Perform spatial alignment
 
 [m_1to2, m_2to1, info] = run_alignment(ds, ds2);
-save('match_post', 'm_1to2', 'm_2to1', 'info');
+save('match_post', 'm_1to2', 'm_2to1', 'info', '-v7.3');
 
-%% Save image of the initial spatial alignment
+%% Save image of the spatial alignment
 
 dataset_name = dirname;
 num_cells_1p = ds.num_classified_cells;

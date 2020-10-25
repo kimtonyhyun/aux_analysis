@@ -2,7 +2,7 @@
 
 clear all;
 
-ds = DaySummary([], '1P/cm1/ls');
+ds = DaySummary([], '1P/ext1/ls');
 ds2 = DaySummary([], '2P/ext1/ls');
 
 %% Temporal correlations facilitate identification of matched cells
@@ -15,9 +15,9 @@ browse_corrlist(corrlist_1p2p, ds, ds2, 'names', {'1P', '2P'}, 'zsc');
 close all;
 
 [m_1to2, m_2to1, info] = run_alignment(ds, ds2); %#ok<*ASGLU>
-save('match_pre', 'm_1to2', 'm_2to1', 'info');
+save('match_pre', 'm_1to2', 'm_2to1', 'info', '-v7.3');
 
-%% Save image of the initial spatial alignment
+%% Save image of the spatial alignment
 
 dataset_name = dirname;
 num_cells_1p = ds.num_classified_cells;
@@ -53,7 +53,7 @@ clear all; close all;
 
 switch dirname
     case '1P'
-        rec1_path = 'cm1/ls';
+        rec1_path = 'ext1/ls';
         rec2_path = 'merge/from_2p';
         movie_filename = get_most_recent_file('', '*_dff.hdf5');
         
