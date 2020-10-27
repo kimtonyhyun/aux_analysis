@@ -2,7 +2,8 @@ function [d, d_approx, stats] = compute_dprime(F0, nu, DFF, tau)
 % See Wilt et al. 2013 and its supplementary materials. Parameters:
 % - F0: photons / sec
 % - nu: Frame rate
-% Here, we avoid taking the expansion of s_n.
+% Below, we avoid taking the expansion of s_n. Thus, there is no 
+% approximation, beyond the truncation of the summation index n.
 
 % Faster computation
 n = 1:1000; % max(n) >> tau*nu
