@@ -39,6 +39,9 @@ end
 
 %%
 
+figure;
+set(gcf, 'DefaultAxesFontSize', 14);
+
 subplot(121);
 plot(depths, num_matched./num_2p_cells, 'k.', 'MarkerSize', 18);
 grid on;
@@ -52,11 +55,14 @@ boxplot_wrapper(depths, snrs);
 grid on;
 xlabel({'Depth (um)', 'Note: x-axis is not to scale'});
 ylabel({'Cell-by-cell 1P:2P SNR ratio', '(<1 means 2P better, >1 means 1P better)'});
-ylim([0 4.5]);
+ylim([0 3]);
 
-suptitle(mouse_name);
+% suptitle(mouse_name);
 
 %% Show the full SNR histograms, in descending order
+
+figure;
+set(gcf, 'DefaultAxesFontSize', 14);
 
 [~, sorted_inds] = sort(depths, 'ascend');
 
@@ -66,9 +72,12 @@ for k = 1:num_datasets
     ind = sorted_inds(k);
     histogram(log10(snrs{ind}), x);
     ylabel({sprintf('Depth = %.0f um', depths(ind)),...
-            datasets(ind).name}, 'Interpreter', 'none');
+            sprintf('(%s)', datasets(ind).name)}, 'Interpreter', 'none', 'Rotation', 0, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'right');
     set(gca, 'TickLength', [0 0]);
     grid on;
+    if k == 1
+        title(mouse_name);
+    end
 end
-xlabel({'log10(1P:2P SNR ratio)', '>0 means 1P better; <0 means 2P better'});
+xlabel({'log_{10}(1P:2P SNR ratio)', 'Negative means 2P better; Positive means 1P better'});
 % suptitle(mouse_name);

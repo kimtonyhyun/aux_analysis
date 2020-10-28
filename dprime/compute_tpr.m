@@ -1,6 +1,8 @@
 function tpr = compute_tpr(dprime, fpr)
 % Compute the true positive rate (TPR) at a specified false positive rate
-% (FPR) level, given a discriminability index d'
+% (FPR) level, given a discriminability index d'. We assume that the the
+% variances of the spike and no-spike distributions are equal, which is
+% assumed when deriving the approximation d' = DF/F * sqrt(F0*tau/2).
 
 % Let the 0 class be represented by N(0,1). Compute the z threshold
 % corresponding to the given fpr
