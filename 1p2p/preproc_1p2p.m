@@ -31,7 +31,7 @@ xlim([0 1000]);
 %% Decide number of frames to chop
 
 max_frames = min(size(M_1p,3), size(M_2p,3));
-keep_frames = 201:15000;
+keep_frames = 201:18000;
 
 M_1p_chopped = M_1p(:,:,keep_frames);
 M_2p_chopped = M_2p(:,:,keep_frames);
@@ -42,7 +42,7 @@ M_2p_chopped = M_2p(:,:,keep_frames);
 
 horiz_trim = 20;
 keep_cols_2p = (1+horiz_trim):(size(M_2p_chopped,2)-horiz_trim);
-keep_rows_2p = 60:480;
+keep_rows_2p = 80:512;
 
 M_2p_chopped = M_2p_chopped(keep_rows_2p, keep_cols_2p, :);
 

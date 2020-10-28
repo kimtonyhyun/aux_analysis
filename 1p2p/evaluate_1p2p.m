@@ -2,7 +2,7 @@
 
 clear all;
 
-ds = DaySummary([], '1P/merge/proj');
+ds = DaySummary([], '1P/merge/ls');
 ds2 = DaySummary([], '2P/merge/ls');
 
 %% Perform spatial alignment
@@ -27,7 +27,7 @@ print('-dpng', 'overlay_post');
 load('match_post.mat', 'info');
 matched_corrlist = match_1p2p(ds, ds2, info.tform);
 
-save('matched_corrlist', 'matched_corrlist');
+% save('matched_corrlist', 'matched_corrlist');
 
 %% Compute all 1P:2P transfer function slopes. Note:
 %   - slope > 1 means that 1P had higher SNR
