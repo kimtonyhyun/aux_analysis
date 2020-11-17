@@ -84,7 +84,13 @@ movement_onset_times = zeros(num_rewards,1);
 for k = 1:num_rewards
     pos_k = pos_by_trial{k};
     ind = find(pos_k(:,2) > movement_onset_threshold * us_threshold, 1, 'first');
-    movement_onset_times(k) = pos_k(ind,1);
+    if ~isempty(ind)
+        movement_onset_times(k) = pos_k(ind,1);
+    else
+        % This condition can occur if a reward was given erroneously in HW
+        cprintf('blue', 'Warning: Movement onset not detected for Trial %d\n', k);
+        movement_onset_times(k) = NaN;
+    end
 end
 
 % Licks:
