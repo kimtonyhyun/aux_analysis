@@ -6,6 +6,7 @@ encB_ch = 1;
 us_ch = 2; % "Pump enable"
 lick_ch = 3;
 behavior_clock_ch = 4;
+opto_shutter_ch = 5;
 ctx_clock_ch = 6;
 str_clock_ch = 7;
 
@@ -119,6 +120,10 @@ T_beh = mean(diff(behavior_frame_times));
 fprintf('Found %d behavior frames at %.2f FPS\n',...
     length(behavior_frame_times), 1/T_beh);
 
+opto_periods = find_pulses(data, opto_shutter_ch);
+num_opto_periods = size(opto_periods, 1);
+fprintf('Found %d opto periods\n', num_opto_periods);
+
 % Package for output
 behavior.frame_times = behavior_frame_times;
 behavior.position.cont = pos; % [time encoder-counts]
@@ -129,6 +134,7 @@ behavior.movement_onset_times = movement_onset_times;
 behavior.us_times = us_times;
 behavior.lick_times = lick_times;
 behavior.lick_responses = logical(lick_responses);
+behavior.opto_periods = opto_periods;
 
 % Parse imaging clocks
 %------------------------------------------------------------
