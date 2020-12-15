@@ -23,7 +23,7 @@ switch lower(ext)
         % Skip the first three header rows
         data = csvread(dlc_filename, 3, 0);
         num_dlc_frames = size(data,1);
-        fprintf('Found %d frames in DeepLabCut CSV output\n', num_dlc_frames);
+        cprintf('blue', 'Found %d frames in DeepLabCut CSV output\n', num_dlc_frames);
         
         front_left = data(:,2:3); % [x y]
         front_right = data(:,5:6);
@@ -35,7 +35,7 @@ switch lower(ext)
     case '.mat'
         data = load(dlc_filename);
         num_dlc_frames = length(data.FLX);
-        fprintf('Found %d frames in DeepLabCut MAT output\n', num_dlc_frames);
+        cprintf('blue', 'Found %d frames in DeepLabCut MAT output\n', num_dlc_frames);
         
         front_left = [data.FLX data.FLY];
         front_right = [data.FRX data.FRY];
@@ -56,7 +56,7 @@ if num_dlc_frames < num_behavior_frames
         cprintf('blue', 'Found one fewer DLC frame than expected. Most likely spurious behavior frame clock at end.\n');
         
         num_behavior_frames = num_behavior_frames - 1;
-        t = t(1:end-1);
+        t = t(1:end-1); %#ok<*NASGU>
     else
         error('Found %d fewer DLC frames than expected!', num_missing_frames);
     end
