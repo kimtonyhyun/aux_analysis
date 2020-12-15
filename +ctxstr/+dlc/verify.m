@@ -1,4 +1,7 @@
 function verify(dlc, behavior_vid)
+% Example usage:
+% >> dlc = load('dlc.mat');
+% >> ctxstr.dlc.verify(dlc, 'oh21-10-22-down.mp4');
 
 num_coords = length(dlc.t);
 
