@@ -27,7 +27,7 @@ print('-dpng', 'overlay_post');
 load('match_post.mat', 'info');
 matched_corrlist = match_1p2p(ds, ds2, info.tform);
 
-% save('matched_corrlist', 'matched_corrlist');
+save('matched_corrlist', 'matched_corrlist');
 
 %% Compute all 1P:2P transfer function slopes. Note:
 %   - slope > 1 means that 1P had higher SNR
@@ -44,3 +44,15 @@ for k = 1:num_matches
 end
 
 save('matched_snr', 'snr_slopes');
+
+%% Display SNR distribution
+
+load('matched_snr');
+log10_snr_slopes = log10(snr_slopes);
+
+x = -1.2:0.05:1.2;
+histogram(log10_snr_slopes, x);
+xlabel({'log_{10}(1P:2P SNR ratio)', 'Negative means 2P better; Positive means 1P better'});
+ylabel('Distribution (num cells)');
+title(dirname);
+grid on;
