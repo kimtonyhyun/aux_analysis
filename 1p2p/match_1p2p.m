@@ -28,12 +28,13 @@ end
 % value (descending).
 corrlist = compute_corrlist(ds1, ds2);
 
-% Sort corrlist by ds_source cell index
+% Sort corrlist by 2P cell index
 corrlist = sortrows(corrlist, 2, 'ascend');
 
 hf = figure;
 
-j = find(matched_corrlist(:,2)>0, 1, 'last'); % Loops over ds2 cells
+% i, j are indices looping over ds1 and ds2 cells, respectively.
+j = find(matched_corrlist(:,2)>0, 1, 'last'); % Allows "resuming" from existing matched_corrlist
 if isempty(j)
     j = 1;
 end
@@ -47,8 +48,11 @@ while (1)
     show_corr(ds1, corrdata(1), ds2, corrdata(2), corrdata(3),...
         'names', {'1P', '2P'},...
         'zsc',...
-        'overlay', tform);
+        'overlay', tform,...
+        'zoom_target', 2);
     
+    % TODO: Is 'i' actually the 1P cell index? Namely, corrdata(1) is the
+    % actual 1P cell index. Not sure if i is identical to corrdata(1)
     prompt = sprintf('%s (2P idx j=%d of %d; 1P idx i=%d of %d) >> ',...
                       app_name,...
                       j, num_cells2,...
