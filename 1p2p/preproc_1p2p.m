@@ -42,7 +42,7 @@ M_2p_chopped = M_2p(:,:,keep_frames);
 
 horiz_trim = 20;
 keep_cols_2p = (1+horiz_trim):(size(M_2p_chopped,2)-horiz_trim);
-keep_rows_2p = 80:512;
+keep_rows_2p = 40:460;
 
 M_2p_chopped = M_2p_chopped(keep_rows_2p, keep_cols_2p, :);
 
@@ -71,7 +71,7 @@ movefile(savename_2p, '2P');
 movie_filename = get_most_recent_file('', '*.hdf5');
 M0 = load_movie(movie_filename);
 
-num_planes = 10;
+num_planes = 4;
 M = cell(num_planes,1);
 for k = 1:num_planes
     M{k} = M0(:,:,k:num_planes:end);
@@ -97,7 +97,7 @@ config = get_defaults([]);
 config.preprocess = 0;
 config.num_partitions_x = 1;
 config.num_partitions_y = 1;
-config.avg_cell_radius = 5;
+config.avg_cell_radius = 10;
 
 output = extractor(sprintf('%s:/Data/Images', movie_filename), config);
 cprintf('Blue', 'Done with EXTRACT. Found %d cells in %.1f min\n',...
@@ -114,7 +114,7 @@ movie_filename = get_most_recent_file('', '*.hdf5');
 cellmax.loadRepoFunctions;
 options.CELLMaxoptions.maxSqSize = 250;
 options.CELLMaxoptions.sqOverlap = 50;
-options.eventOptions.framerate = 30;
+options.eventOptions.framerate = 26;
 
 cprintf('Blue', '%s: Running CELLMax...\n', datestr(now));
 output = cellmax.runCELLMax(movie_filename, 'options', options);

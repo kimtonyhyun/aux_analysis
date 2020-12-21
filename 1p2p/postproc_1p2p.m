@@ -2,13 +2,16 @@
 
 clear all;
 
-ds = DaySummary([], '1P/ext1/ls');
-ds2 = DaySummary([], '2P/ext1/ls');
+path_to_dataset1 = '1P';
+path_to_dataset2 = '2P/sl2';
+
+ds = DaySummary([], fullfile(path_to_dataset1, 'ext1/ls_ti4'));
+ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/ls'));
 
 %% Temporal correlations facilitate identification of matched cells
 
 corrlist_1p2p = compute_corrlist(ds, ds2);
-browse_corrlist(corrlist_1p2p, ds, ds2, 'names', {'1P', '2P'}, 'zsc');
+browse_corrlist(corrlist_1p2p, ds, ds2, 'names', {path_to_dataset1, path_to_dataset2}, 'zsc');
 
 %% Perform spatial alignment
 
@@ -23,8 +26,8 @@ dataset_name = dirname;
 num_cells_1p = ds.num_classified_cells;
 num_cells_2p = ds2.num_classified_cells;
 
-title_str = sprintf('%s (PRE-merge)\n1P (%d cells; blue) vs. 2P (%d cells; red)',...
-    dataset_name, num_cells_1p, num_cells_2p);
+title_str = sprintf('%s (PRE-merge)\n%s (%d cells; blue) vs. %s (%d cells; red)',...
+    dataset_name, path_to_dataset1, num_cells_1p, path_to_dataset2, num_cells_2p);
 title(title_str);
 set(gca, 'FontSize', 18);
 print('-dpng', 'overlay_pre');
@@ -34,16 +37,16 @@ print('-dpng', 'overlay_pre');
 close all;
 
 cprintf('blue', 'Transferring filters from 2P to 1P...\n');
-filename_1p = get_most_recent_file('1P', '*_dff.hdf5');
+filename_1p = get_most_recent_file(path_to_dataset1, '*.hdf5');
 [~, recname_2to1] = get_dff_traces(info.filters_2to1.im, filename_1p, 'ls', 'fix', 'percentile');
-mkdir 1P/merge/from_2p
-movefile(recname_2to1, '1P/merge/from_2p');
+mkdir(fullfile(path_to_dataset1, 'merge/from_2p'));
+movefile(recname_2to1, fullfile(path_to_dataset1, 'merge/from_2p'));
 
 cprintf('blue', 'Transferring filters from 1P to 2P...\n');
-filename_2p = get_most_recent_file('2P', '*_zsc.hdf5');
+filename_2p = get_most_recent_file(path_to_dataset2, '*_zsc.hdf5');
 [~, recname_1to2] = get_dff_traces(info.filters_1to2.im, filename_2p, 'ls', 'fix', 'percentile');
-mkdir 2P/merge/from_1p
-movefile(recname_1to2, '2P/merge/from_1p');
+mkdir(fullfile(path_to_dataset2, 'merge/from_1p'));
+movefile(recname_1to2, fullfile(path_to_dataset2, 'merge/from_1p'));
 
 cprintf('blue', 'Done with transfers!\n');
 
@@ -53,11 +56,11 @@ clear all; close all;
 
 switch dirname
     case '1P'
-        rec1_path = 'ext1/ls';
+        rec1_path = 'ext1/ls_ti4';
         rec2_path = 'merge/from_2p';
-        movie_filename = get_most_recent_file('', '*_dff.hdf5');
+        movie_filename = get_most_recent_file('', '*.hdf5');
         
-    case '2P'
+    otherwise % Assume 2P
         rec1_path = 'ext1/ls';
         rec2_path = 'merge/from_1p';
         movie_filename = get_most_recent_file('', '*_zsc.hdf5');
