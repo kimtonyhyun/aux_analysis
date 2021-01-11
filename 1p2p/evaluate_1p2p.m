@@ -2,8 +2,11 @@
 
 clear all;
 
-ds = DaySummary([], '1P/merge/ls');
-ds2 = DaySummary([], '2P/merge/ls');
+path_to_dataset1 = '1P';
+path_to_dataset2 = '2P';
+
+ds = DaySummary([], fullfile(path_to_dataset1, 'cm1/proj'));
+ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/ls'));
 
 %% Perform spatial alignment
 
@@ -16,8 +19,8 @@ dataset_name = dirname;
 num_cells_1p = ds.num_classified_cells;
 num_cells_2p = ds2.num_classified_cells;
 
-title_str = sprintf('%s (POST-merge)\n1P (%d cells; blue) vs. 2P (%d cells; red)',...
-    dataset_name, num_cells_1p, num_cells_2p);
+title_str = sprintf('%s (POST-merge)\n%s (%d cells; blue) vs. %s (%d cells; red)',...
+    dataset_name, path_to_dataset1, num_cells_1p, path_to_dataset2, num_cells_2p);
 title(title_str);
 set(gca, 'FontSize', 18);
 print('-dpng', 'overlay_post');
