@@ -93,13 +93,19 @@ cprintf('Blue', '%s: Running EXTRACT on "%s"...\n', datestr(now), movie_filename
 
 config = get_defaults([]);
 config.preprocess = 0;
-% config.num_partitions_x = 3;
-% config.num_partitions_y = 3;
-% config.avg_cell_radius = 15;
-config.num_partitions_x = 1;
-config.num_partitions_y = 1;
-config.avg_cell_radius = 7;
-config.cellfind_min_snr = 1.2;
+config.cellfind_min_snr = 1.1;
+
+switch dirname
+    case '1P'
+        config.num_partitions_x = 3;
+        config.num_partitions_y = 3;
+        config.avg_cell_radius = 15;
+        
+    otherwise % Assume 2P
+        config.num_partitions_x = 1;
+        config.num_partitions_y = 1;
+        config.avg_cell_radius = 7;
+end
 
 output = extractor(sprintf('%s:/Data/Images', movie_filename), config);
 cprintf('Blue', 'Done with EXTRACT. Found %d cells in %.1f min\n',...
