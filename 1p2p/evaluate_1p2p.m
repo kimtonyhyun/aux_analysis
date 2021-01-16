@@ -5,8 +5,8 @@ clear all;
 path_to_dataset1 = '1P';
 path_to_dataset2 = '2P';
 
-ds = DaySummary([], fullfile(path_to_dataset1, 'cm1/proj'));
-ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/ls'));
+ds = DaySummary([], fullfile(path_to_dataset1, 'merge/ls'));
+ds2 = DaySummary([], fullfile(path_to_dataset2, 'merge/ls'));
 
 %% Perform spatial alignment
 

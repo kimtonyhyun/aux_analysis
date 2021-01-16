@@ -6,8 +6,10 @@ clear all;
 path_to_dataset1 = '1P';
 path_to_dataset2 = '2P';
 
-ds = DaySummary([], fullfile(path_to_dataset1, 'ext1/proj'));
-ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/proj'));
+%%
+
+ds = DaySummary([], fullfile(path_to_dataset1, 'ext1/proj_ti4'));
+ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/proj_ti4'));
 
 %% Temporal correlations facilitate identification of matched cells
 
@@ -34,21 +36,22 @@ set(gca, 'FontSize', 18);
 print('-dpng', 'overlay_pre');
 
 %% Transfer cell filters across modalities
+% Just needs 'path_to_datasetX' and 'info' from run_alignment
 
 close all;
 
-merge_dirname = 'merge-sl4';
+merge_dirname = 'merge';
 
 cprintf('blue', 'Transferring filters from 2P to 1P...\n');
-filename_1p = get_most_recent_file(path_to_dataset1, '*.hdf5');
-[~, recname_2to1] = get_dff_traces(info.filters_2to1.im, filename_1p, 'ls', 'fix', 'percentile');
+filename_1p = get_most_recent_file(path_to_dataset1, '*_dff_ti4.hdf5');
+[~, recname_2to1] = get_dff_traces(info.filters_2to1.im, filename_1p, 'fix', 'percentile');
 path_to_merge = fullfile(path_to_dataset1, merge_dirname, 'from_2p');
 mkdir(path_to_merge);
 movefile(recname_2to1, path_to_merge);
 
 cprintf('blue', 'Transferring filters from 1P to 2P...\n');
-filename_2p = get_most_recent_file(path_to_dataset2, '*_zsc.hdf5');
-[~, recname_1to2] = get_dff_traces(info.filters_1to2.im, filename_2p, 'ls', 'fix', 'percentile');
+filename_2p = get_most_recent_file(path_to_dataset2, '*_zsc_ti4.hdf5');
+[~, recname_1to2] = get_dff_traces(info.filters_1to2.im, filename_2p, 'fix', 'percentile');
 path_to_merge = fullfile(path_to_dataset2, merge_dirname, 'from_1p');
 mkdir(path_to_merge);
 movefile(recname_1to2, path_to_merge);
@@ -63,16 +66,14 @@ close all;
 
 switch dirname
     case '1P'
-        rec1_path = 'ext1/ls_ti4';
-%         rec2_path = 'merge/from_2p';
+        rec1_path = 'ext1/proj_ti4';
         rec2_path = fullfile(merge_dirname, 'from_2p');
-        movie_filename = get_most_recent_file('', '*.hdf5');
+        movie_filename = get_most_recent_file('', '*_dff_ti4.hdf5');
         
     otherwise % Assume 2P
-        rec1_path = 'ext1/ls';
-%         rec2_path = 'merge/from_1p';
+        rec1_path = 'ext1/proj_ti4';
         rec2_path = fullfile(merge_dirname, 'from_1p');
-        movie_filename = get_most_recent_file('', '*_zsc.hdf5');
+        movie_filename = get_most_recent_file('', '*_zsc_ti4.hdf5');
 end
 rec_out_path = fullfile(merge_dirname, 'concat');
 
@@ -104,8 +105,17 @@ cprintf('blue', 'Please classify "merge/concat"...\n');
 classify_cells(ds, M);
 
 %% After classification, generate combined LS traces
+clearvars -except merge_dirname ds;
 
-[~, recname_ls] = get_dff_traces(ds, M, 'ls', 'fix', 'percentile');
+switch dirname
+    case '1P'
+        movie_filename = get_most_recent_file('', '*_dff.hdf5');
+        
+    otherwise % Assume 2P
+        movie_filename = get_most_recent_file('', '*_zsc.hdf5');
+end
+
+[~, recname_ls] = get_dff_traces(ds, movie_filename, 'ls', 'fix', 'percentile');
 path_to_merge = fullfile(merge_dirname, 'ls');
 mkdir(path_to_merge);
 movefile(recname_ls, path_to_merge);
