@@ -69,7 +69,7 @@ movefile(savename_2p, '2P');
 movie_filename = get_most_recent_file('', '*.hdf5');
 M0 = load_movie(movie_filename);
 
-num_planes = 4;
+num_planes = 5;
 M = cell(num_planes,1);
 for k = 1:num_planes
     M{k} = M0(:,:,k:num_planes:end);

@@ -28,12 +28,27 @@ end
 % value (descending).
 corrlist = compute_corrlist(ds1, ds2);
 
+% Next, precompute distances between cells using their center-of-mass
+coms1 = cell2mat({ds1.cells.com}); % coms1(:,k) is the COM of the k-th cell
+coms2 = cell2mat({ds2.cells.com});
+coms2 = transformPointsForward(tform, coms2')';
+
+D = zeros(num_cells1, num_cells2);
+for i = 1:num_cells1
+    for j = 1:num_cells2
+        D(i,j) = norm(coms1(:,i)-coms2(:,j));
+    end
+end
+
 % Sort corrlist by 2P cell index
 corrlist = sortrows(corrlist, 2, 'ascend');
 
 hf = figure;
 
 % i, j are indices looping over ds1 and ds2 cells, respectively.
+% Note:
+%   - j is actually the cell index in ds2
+%   - i is _not_ necessarily the actual cell index in ds1.
 j = find(matched_corrlist(:,2)>0, 1, 'last'); % Allows "resuming" from existing matched_corrlist
 if isempty(j)
     j = 1;
@@ -44,15 +59,16 @@ while (1)
     rows = (1+(j-1)*num_cells1):(j*num_cells1);
     corrlist_j = corrlist(rows, :);
     
-    corrdata = corrlist_j(i,:);
-    show_corr(ds1, corrdata(1), ds2, corrdata(2), corrdata(3),...
+    ds1_cell_idx = corrlist_j(i,1);
+    ds2_cell_idx = corrlist_j(i,2);
+    corr_val = corrlist_j(i,3);
+    
+    show_corr(ds1, ds1_cell_idx, ds2, ds2_cell_idx, corr_val,...
         'names', {'1P', '2P'},...
         'zsc',...
         'overlay', tform,...
         'zoom_target', 2);
-    
-    % TODO: Is 'i' actually the 1P cell index? Namely, corrdata(1) is the
-    % actual 1P cell index. Not sure if i is identical to corrdata(1)
+
     prompt = sprintf('%s (2P idx j=%d of %d; 1P idx i=%d of %d) >> ',...
                       app_name,...
                       j, num_cells2,...
@@ -67,16 +83,20 @@ while (1)
     else
         val = str2double(resp);
         if (~isnan(val)) % Is a number
-            % Set ds1 cell index
-            if (1 <= val) && (val <= num_cells1)
+            if (val == 0)
+                % Find the nearest cell
+                [~, ds1_cell_idx] = min(D(:,ds2_cell_idx));
+                i = find(corrlist_j(:,1)==ds1_cell_idx, 1);
+            elseif (1 <= val) && (val <= num_cells1)
+                % Set ds1 cell index
                 i = val;
             end
         else
             switch resp(1)
                 case {'c', 'm', 'y'} % Indicate match
-                    matched_corrlist(j,:) = corrdata;
+                    matched_corrlist(j,:) = corrlist_j(i,:);
                     fprintf('  2P cell=%d matched to 1P cell=%d!\n',...
-                        corrdata(2), corrdata(1));
+                        ds2_cell_idx, ds1_cell_idx);
 
                     % Increment 2P cell index
                     j = j + 1;
@@ -86,7 +106,7 @@ while (1)
                 case 'n' % No match for this 2P cell
                     matched_corrlist(j,:) = [0 0 0];
                     fprintf('  2P cell=%d has no match!\n',...
-                        corrdata(2));
+                        ds2_cell_idx);
                     j = j + 1;
                     j = min(num_cells2, j);
                     i = 1;

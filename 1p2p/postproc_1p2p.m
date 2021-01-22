@@ -99,10 +99,12 @@ ds = DaySummary([], rec_out_path);
 ds.set_labels(1:rec1.info.num_pairs);
 
 M = load_movie(movie_filename);
-clearvars -except ds M merge_dirname;
+initial_cell_count = rec1.info.num_pairs;
+clearvars -except ds M merge_dirname initial_cell_count;
 
 cprintf('blue', 'Please classify "merge/concat"...\n');
 classify_cells(ds, M);
+cprintf('blue', 'Gained %d cells!\n', ds.num_classified_cells - initial_cell_count);
 
 %% After classification, generate combined LS traces
 clearvars -except merge_dirname ds;
@@ -123,3 +125,4 @@ ds = DaySummary([], path_to_merge);
 ds.set_labels;
 class_file = ds.save_class;
 movefile(class_file, path_to_merge);
+cprintf('blue', 'Least squares traces computation complete!\n');
