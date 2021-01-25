@@ -20,6 +20,9 @@ browse_corrlist(corrlist_1p2p, ds, ds2, 'names', {path_to_dataset1, path_to_data
 
 close all;
 
+% Note that while we don't use 'm_XtoY' as part of the matching process, we
+% _do_ need to compute it, as the output of the matching procedure
+% determines which filters are transferred across modalities.
 [m_1to2, m_2to1, info] = run_alignment(ds, ds2); %#ok<*ASGLU>
 save('match_pre', 'm_1to2', 'm_2to1', 'info', '-v7.3');
 

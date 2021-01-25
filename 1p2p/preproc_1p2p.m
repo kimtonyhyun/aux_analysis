@@ -40,7 +40,7 @@ M_2p = M_2p(:,:,keep_frames);
 
 horiz_trim = 20;
 keep_cols_2p = (1+horiz_trim):(size(M_2p,2)-horiz_trim);
-keep_rows_2p = 50:460;
+keep_rows_2p = 50:450;
 
 M_2p = M_2p(keep_rows_2p, keep_cols_2p, :);
 

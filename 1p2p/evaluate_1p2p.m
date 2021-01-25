@@ -8,12 +8,18 @@ path_to_dataset2 = '2P';
 ds = DaySummary([], fullfile(path_to_dataset1, 'merge/ls'));
 ds2 = DaySummary([], fullfile(path_to_dataset2, 'merge/ls'));
 
-%% Perform spatial alignment
+%% Show and save image of the spatial alignment, using previously computed affine transformation
 
-[m_1to2, m_2to1, info] = run_alignment(ds, ds2);
-save('match_post', 'm_1to2', 'm_2to1', 'info', '-v7.3');
+load('match_pre.mat', 'info');
 
-%% Save image of the spatial alignment
+% Note that we can continue to use the same 'selected_cells' IDs, because
+% the transferred filters are _appended_ to the end of the original
+% extraction output.
+figure;
+plot_boundaries_with_transform(ds, 'b', 2, info.alignment.selected_cells(:,1));
+hold on;
+plot_boundaries_with_transform(ds2, 'r', 1, info.alignment.selected_cells(:,2), info.tform);
+hold off;
 
 dataset_name = dirname;
 num_cells_1p = ds.num_classified_cells;
@@ -29,7 +35,6 @@ print('-dpng', 'overlay_post');
 
 close all;
 
-load('match_post.mat', 'info');
 matched_corrlist = match_1p2p(ds, ds2, info.tform);
 
 save('matched_corrlist', 'matched_corrlist');
