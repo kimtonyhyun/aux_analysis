@@ -1,12 +1,12 @@
-%% PART 1: Initial assessment and filter transfer across 1P-2P
+%%
+%------------------------------------------------------------
+% PART 1: Initial assessment and filter transfer across 1P-2P
 %------------------------------------------------------------
 
 clear all;
 
 path_to_dataset1 = '1P';
 path_to_dataset2 = '2P';
-
-%%
 
 ds = DaySummary([], fullfile(path_to_dataset1, 'ext1/proj_ti4'));
 ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/proj_ti4'));
@@ -61,7 +61,9 @@ movefile(recname_1to2, path_to_merge);
 
 cprintf('blue', 'Done with transfers!\n');
 
-%% PART 2: Classify 1P-2P merged filters
+%%
+%------------------------------------------------------------
+% PART 2: Classify 1P-2P merged filters
 %------------------------------------------------------------
 
 clearvars -except merge_dirname;
@@ -73,10 +75,14 @@ switch dirname
         rec2_path = fullfile(merge_dirname, 'from_2p');
         movie_filename = get_most_recent_file('', '*_dff_ti4.hdf5');
         
-    otherwise % Assume 2P
+    case '2P'
         rec1_path = 'ext1/proj_ti4';
         rec2_path = fullfile(merge_dirname, 'from_1p');
         movie_filename = get_most_recent_file('', '*_zsc_ti4.hdf5');
+        
+    otherwise
+        fprintf('Please run script in "1P" or "2P" subdirectory!\n');
+        return;
 end
 rec_out_path = fullfile(merge_dirname, 'concat');
 
@@ -111,12 +117,13 @@ cprintf('blue', 'Gained %d cells!\n', ds.num_classified_cells - initial_cell_cou
 
 %% After classification, generate combined LS traces
 clearvars -except merge_dirname ds;
+num_cells = ds.num_classified_cells;
 
 switch dirname
     case '1P'
         movie_filename = get_most_recent_file('', '*_dff.hdf5');
         
-    otherwise % Assume 2P
+    case '2P'
         movie_filename = get_most_recent_file('', '*_zsc.hdf5');
 end
 
@@ -124,8 +131,6 @@ end
 path_to_merge = fullfile(merge_dirname, 'ls');
 mkdir(path_to_merge);
 movefile(recname_ls, path_to_merge);
-ds = DaySummary([], path_to_merge);
-ds.set_labels;
-class_file = ds.save_class;
+class_file = generate_class_file(num_cells);
 movefile(class_file, path_to_merge);
 cprintf('blue', 'Least squares traces computation complete!\n');

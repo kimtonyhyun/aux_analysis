@@ -8,7 +8,7 @@ path_to_dataset2 = '2P';
 ds = DaySummary([], fullfile(path_to_dataset1, 'merge/ls'));
 ds2 = DaySummary([], fullfile(path_to_dataset2, 'merge/ls'));
 
-%% Show and save image of the spatial alignment, using previously computed affine transformation
+%% Show the spatial alignment, using previously computed transformation
 
 load('match_pre.mat', 'info');
 
@@ -29,6 +29,9 @@ title_str = sprintf('%s (POST-merge)\n%s (%d cells; blue) vs. %s (%d cells; red)
     dataset_name, path_to_dataset1, num_cells_1p, path_to_dataset2, num_cells_2p);
 title(title_str);
 set(gca, 'FontSize', 18);
+
+%% Save image of the spatial alignment
+
 print('-dpng', 'overlay_post');
 
 %% Match 1P/2P
