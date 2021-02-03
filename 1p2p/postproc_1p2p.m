@@ -127,10 +127,9 @@ switch dirname
         movie_filename = get_most_recent_file('', '*_zsc.hdf5');
 end
 
-recname_ls = backapply_filters(ds, movie_filename, 'ls', 'fix', 'percentile');
+[rec_file, class_file] = backapply_filters(ds, movie_filename, 'ls', 'fix', 'percentile', 'generate_class');
 path_to_merge = fullfile(merge_dirname, 'ls');
 mkdir(path_to_merge);
-movefile(recname_ls, path_to_merge);
-class_file = generate_class_file(num_cells);
+movefile(rec_file, path_to_merge);
 movefile(class_file, path_to_merge);
 cprintf('blue', 'Least squares traces computation complete!\n');
