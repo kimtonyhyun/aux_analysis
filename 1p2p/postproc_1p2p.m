@@ -47,14 +47,14 @@ merge_dirname = 'merge';
 
 cprintf('blue', 'Transferring filters from 2P to 1P...\n');
 filename_1p = get_most_recent_file(path_to_dataset1, '*_dff_ti4.hdf5');
-[~, recname_2to1] = get_dff_traces(info.filters_2to1.im, filename_1p, 'fix', 'percentile');
+recname_2to1 = backapply_filters(info.filters_2to1.im, filename_1p, 'fix', 'percentile');
 path_to_merge = fullfile(path_to_dataset1, merge_dirname, 'from_2p');
 mkdir(path_to_merge);
 movefile(recname_2to1, path_to_merge);
 
 cprintf('blue', 'Transferring filters from 1P to 2P...\n');
 filename_2p = get_most_recent_file(path_to_dataset2, '*_zsc_ti4.hdf5');
-[~, recname_1to2] = get_dff_traces(info.filters_1to2.im, filename_2p, 'fix', 'percentile');
+recname_1to2 = backapply_filters(info.filters_1to2.im, filename_2p, 'fix', 'percentile');
 path_to_merge = fullfile(path_to_dataset2, merge_dirname, 'from_1p');
 mkdir(path_to_merge);
 movefile(recname_1to2, path_to_merge);
@@ -127,7 +127,7 @@ switch dirname
         movie_filename = get_most_recent_file('', '*_zsc.hdf5');
 end
 
-[~, recname_ls] = get_dff_traces(ds, movie_filename, 'ls', 'fix', 'percentile');
+recname_ls = backapply_filters(ds, movie_filename, 'ls', 'fix', 'percentile');
 path_to_merge = fullfile(merge_dirname, 'ls');
 mkdir(path_to_merge);
 movefile(recname_ls, path_to_merge);
