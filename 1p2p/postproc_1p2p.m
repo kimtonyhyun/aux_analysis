@@ -17,13 +17,15 @@ corrlist_1p2p = compute_corrlist(ds, ds2);
 browse_corrlist(corrlist_1p2p, ds, ds2, 'names', {path_to_dataset1, path_to_dataset2}, 'zsc');
 
 %% Perform spatial alignment
+% Note that while we don't use 'm_XtoY' as part of the matching process, we
+% _do_ need to compute it, as the output of the matching procedure
+% determines which filters are transferred across modalities (i.e. only
+% unmatched filters are transferred).
 
 close all;
 
-% Note that while we don't use 'm_XtoY' as part of the matching process, we
-% _do_ need to compute it, as the output of the matching procedure
-% determines which filters are transferred across modalities.
-[m_1to2, m_2to1, info] = run_alignment(ds, ds2); %#ok<*ASGLU>
+% alignment_cell_inds: [N x 2] list of cell indices where each row is a matched cell.
+[m_1to2, m_2to1, info] = run_alignment(ds, ds2, 'alignment_cell_inds', alignment_cell_inds); %#ok<*ASGLU>
 save('match_pre', 'm_1to2', 'm_2to1', 'info', '-v7.3');
 
 %% Save image of the spatial alignment
@@ -117,7 +119,6 @@ cprintf('blue', 'Gained %d cells!\n', ds.num_classified_cells - initial_cell_cou
 
 %% After classification, generate combined LS traces
 clearvars -except merge_dirname ds;
-num_cells = ds.num_classified_cells;
 
 switch dirname
     case '1P'
