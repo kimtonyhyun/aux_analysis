@@ -16,9 +16,9 @@ load('match_pre.mat', 'info');
 % the transferred filters are _appended_ to the end of the original
 % extraction output.
 figure;
-plot_boundaries_with_transform(ds, 'b', 2, info.alignment.selected_cells(:,1));
+plot_boundaries(ds, 'color', 'b', 'linewidth', 2, 'fill', info.alignment.selected_cells(:,1));
 hold on;
-plot_boundaries_with_transform(ds2, 'r', 1, info.alignment.selected_cells(:,2), info.tform);
+plot_boundaries(ds2, 'color', 'r', 'linewidth', 1, 'fill', info.alignment.selected_cells(:,2), 'tform', info.tform);
 hold off;
 
 dataset_name = dirname;
