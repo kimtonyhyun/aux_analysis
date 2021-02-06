@@ -24,8 +24,8 @@ browse_corrlist(corrlist_1p2p, ds, ds2, 'names', {path_to_dataset1, path_to_data
 
 close all;
 
-% alignment_cell_inds: [N x 2] list of cell indices where each row is a matched cell.
-[m_1to2, m_2to1, info] = run_alignment(ds, ds2, 'alignment_cell_inds', alignment_cell_inds); %#ok<*ASGLU>
+% inds: [N x 2] list of cell indices where each row is a matched cell.
+[m_1to2, m_2to1, info] = run_alignment(ds, ds2, 'alignment_cell_inds', inds); %#ok<*ASGLU>
 save('match_pre', 'm_1to2', 'm_2to1', 'info', '-v7.3');
 
 %% Save image of the spatial alignment
