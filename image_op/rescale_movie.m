@@ -24,6 +24,11 @@ else
     new_size = size(A);   
 end
 
+% If the starting clim scale is not provided, compute it here
+if ~exist('orig_clim', 'var')
+    orig_clim = compute_movie_scale(M);
+end
+
 Ms = zeros(new_size(1), new_size(2), num_frames, 'single');
 
 for k = 1:num_frames
