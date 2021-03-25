@@ -27,7 +27,7 @@ datasets = dir('sl*');
 depths_loaded = false;
 depths = 1:num_datasets; % To be overwritten if depth info available
 for k = 1:num_datasets
-    S = sscanf(datasets(k).name, 'sl%d_d%d')
+    S = sscanf(datasets(k).name, 'sl%d_d%d');
     if (length(S) > 1)
        depths_loaded = true;
        depths(k) = S(2); 
