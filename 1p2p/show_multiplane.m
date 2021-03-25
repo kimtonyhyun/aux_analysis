@@ -20,9 +20,10 @@ for k = 1:num_datasets
     As{k} = compute_mean_image(movie_filename);
 end
 
-%%
+%% (Optional) Assign slices to depths, using the subdirectory name.
 
 datasets = dir('sl*');
+num_datasets = length(datasets);
 
 depths_loaded = false;
 depths = 1:num_datasets; % To be overwritten if depth info available
@@ -34,9 +35,9 @@ for k = 1:num_datasets
     end
 end
 
-%%
+%% Show 2P cell maps, and cell overlap in adjacent planes
 
-sp = @(m,n,p) subtightplot(m, n, p, 0.01, 0.005, 0.01);
+colors = flipud(jet(num_datasets));
 
 if depths_loaded
     [~, display_order] = sort(depths, 'ascend');
@@ -44,8 +45,7 @@ else
     display_order = 1:num_datasets;
 end
 
-colors = flipud(jet(num_datasets));
-
+sp = @(m,n,p) subtightplot(m, n, p, 0.01, 0.005, 0.01);
 for k = 1:num_datasets
     sp(2,num_datasets,k);
     
@@ -63,8 +63,6 @@ for k = 1:num_datasets
     end
 end
 
-%%
-
 sp = @(m,n,p) subtightplot(m, n, p, 0.01, 0.005, 0.09);
 
 for k = 1:num_datasets-1
@@ -79,4 +77,62 @@ for k = 1:num_datasets-1
     set(gca, 'XTick', []);
     set(gca, 'YTick', []);
     set(gca, 'Color', 'k');
+end
+
+%% Load 1P-2P matched lists
+
+datasets = dir('sl*');
+num_datasets = length(datasets);
+
+matches = cell(num_datasets, 1);
+for k = 1:num_datasets
+    path_to_mat = fullfile(datasets(k).name, 'matched_corrlist.mat');
+    m = load(path_to_mat);
+    matches{k} = m.matched_corrlist;
+end
+clear m;
+
+%% Show 2P cell maps, identifying neurons that matched to 1P.
+% The 1P DaySummary needs to be loaded as 'ds_1p'
+
+colors = flipud(jet(num_datasets));
+
+if depths_loaded
+    [~, display_order] = sort(depths, 'ascend');
+else
+    display_order = 1:num_datasets;
+end
+
+sp = @(m,n,p) subtightplot(m, n, p, 0.01, 0.005, [0.02 0.01]);
+for k = 1:num_datasets
+    sp(2,num_datasets,k);
+    
+    idx = display_order(k);
+    imagesc(As{idx}, [0.5 3.5]);
+    colormap gray;
+    if k == 1
+       ylabel('2P'); 
+    end
+    hold on;
+    plot_boundaries(ds{idx}, 'Color', colors(k,:), 'filled_cells', matches{idx}(:,2));
+    num_cells = ds{idx}.num_classified_cells;
+    num_matched_cells = size(matches{idx}, 1);
+    set(gca, 'XTick', []);
+    set(gca, 'YTick', []);
+    if depths_loaded
+        title(sprintf('sl%d - %d um\n%d cells total\n%d cells matched to 1P (%.1f%%)',...
+            idx, depths(idx),...
+            num_cells,...
+            num_matched_cells, 100*num_matched_cells/num_cells));
+    else
+        title(sprintf('sl%d (%d cells)', idx, ds{idx}.num_classified_cells));
+    end
+    
+    sp(2,num_datasets,num_datasets+k);
+    plot_boundaries(ds_1p, 'Color', colors(k,:), 'filled_cells', matches{idx}(:,1));
+    if k == 1
+        ylabel('1P');
+    end
+    set(gca, 'XTick', []);
+    set(gca, 'YTick', []);
 end
