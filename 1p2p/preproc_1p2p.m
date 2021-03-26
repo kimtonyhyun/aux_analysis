@@ -118,8 +118,6 @@ switch dirname
         config.avg_cell_radius = 10;
 end
 
-
-%%
 output = extractor(sprintf('%s:/Data/Images', movie_filename), config);
 cprintf('Blue', 'Done with EXTRACT. Found %d cells in %.1f min\n',...
     size(output.spatial_weights, 3), output.info.runtime / 60);

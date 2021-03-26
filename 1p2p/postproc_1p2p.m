@@ -6,10 +6,10 @@
 clear all;
 
 path_to_dataset1 = '1P';
-path_to_dataset2 = '2P';
+path_to_dataset2 = '2P/sl6_d300';
 
-ds = DaySummary([], fullfile(path_to_dataset1, 'ext1/proj_ti4'));
-ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/proj_ti4'));
+ds = DaySummary([], fullfile(path_to_dataset1, 'ext1/ls_ti6'));
+ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/ls'));
 
 %% Temporal correlations facilitate identification of matched cells
 
@@ -36,7 +36,7 @@ num_cells_2p = ds2.num_classified_cells;
 
 title_str = sprintf('%s (PRE-merge)\n%s (%d cells; blue) vs. %s (%d cells; red)',...
     dataset_name, path_to_dataset1, num_cells_1p, path_to_dataset2, num_cells_2p);
-title(title_str);
+title(title_str, 'Interpreter', 'none');
 set(gca, 'FontSize', 18);
 print('-dpng', 'overlay_pre');
 
@@ -48,14 +48,14 @@ close all;
 merge_dirname = 'merge';
 
 cprintf('blue', 'Transferring filters from 2P to 1P...\n');
-filename_1p = get_most_recent_file(path_to_dataset1, '*_dff_ti4.hdf5');
+filename_1p = get_most_recent_file(path_to_dataset1, '*_dff_ti6.hdf5');
 recname_2to1 = backapply_filters(info.filters_2to1.im, filename_1p, 'fix', 'percentile');
 path_to_merge = fullfile(path_to_dataset1, merge_dirname, 'from_2p');
 mkdir(path_to_merge);
 movefile(recname_2to1, path_to_merge);
 
 cprintf('blue', 'Transferring filters from 1P to 2P...\n');
-filename_2p = get_most_recent_file(path_to_dataset2, '*_zsc_ti4.hdf5');
+filename_2p = get_most_recent_file(path_to_dataset2, '*_zsc.hdf5');
 recname_1to2 = backapply_filters(info.filters_1to2.im, filename_2p, 'fix', 'percentile');
 path_to_merge = fullfile(path_to_dataset2, merge_dirname, 'from_1p');
 mkdir(path_to_merge);
@@ -73,18 +73,14 @@ close all;
 
 switch dirname
     case '1P'
-        rec1_path = 'ext1/proj_ti4';
+        rec1_path = 'ext1/ls_ti6';
         rec2_path = fullfile(merge_dirname, 'from_2p');
-        movie_filename = get_most_recent_file('', '*_dff_ti4.hdf5');
+        movie_filename = get_most_recent_file('', '*_dff_ti6.hdf5');
         
-    case '2P'
-        rec1_path = 'ext1/proj_ti4';
+    otherwise % Assume 2P
+        rec1_path = 'ext1/ls';
         rec2_path = fullfile(merge_dirname, 'from_1p');
-        movie_filename = get_most_recent_file('', '*_zsc_ti4.hdf5');
-        
-    otherwise
-        fprintf('Please run script in "1P" or "2P" subdirectory!\n');
-        return;
+        movie_filename = get_most_recent_file('', '*_zsc.hdf5');
 end
 rec_out_path = fullfile(merge_dirname, 'concat');
 
@@ -122,9 +118,9 @@ clearvars -except merge_dirname ds;
 
 switch dirname
     case '1P'
-        movie_filename = get_most_recent_file('', '*_dff.hdf5');
+        movie_filename = get_most_recent_file('', '*_dff_ti6.hdf5');
         
-    case '2P'
+    otherwise
         movie_filename = get_most_recent_file('', '*_zsc.hdf5');
 end
 

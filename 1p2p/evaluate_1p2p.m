@@ -3,7 +3,7 @@
 clear all;
 
 path_to_dataset1 = '1P';
-path_to_dataset2 = '2P';
+path_to_dataset2 = '2P/sl4_d200';
 
 ds = DaySummary([], fullfile(path_to_dataset1, 'merge/ls'));
 ds2 = DaySummary([], fullfile(path_to_dataset2, 'merge/ls'));
@@ -35,6 +35,8 @@ set(gca, 'FontSize', 18);
 print('-dpng', 'overlay_post');
 
 %% Match 1P/2P
+
+load('match_pre.mat', 'info');
 
 close all;
 
