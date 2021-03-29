@@ -93,7 +93,8 @@ end
 clear m;
 
 %% Show 2P cell maps, identifying neurons that matched to 1P.
-% The 1P DaySummary needs to be loaded as 'ds_1p'
+
+ds_1p = DaySummary('', '../1P/ext1/ls_ti6');
 
 colors = flipud(jet(num_datasets));
 

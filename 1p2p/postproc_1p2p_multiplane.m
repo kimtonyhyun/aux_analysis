@@ -1,15 +1,14 @@
 %%
-%------------------------------------------------------------
-% PART 1: Initial assessment and filter transfer across 1P-2P
-%------------------------------------------------------------
+% Basically identical to "postproc_1p2p" but with filenames that are
+% appropriate for 1P:multiplane 2P analysis. Generally assumes N=6 planes.
 
 clear all;
 
 path_to_dataset1 = '1P';
-path_to_dataset2 = '2P';
+path_to_dataset2 = '2P/sl4_d200';
 
-ds = DaySummary([], fullfile(path_to_dataset1, 'ext1/ls_ti4'));
-ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/ls_ti4'));
+ds = DaySummary([], fullfile(path_to_dataset1, 'ext1/ls_ti6'));
+ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/ls'));
 
 %% Temporal correlations facilitate identification of matched cells
 
@@ -48,14 +47,14 @@ close all;
 merge_dirname = 'merge';
 
 cprintf('blue', 'Transferring filters from 2P to 1P...\n');
-filename_1p = get_most_recent_file(path_to_dataset1, '*_dff_ti4.hdf5');
+filename_1p = get_most_recent_file(path_to_dataset1, '*_dff_ti6.hdf5');
 recname_2to1 = backapply_filters(info.filters_2to1.im, filename_1p, 'fix', 'percentile');
 path_to_merge = fullfile(path_to_dataset1, merge_dirname, 'from_2p');
 mkdir(path_to_merge);
 movefile(recname_2to1, path_to_merge);
 
 cprintf('blue', 'Transferring filters from 1P to 2P...\n');
-filename_2p = get_most_recent_file(path_to_dataset2, '*_zsc_ti4.hdf5');
+filename_2p = get_most_recent_file(path_to_dataset2, '*_zsc.hdf5');
 recname_1to2 = backapply_filters(info.filters_1to2.im, filename_2p, 'fix', 'percentile');
 path_to_merge = fullfile(path_to_dataset2, merge_dirname, 'from_1p');
 mkdir(path_to_merge);
@@ -73,14 +72,14 @@ close all;
 
 switch dirname
     case '1P'
-        rec1_path = 'ext1/ls_ti4';
+        rec1_path = 'ext1/ls_ti6';
         rec2_path = fullfile(merge_dirname, 'from_2p');
-        movie_filename = get_most_recent_file('', '*_dff_ti4.hdf5');
+        movie_filename = get_most_recent_file('', '*_dff_ti6.hdf5');
         
     otherwise % Assume 2P
-        rec1_path = 'ext1/ls_ti4';
+        rec1_path = 'ext1/ls';
         rec2_path = fullfile(merge_dirname, 'from_1p');
-        movie_filename = get_most_recent_file('', '*_zsc_ti4.hdf5');
+        movie_filename = get_most_recent_file('', '*_zsc.hdf5');
 end
 rec_out_path = fullfile(merge_dirname, 'concat');
 
@@ -118,14 +117,15 @@ clearvars -except merge_dirname ds;
 
 switch dirname
     case '1P'
-        movie_filename = get_most_recent_file('', '*_dff.hdf5');
-        
+        movie_filename = get_most_recent_file('', '*_dff_ti6.hdf5');
+        path_to_merge = fullfile(merge_dirname, 'ls_ti6');
+
     otherwise
         movie_filename = get_most_recent_file('', '*_zsc.hdf5');
+        path_to_merge = fullfile(merge_dirname, 'ls');
 end
 
 [rec_file, class_file] = backapply_filters(ds, movie_filename, 'ls', 'fix', 'percentile', 'generate_class');
-path_to_merge = fullfile(merge_dirname, 'ls');
 mkdir(path_to_merge);
 movefile(rec_file, path_to_merge);
 movefile(class_file, path_to_merge);

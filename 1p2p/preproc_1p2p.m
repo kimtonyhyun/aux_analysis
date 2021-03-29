@@ -64,7 +64,9 @@ movefile(savename_1p, '1P');
 mkdir('2P');
 movefile(savename_2p, '2P');
 
-%% Splitting up multi-plane 2P data
+%% Splitting up multi-plane 2P data.
+% Creates "slX" subdirectories for each slice of the movie, where the
+% "X-th" movie is: M(:,:,X:N:end), where N is the number of planes.
 
 movie_filename = get_most_recent_file('', '*.hdf5');
 M0 = load_movie(movie_filename);
@@ -125,54 +127,3 @@ ext_filename = import_extract(output);
 
 mkdir('ext1/orig');
 movefile(ext_filename, 'ext1/orig');
-
-%% CELLMax
-
-movie_filename = get_most_recent_file('', '*.hdf5');
-
-cellmax.loadRepoFunctions;
-options.CELLMaxoptions.maxSqSize = 250;
-options.CELLMaxoptions.sqOverlap = 50;
-options.eventOptions.framerate = 26;
-
-cprintf('Blue', '%s: Running CELLMax...\n', datestr(now));
-output = cellmax.runCELLMax(movie_filename, 'options', options);
-cprintf('Blue', 'Done with CELLMax. Found %d cells in %.1f min\n',...
-    size(output.cellImages, 3), output.runtime / 60);
-cm_filename = import_cellmax(output);
-
-mkdir('cm1/orig');
-movefile(cm_filename, 'cm1/orig');
-
-%% Compare EXTRACT vs. CELLMax
-
-clear all;
-
-ds_cm = DaySummary('', 'cm1/proj');
-ds_ext = DaySummary('', 'ext1/proj');
-
-plot_boundaries_with_transform(ds_ext, 'b', 2);
-hold on;
-plot_boundaries_with_transform(ds_cm, 'r');
-hold off;
-title_str = sprintf('%s: EXTRACT (%d cells; blue) vs. CELLMax (%d cells; red)',...
-    dirname(1), ds_ext.num_classified_cells, ds_cm.num_classified_cells);
-title(title_str);
-set(gca, 'FontSize', 18);
-
-%% Merge EXTRACT and CELLMax
-
-movie_filename = get_most_recent_file('', '*.hdf5');
-M = load_movie(movie_filename);
-
-md = create_merge_md([ds_ext ds_cm]);
-res_list = resolve_merged_recs(md, M, 'norm_traces');
-resolved_filename = save_resolved_recs(res_list, md);
-
-mkdir('cm_ext1/orig');
-movefile(resolved_filename, 'cm_ext1/orig');
-
-ds = DaySummary([], 'cm_ext1/orig');
-clearvars -except ds M;
-
-classify_cells(ds, M);
