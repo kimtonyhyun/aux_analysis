@@ -2,46 +2,46 @@
 
 clear all;
 
-path_to_dataset1 = '1P';
-path_to_dataset2 = '2P/sl1_d350';
+path_to_dataset1 = '1P/merge/ls_ti6';
+paths_to_dataset2 = {'2P/sl2_d100/ext1/ls';
+                     '2P/sl3_d150/ext1/ls';
+                     '2P/sl4_d200/merge/ls';
+                     '2P/sl5_d250/ext1/ls';
+                     '2P/sl6_d300/ext1/ls';
+                     '2P/sl1_d350/ext1/ls';
+                    };
+num_slices = length(paths_to_dataset2);
 
-ds = DaySummary([], fullfile(path_to_dataset1, 'merge/ls_ti6'));
-% ds2 = DaySummary([], fullfile(path_to_dataset2, 'merge/ls'));
-ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/ls'));
+ds1 = DaySummary([], path_to_dataset1);
+ds2 = cell(num_slices, 1);
+for k = 1:num_slices
+    ds2{k} = DaySummary([], paths_to_dataset2{k});
+end
 
-%% Show the spatial alignment, using previously computed transformation
+%% Remove duplicates
 
-load('match_pre.mat', 'info');
+for k = 1:num_slices-1
+    cprintf('blue', 'Removing duplicates between "%s" and "%s"\n',...
+        paths_to_dataset2{k}, paths_to_dataset2{k+1});
+    remove_duplicates(ds2{k}, ds2{k+1});
+end
 
-% Note that we can continue to use the same 'selected_cells' IDs, because
-% the transferred filters are _appended_ to the end of the original
-% extraction output.
-figure;
-plot_boundaries(ds, 'color', 'b', 'linewidth', 2, 'fill', info.alignment.selected_cells(:,1));
-hold on;
-plot_boundaries(ds2, 'color', 'r', 'linewidth', 1, 'fill', info.alignment.selected_cells(:,2), 'tform', info.tform);
-hold off;
-
-dataset_name = dirname;
-num_cells_1p = ds.num_classified_cells;
-num_cells_2p = ds2.num_classified_cells;
-
-title_str = sprintf('%s (POST-merge)\n%s (%d cells; blue) vs. %s (%d cells; red)',...
-    dataset_name, path_to_dataset1, num_cells_1p, path_to_dataset2, num_cells_2p);
-title(title_str);
-set(gca, 'FontSize', 18);
-
-%% Save image of the spatial alignment
-
-print('-dpng', 'overlay_post');
+for k = 1:num_slices
+    save_name = ds2{k}.save_class;
+    movefile(save_name, paths_to_dataset2{k});
+end
 
 %% Match 1P/2P
 
 load('match_pre.mat', 'info');
 
-close all;
+for k = 1:num_slices
+    close all;
 
-matched_corrlist = match_1p2p(ds, ds2, info.tform);
-
-save('matched_corrlist', 'matched_corrlist');
-cprintf('blue', 'Found %d matched cells between 1P and 2P\n', size(matched_corrlist,1));
+    matched_corrlist = match_1p2p(ds1, ds2{k}, info.tform);
+    cprintf('blue', 'Found %d matched cells between 1P and %s\n',...
+        size(matched_corrlist,1), paths_to_dataset2{k});
+    
+    save('matched_corrlist.mat', 'matched_corrlist');
+    movefile('matched_corrlist.mat', paths_to_dataset2{k});
+end

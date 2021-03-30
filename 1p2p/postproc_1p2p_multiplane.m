@@ -1,6 +1,6 @@
 %%
 % Basically identical to "postproc_1p2p" but with filenames that are
-% appropriate for 1P:multiplane 2P analysis. Generally assumes N=6 planes.
+% appropriate for 1P:multiplane 2P analysis. Assumes N=6 planes.
 
 clear all;
 

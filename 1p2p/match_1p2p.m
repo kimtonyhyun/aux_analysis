@@ -1,4 +1,4 @@
-function matched_corrlist = match_1p2p(ds1, ds2, tform, varargin)
+function matched_corrlist = match_1p2p(ds1, ds2, tform)
 % For each 2P cell in ds2, attempt to find a matching 1P cell in ds1.
 
 app_name = '1P/2P matching';
@@ -8,51 +8,30 @@ num_cells2 = ds2.num_classified_cells;
 
 matched_corrlist = zeros(num_cells2, 3); % Preallocate output
 
-for k = 1:length(varargin)
-    if ischar(varargin{k})
-        switch lower(varargin{k})
-            case 'matched_corrlist'
-                % Continue from previously computed result
-                matched_corrlist2 = varargin{k+1};
-                for m = 1:size(matched_corrlist2,1)
-                    j = matched_corrlist2(m,2);
-                    if j ~= 0
-                        matched_corrlist(j,:) = matched_corrlist2(m,:);
-                    end
-                end
-        end
-    end
-end
+% First, pre-compute all correlations between classified cells.
+corrlist = compute_corrlist(ds1, ds2); % [1P-idx 2P-idx corr-val]
+corrlist = sortrows(corrlist, 2, 'ascend'); % Sort by 2P cell index
 
-% First, pre-compute all correlations. Results are sorted by correlation
-% value (descending).
-corrlist = compute_corrlist(ds1, ds2);
+% Next, precompute distances between cells using their center-of-mass. Note
+% that this computation is performed for all sources, not just those
+% classified to be a cell.
+num_all_cells1 = ds1.num_cells;
+num_all_cells2 = ds2.num_cells;
 
-% Next, precompute distances between cells using their center-of-mass
 coms1 = cell2mat({ds1.cells.com}); % coms1(:,k) is the COM of the k-th cell
 coms2 = cell2mat({ds2.cells.com});
 coms2 = transformPointsForward(tform, coms2')';
 
-D = zeros(num_cells1, num_cells2);
-for i = 1:num_cells1
-    for j = 1:num_cells2
+D = zeros(num_all_cells1, num_all_cells2);
+for i = 1:num_all_cells1
+    for j = 1:num_all_cells2
         D(i,j) = norm(coms1(:,i)-coms2(:,j));
     end
 end
 
-% Sort corrlist by 2P cell index
-corrlist = sortrows(corrlist, 2, 'ascend');
-
 hf = figure;
 
-% i, j are indices looping over ds1 and ds2 cells, respectively.
-% Note:
-%   - j is actually the cell index in ds2
-%   - i is _not_ necessarily the actual cell index in ds1.
-j = find(matched_corrlist(:,2)>0, 1, 'last'); % Allows "resuming" from existing matched_corrlist
-if isempty(j)
-    j = 1;
-end
+j = 1; % Loops over ds2 cells
 i = 1; % Loops over ds1 cells
 while (1)
     % Block of corrlist for the j-th cell in ds2
@@ -74,7 +53,7 @@ while (1)
                       j, num_cells2,...
                       i, num_cells1);
     resp = strtrim(input(prompt, 's'));
-    
+
     resp = lower(resp);
     if isempty(resp)
         % Increment ds1 cell index
