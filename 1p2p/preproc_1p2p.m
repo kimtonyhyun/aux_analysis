@@ -29,7 +29,7 @@ xlim([0 1000]);
 %% Decide number of frames to chop
 
 max_frames = min(size(F_1p,1), size(F_2p,1)); % Sometimes there is 1 extra frame
-keep_frames = 201:max_frames;
+keep_frames = 241:max_frames;
 
 M_1p = load_movie_from_hdf5(filename_1p, keep_frames([1 end]));
 M_2p = M_2p(:,:,keep_frames);
@@ -40,7 +40,7 @@ M_2p = M_2p(:,:,keep_frames);
 
 horiz_trim = 15;
 keep_cols_2p = (1+horiz_trim):(size(M_2p,2)-horiz_trim);
-keep_rows_2p = 75:425;
+keep_rows_2p = 35:480;
 
 M_2p = M_2p(keep_rows_2p, keep_cols_2p, :);
 
