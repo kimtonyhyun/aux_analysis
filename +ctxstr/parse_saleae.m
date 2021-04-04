@@ -88,8 +88,13 @@ for k = 1:num_rewards
     if ~isempty(ind)
         movement_onset_times(k) = pos_k(ind,1);
     else
-        % This condition can occur if a reward was given erroneously in HW
+        % This condition seems to occur when there are glitches in the pump
+        % enable signal, causing the parser to think that there are "extra"
+        % trials.
         cprintf('blue', 'Warning: Movement onset not detected for Trial %d\n', k);
+        cprintf('blue', 'Trial %d duration is %.3f s.\n',...
+            k, pos_k(end,1) - pos_k(1,1));
+        cprintf('blue', 'If this duration is abnormally short, try applying a 0.1 ms glitch filter on the "pump enable" channel before Saleae export\n');
         movement_onset_times(k) = NaN;
     end
 end
