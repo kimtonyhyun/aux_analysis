@@ -1,13 +1,17 @@
 %%
 % Basically identical to "postproc_1p2p" but with filenames that are
-% appropriate for 1P:multiplane 2P analysis. Assumes N=6 planes.
+% appropriate for 1P:multiplane 2P analysis.
 
 clear all;
 
 path_to_dataset1 = '1P';
 path_to_dataset2 = '2P/sl5_d300';
 
-ds = DaySummary([], fullfile(path_to_dataset1, 'ext1/ls_ti6'));
+% Path names depend on the number of planes in multiplane recording.
+num_planes = 5;
+
+ds = DaySummary([], fullfile(path_to_dataset1,...
+                             sprintf('ext1/ls_ti%d', num_planes)));
 ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/ls'));
 
 %% Temporal correlations facilitate identification of matched cells
@@ -47,7 +51,8 @@ close all;
 merge_dirname = 'merge';
 
 cprintf('blue', 'Transferring filters from 2P to 1P...\n');
-filename_1p = get_most_recent_file(path_to_dataset1, '*_dff_ti6.hdf5');
+filename_1p = get_most_recent_file(path_to_dataset1,...
+                                   sprintf('*_dff_ti%d.hdf5', num_planes));
 recname_2to1 = backapply_filters(info.filters_2to1.im, filename_1p, 'fix', 'percentile');
 path_to_merge = fullfile(path_to_dataset1, merge_dirname, 'from_2p');
 mkdir(path_to_merge);
@@ -67,14 +72,15 @@ cprintf('blue', 'Done with transfers!\n');
 % PART 2: Classify 1P-2P merged filters
 %------------------------------------------------------------
 
-clearvars -except merge_dirname;
+clearvars -except merge_dirname num_planes;
 close all;
 
 switch dirname
     case '1P'
-        rec1_path = 'ext1/ls_ti6';
+        rec1_path = sprintf('ext1/ls_ti%d', num_planes);
         rec2_path = fullfile(merge_dirname, 'from_2p');
-        movie_filename = get_most_recent_file('', '*_dff_ti6.hdf5');
+        movie_filename = get_most_recent_file('',...
+                            sprintf('*_dff_ti%d.hdf5', num_planes));
         
     otherwise % Assume 2P
         rec1_path = 'ext1/ls';
@@ -106,19 +112,21 @@ ds.set_labels(1:rec1.info.num_pairs);
 
 M = load_movie(movie_filename);
 initial_cell_count = rec1.info.num_pairs;
-clearvars -except ds M merge_dirname initial_cell_count;
+clearvars -except ds M merge_dirname initial_cell_count num_planes;
 
 cprintf('blue', 'Please classify "merge/concat"...\n');
 classify_cells(ds, M);
 cprintf('blue', 'Gained %d cells!\n', ds.num_classified_cells - initial_cell_count);
 
 %% After classification, generate combined LS traces
-clearvars -except merge_dirname ds;
+clearvars -except merge_dirname ds num_planes;
 
 switch dirname
     case '1P'
-        movie_filename = get_most_recent_file('', '*_dff_ti6.hdf5');
-        path_to_merge = fullfile(merge_dirname, 'ls_ti6');
+        movie_filename = get_most_recent_file('',...
+            sprintf('*_dff_ti%d.hdf5', num_planes));
+        path_to_merge = fullfile(merge_dirname,...
+            sprintf('ls_ti%d', num_planes));
 
     otherwise
         movie_filename = get_most_recent_file('', '*_zsc.hdf5');

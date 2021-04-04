@@ -2,13 +2,12 @@
 
 clear all;
 
-path_to_dataset1 = '1P/merge/ls_ti6';
+path_to_dataset1 = '1P/merge/ls_ti5';
 paths_to_dataset2 = {'2P/sl2_d150/ext1/ls';
                      '2P/sl3_d200/ext1/ls';
                      '2P/sl4_d250/ext1/ls';
                      '2P/sl5_d300/merge/ls';
-                     '2P/sl6_d350/ext1/ls';
-                     '2P/sl1_d400/ext1/ls';
+                     '2P/sl1_d350/ext1/ls';
                     };
 num_slices = length(paths_to_dataset2);
 
