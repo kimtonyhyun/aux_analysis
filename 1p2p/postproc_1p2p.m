@@ -14,7 +14,7 @@ ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/ls_ti4'));
 %% Temporal correlations facilitate identification of matched cells
 
 corrlist_1p2p = compute_corrlist(ds, ds2);
-browse_corrlist(corrlist_1p2p, ds, ds2, 'names', {path_to_dataset1, path_to_dataset2}, 'zsc');
+inds = browse_corrlist(corrlist_1p2p, ds, ds2, 'names', {path_to_dataset1, path_to_dataset2}, 'zsc');
 
 %% Perform spatial alignment
 % Note that while we don't use 'm_XtoY' as part of the matching process, we

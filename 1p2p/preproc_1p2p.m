@@ -40,7 +40,7 @@ M_2p = M_2p(:,:,keep_frames);
 
 horiz_trim = 15;
 keep_cols_2p = (1+horiz_trim):(size(M_2p,2)-horiz_trim);
-keep_rows_2p = 35:512;
+keep_rows_2p = 80:440;
 
 M_2p = M_2p(keep_rows_2p, keep_cols_2p, :);
 
@@ -110,14 +110,14 @@ config.cellfind_min_snr = 1;
 
 switch dirname
     case '1P'
-        config.num_partitions_x = 1;
-        config.num_partitions_y = 1;
+        config.num_partitions_x = 2;
+        config.num_partitions_y = 2;
         config.avg_cell_radius = 10;
         
     otherwise % Assume 2P
-        config.num_partitions_x = 1;
-        config.num_partitions_y = 1;
-        config.avg_cell_radius = 10;
+        config.num_partitions_x = 2;
+        config.num_partitions_y = 2;
+        config.avg_cell_radius = 5;
 end
 
 output = extractor(sprintf('%s:/Data/Images', movie_filename), config);
