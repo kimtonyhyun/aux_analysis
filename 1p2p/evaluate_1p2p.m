@@ -42,7 +42,7 @@ close all;
 
 matched_corrlist = match_1p2p(ds, ds2, info.tform);
 
-save('matched_corrlist', 'matched_corrlist');
+save('matched_corrlist_fgf', 'matched_corrlist'); % fgf: fraction good fit
 cprintf('blue', 'Found %d matched cells between 1P and 2P\n', size(matched_corrlist,1));
 
 %% Compute all 1P:2P transfer function slopes. Note:
