@@ -1,7 +1,11 @@
 function metric = show_1p2p(ds1, idx1, ds2, idx2, tform, fps)
-% Adapted from 'show_corr'. Inputs:
+% Runs 'fit_1p2p' and display the results.
+% Inputs:
 %   - ds1: DaySummary of 1P data
 %   - ds2: DaySummary of 2P data
+%   - tform: Spatial transform to match 2P cellmap onto the 1P cellmap
+%            (output of 'run_alignment')
+%   - fps: Frame rate, used for defining active periods in traces.
 
 % Get data
 tr1 = ds1.get_trace(idx1, 'zsc')'; % Column vector
@@ -37,7 +41,7 @@ sp = @(m,n,p) subtightplot(m, n, p, 0.05, 0.05, 0.05); % Gap, Margin-X, Margin-Y
 
 % Show cell map
 %------------------------------------------------------------
-sp(2,2,1); % Cellmap overlay
+sp(5,2,[1 3]); % Cellmap overlay
 
 zoom_com = transformPointsForward(tform, ds2.cells(idx2).com')';
 
@@ -54,7 +58,7 @@ title(sprintf('2P cell idx = %d (red)\n1P cell idx = %d (blue)', idx2, idx1));
 
 % Show trace correlation
 %------------------------------------------------------------
-corr_sp = sp(2,2,2); % Correlation plot
+corr_sp = sp(5,2,[2 4]); % Correlation plot
 
 plot(fit.x, fit.y, 'Color', dark_green);
 hold on;
@@ -77,7 +81,7 @@ legend(sprintf('Slope = %.3f', fit.slope), 'Location', 'NorthWest');
 %------------------------------------------------------------
 
 % Raw data
-ax1 = sp(6,1,4);
+ax1 = sp(5,1,3);
 hold on;
 draw_active_frames(active_segments, tr_lims);
 plot(tr1, 'Color', color1);
@@ -92,7 +96,7 @@ ylabel('Raw data (\sigma)');
 set(ax1, 'TickLength', [0 0]);
 
 % Fit to 1P data
-ax2 = sp(6,1,5);
+ax2 = sp(5,1,4);
 hold on;
 draw_active_frames(active_segments, tr_lims);
 plot(tr1, 'Color', color1);
@@ -106,7 +110,7 @@ linkaxes([ax1 ax2], 'xy');
 ylim(tr_lims);
 
 % Residuals
-ax3 = sp(6,1,6);
+ax3 = sp(5,1,5);
 hold on;
 res_curve = plot([1 num_frames], residual_threshold*[1 1], 'k--');
 

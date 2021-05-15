@@ -1,5 +1,17 @@
 function [matched_corrlist, non_matched_corrlist] = match_1p2p(ds1, ds2, tform, fps)
 % For each 2P cell in ds2, attempt to find a matching 1P cell in ds1.
+% Inputs:
+%   - ds1: DaySummary of 1P data
+%   - ds2: DaySummary of 2P data
+%   - tform: Spatial transform to match 2P cellmap onto the 1P cellmap
+%            (output of 'run_alignment')
+%   - fps: Frame rate, used for defining active periods in traces.
+%
+% Output format:
+%   corrlist: [1P-idx 2P-idx corr-val FGF FEV], where
+%       - FGF: Fraction of frames with good fit
+%       - FEV: Fraction explained variance
+%
 
 app_name = 'Match 1P/2P';
 
@@ -7,9 +19,7 @@ num_cells1 = ds1.num_classified_cells;
 num_cells2 = ds2.num_classified_cells;
 
 % Preallocate output
-% Format: [1P-idx 2P-idx corr-val FGF FEV], where
-%   - FGF: Fraction of frames with good fit
-%   - FEV: Fraction explained variance
+% Format: 
 matched_corrlist = zeros(num_cells2, 5);
 non_matched_corrlist = zeros(num_cells2, 5); % For development purposes
 
@@ -80,8 +90,12 @@ while (1)
 
                     % Increment 2P cell index
                     j = j + 1;
-                    j = min(num_cells2, j);
-                    i = 1;
+                    if j > num_cells2
+                        cprintf('blue', 'Matched all cells!\n');
+                        j = num_cells2;
+                    else
+                        i = 1;
+                    end
 
                 case 'n' % No match for this 2P cell
                     matched_corrlist(j,:) = [0 0 0 0 0];
@@ -89,8 +103,12 @@ while (1)
                     fprintf('  2P cell=%d has no match!\n', ds2_cell_idx);
                     
                     j = j + 1;
-                    j = min(num_cells2, j);
-                    i = 1;
+                    if j > num_cells2
+                        cprintf('blue', 'Matched all cells!\n');
+                        j = num_cells2;
+                    else
+                        i = 1;
+                    end
                     
                 case 'p' % Previous
                     j = j - 1;
