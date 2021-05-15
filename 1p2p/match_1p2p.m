@@ -1,12 +1,17 @@
-function matched_corrlist = match_1p2p(ds1, ds2, tform)
+function [matched_corrlist, non_matched_corrlist] = match_1p2p(ds1, ds2, tform, fps)
 % For each 2P cell in ds2, attempt to find a matching 1P cell in ds1.
 
-app_name = '1P/2P matching';
+app_name = 'Match 1P/2P';
 
 num_cells1 = ds1.num_classified_cells;
 num_cells2 = ds2.num_classified_cells;
 
-matched_corrlist = zeros(num_cells2, 3); % Preallocate output
+% Preallocate output
+% Format: [1P-idx 2P-idx corr-val FGF FEV], where
+%   - FGF: Fraction of frames with good fit
+%   - FEV: Fraction explained variance
+matched_corrlist = zeros(num_cells2, 5);
+non_matched_corrlist = zeros(num_cells2, 5); % For development purposes
 
 % First, pre-compute all correlations between classified cells.
 corrlist = compute_corrlist(ds1, ds2); % [1P-idx 2P-idx corr-val]
@@ -40,13 +45,9 @@ while (1)
     
     ds1_cell_idx = corrlist_j(i,1);
     ds2_cell_idx = corrlist_j(i,2);
-    corr_val = corrlist_j(i,3);
     
-    show_corr(ds1, ds1_cell_idx, ds2, ds2_cell_idx, corr_val,...
-        'names', {'1P', '2P'},...
-        'zsc',...
-        'overlay', tform,...
-        'zoom_target', 2);
+    clf;
+    metric = show_1p2p(ds1, ds1_cell_idx, ds2, ds2_cell_idx, tform, fps);
 
     prompt = sprintf('%s (2P idx j=%d of %d; 1P idx i=%d of %d) >> ',...
                       app_name,...
@@ -73,9 +74,9 @@ while (1)
         else
             switch resp(1)
                 case {'c', 'm', 'y'} % Indicate match
-                    matched_corrlist(j,:) = corrlist_j(i,:);
-                    fprintf('  2P cell=%d matched to 1P cell=%d!\n',...
-                        ds2_cell_idx, ds1_cell_idx);
+                    matched_corrlist(j,:) = [corrlist_j(i,:) metric.fraction_good_fit metric.fraction_variance_explained];
+                    non_matched_corrlist(j,:) = [0 0 0 0 0];
+                    fprintf('  2P cell=%d matched to 1P cell=%d!\n', ds2_cell_idx, ds1_cell_idx);
 
                     % Increment 2P cell index
                     j = j + 1;
@@ -83,9 +84,10 @@ while (1)
                     i = 1;
 
                 case 'n' % No match for this 2P cell
-                    matched_corrlist(j,:) = [0 0 0];
-                    fprintf('  2P cell=%d has no match!\n',...
-                        ds2_cell_idx);
+                    matched_corrlist(j,:) = [0 0 0 0 0];
+                    non_matched_corrlist(j,:) = [corrlist_j(i,:) metric.fraction_good_fit metric.fraction_variance_explained];
+                    fprintf('  2P cell=%d has no match!\n', ds2_cell_idx);
+                    
                     j = j + 1;
                     j = min(num_cells2, j);
                     i = 1;
@@ -107,5 +109,8 @@ while (1)
 end % while (1)
 
 % Remove empty rows in 'matched_corrlist'
-keep_rows = matched_corrlist(:,2) > 0;
+keep_rows = matched_corrlist(:,1) > 0;
 matched_corrlist = matched_corrlist(keep_rows,:);
+
+keep_rows = non_matched_corrlist(:,1) > 0;
+non_matched_corrlist = non_matched_corrlist(keep_rows,:);

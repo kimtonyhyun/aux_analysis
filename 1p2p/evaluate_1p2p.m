@@ -36,14 +36,15 @@ print('-dpng', 'overlay_post');
 
 %% Match 1P/2P
 
-load('match_pre.mat', 'info');
-
 close all;
 
-matched_corrlist = match_1p2p(ds, ds2, info.tform);
+load('match_pre.mat', 'info');
+fps = 25.4;
 
-save('matched_corrlist_fgf', 'matched_corrlist'); % fgf: fraction good fit
-cprintf('blue', 'Found %d matched cells between 1P and 2P\n', size(matched_corrlist,1));
+[matched, non_matched] = match_1p2p(ds, ds2, info.tform, fps);
+
+save('corrlist', 'matched', 'non_matched');
+cprintf('blue', 'Found %d matched cells between 1P and 2P\n', size(matched,1));
 
 %% Compute all 1P:2P transfer function slopes. Note:
 %   - slope > 1 means that 1P had higher SNR
