@@ -20,6 +20,11 @@ tr_lims = tr_lims + 1/10*diff(tr_lims)*[-1 1];
 % Perform fit
 [fit, metric, info] = fit_1p2p(tr1, tr2, fps);
 
+min_tr_val = min([min(tr1) min(fit.tr1)]);
+max_tr_val = max([max(tr1) max(fit.tr1)]);
+tr_fit_lims = [min_tr_val max_tr_val];
+tr_fit_lims = tr_fit_lims + 1/10*diff(tr_fit_lims)*[-1 1];
+
 active_segments = info.active_segments;
 mask = info.active_frames;
 num_fit_frames = info.num_active_frames;
@@ -74,7 +79,7 @@ grid on;
 axis equal tight;
 xlabel('2P (\sigma)');
 ylabel('1P (\sigma)');
-title(sprintf('Variance explained = %.1f%%', 100*metric.fraction_variance_explained));
+title(sprintf('Variance explained = %.0f%%', 100*metric.fraction_variance_explained));
 legend(sprintf('Slope = %.3f', fit.slope), 'Location', 'NorthWest');
 
 % Show traces
@@ -94,20 +99,19 @@ title(sprintf('Number of fitted frames = %d (%.1f%% of all frames)',...
 xlabel('Frames');
 ylabel('Raw data (\sigma)');
 set(ax1, 'TickLength', [0 0]);
+ylim(tr_lims);
 
 % Fit to 1P data
 ax2 = sp(5,1,4);
 hold on;
-draw_active_frames(active_segments, tr_lims);
+draw_active_frames(active_segments, tr_fit_lims);
 plot(tr1, 'Color', color1);
 plot(fit.tr1, 'Color', color2);
 legend({'1P (raw data)', '1P fit (from 2P)'}, 'Location', 'NorthWest');
 hold off;
 ylabel('Fit (\sigma)');
 set(ax2, 'TickLength', [0 0]);
-
-linkaxes([ax1 ax2], 'xy');
-ylim(tr_lims);
+ylim(tr_fit_lims);
 
 % Residuals
 ax3 = sp(5,1,5);
@@ -129,13 +133,13 @@ plot(find(bad_frames), residuals(bad_frames), 'r.');
 hold off;
 set(ax3, 'TickLength', [0 0]);
 ylabel('Residual (\sigma)');
-title(sprintf('Fraction of frames with good fit = %.1f%%', 100*metric.fraction_good_fit));
+title(sprintf('Fraction of frames with good fit = %.0f%%', 100*metric.fraction_good_fit));
 legend(sprintf('Residual threshold = %.3f', residual_threshold), 'Location', 'NorthWest');
 uistack(res_curve, 'top');
-
-linkaxes([ax2 ax3], 'x');
-xlim([1 length(tr1)]);
 ylim(res_lims);
+
+linkaxes([ax1 ax2 ax3], 'x');
+xlim([1 length(tr1)]);
 zoom xon;
 
 end % show_1p2p
