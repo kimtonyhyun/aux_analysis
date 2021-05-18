@@ -83,7 +83,7 @@ while (1)
             end
         else
             switch resp(1)
-                case {'c', 'm', 'y'} % Indicate match
+                case 'c' % Indicates match
                     matched_corrlist(j,:) = [corrlist_j(i,:) metric.fraction_good_fit metric.fraction_variance_explained];
                     non_matched_corrlist(j,:) = [0 0 0 0 0];
                     fprintf('  2P cell=%d matched to 1P cell=%d!\n', ds2_cell_idx, ds1_cell_idx);

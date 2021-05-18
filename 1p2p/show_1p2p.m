@@ -12,18 +12,12 @@ tr1 = ds1.get_trace(idx1, 'zsc')'; % Column vector
 tr2 = ds2.get_trace(idx2, 'zsc')';
 num_frames = length(tr1);
 
-min_tr_val = min([min(tr1) min(tr2)]);
-max_tr_val = max([max(tr1) max(tr2)]);
-tr_lims = [min_tr_val max_tr_val];
-tr_lims = tr_lims + 1/10*diff(tr_lims)*[-1 1];
+tr_lims = compute_ylims(tr1, tr2);
 
 % Perform fit
 [fit, metric, info] = fit_1p2p(tr1, tr2, fps);
 
-min_tr_val = min([min(tr1) min(fit.tr1)]);
-max_tr_val = max([max(tr1) max(fit.tr1)]);
-tr_fit_lims = [min_tr_val max_tr_val];
-tr_fit_lims = tr_fit_lims + 1/10*diff(tr_fit_lims)*[-1 1];
+tr_fit_lims = compute_ylims(tr1, fit.tr1);
 
 active_segments = info.active_segments;
 mask = info.active_frames;
@@ -79,8 +73,8 @@ grid on;
 axis equal tight;
 xlabel('2P (\sigma)');
 ylabel('1P (\sigma)');
-title(sprintf('Variance explained = %.0f%%', 100*metric.fraction_variance_explained));
-legend(sprintf('Slope = %.3f', fit.slope), 'Location', 'NorthWest');
+title(sprintf('1P:2P slope = %.3f\nVariance explained (R^2)= %.0f%%',...
+    fit.slope, 100*metric.fraction_variance_explained));
 
 % Show traces
 %------------------------------------------------------------
@@ -156,3 +150,12 @@ for k = 1:size(active_frames,1)
 end
 
 end % draw_active_periods
+
+function tr_lims = compute_ylims(tr1, tr2)
+
+min_tr_val = min([min(tr1) min(tr2)]);
+max_tr_val = max([max(tr1) max(tr2)]);
+tr_lims = [min_tr_val max_tr_val];
+tr_lims = tr_lims + 1/10*diff(tr_lims)*[-1 1];
+
+end % compute_ylims
