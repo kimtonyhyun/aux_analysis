@@ -8,32 +8,6 @@ path_to_dataset2 = '2P';
 ds = DaySummary([], fullfile(path_to_dataset1, 'merge/ls'));
 ds2 = DaySummary([], fullfile(path_to_dataset2, 'merge/ls'));
 
-%% Show the spatial alignment, using previously computed transformation
-
-load('match_pre.mat', 'info');
-
-% Note that we can continue to use the same 'selected_cells' IDs, because
-% the transferred filters are _appended_ to the end of the original
-% extraction output.
-figure;
-plot_boundaries(ds, 'color', 'b', 'linewidth', 2);
-hold on;
-plot_boundaries(ds2, 'color', 'r', 'linewidth', 1, 'tform', info.tform);
-hold off;
-
-dataset_name = dirname;
-num_cells_1p = ds.num_classified_cells;
-num_cells_2p = ds2.num_classified_cells;
-
-title_str = sprintf('%s (POST-merge)\n%s (%d cells; blue) vs. %s (%d cells; red)',...
-    dataset_name, path_to_dataset1, num_cells_1p, path_to_dataset2, num_cells_2p);
-title(title_str);
-set(gca, 'FontSize', 18);
-
-%% Save image of the spatial alignment
-
-print('-dpng', 'overlay_post');
-
 %% Match 1P/2P
 
 close all;
@@ -45,6 +19,31 @@ fps = 25.4;
 
 save('corrlist', 'matched', 'non_matched');
 cprintf('blue', 'Found %d matched cells between 1P and 2P\n', size(matched,1));
+
+%% Show the spatial alignment, using previously computed transformation
+
+load('match_pre.mat', 'info');
+m = load('corrlist.mat');
+
+figure;
+plot_boundaries(ds, 'color', 'b', 'linewidth', 2, 'fill', m.matched(:,1));
+hold on;
+plot_boundaries(ds2, 'color', 'r', 'linewidth', 1, 'fill', m.matched(:,2), 'tform', info.tform);
+hold off;
+
+dataset_name = dirname;
+num_cells_1p = ds.num_classified_cells;
+num_cells_2p = ds2.num_classified_cells;
+num_match = size(m.matched,1);
+
+title_str = sprintf('%s (POST-merge)\n%s (%d cells; blue) vs. %s (%d cells; red)\nFilled indicates match (%d cells)',...
+    dataset_name, path_to_dataset1, num_cells_1p, path_to_dataset2, num_cells_2p, num_match);
+title(title_str);
+set(gca, 'FontSize', 18);
+
+%% Save image of the spatial alignment
+
+print('-dpng', 'overlay_post');
 
 %% Compute all 1P:2P transfer function slopes. Note:
 %   - slope > 1 means that 1P had higher SNR
