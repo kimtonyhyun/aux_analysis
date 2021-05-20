@@ -110,14 +110,14 @@ config.cellfind_min_snr = 1;
 
 switch dirname
     case '1P'
-        config.num_partitions_x = 2;
-        config.num_partitions_y = 2;
-        config.avg_cell_radius = 10;
+        config.num_partitions_x = 3;
+        config.num_partitions_y = 3;
+        config.avg_cell_radius = 15;
         
     otherwise % Assume 2P
-        config.num_partitions_x = 2;
-        config.num_partitions_y = 2;
-        config.avg_cell_radius = 5;
+        config.num_partitions_x = 1;
+        config.num_partitions_y = 1;
+        config.avg_cell_radius = 8;
 end
 
 output = extractor(sprintf('%s:/Data/Images', movie_filename), config);

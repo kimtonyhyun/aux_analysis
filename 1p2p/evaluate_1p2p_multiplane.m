@@ -2,14 +2,16 @@
 
 clear all;
 
-path_to_dataset1 = '1P/merge/ls_ti5';
-paths_to_dataset2 = {'2P/sl2_d150/ext1/ls';
-                     '2P/sl3_d200/ext1/ls';
-                     '2P/sl4_d250/ext1/ls';
-                     '2P/sl5_d300/merge/ls';
+path_to_dataset1 = '1P/merge/ls_ti6';
+paths_to_dataset2 = {'2P/sl2_d100/ext1/ls';
+                     '2P/sl3_d150/ext1/ls';
+                     '2P/sl4_d200/merge/ls';
+                     '2P/sl5_d250/ext1/ls';
+                     '2P/sl6_d300/ext1/ls';
                      '2P/sl1_d350/ext1/ls';
                     };
 num_slices = length(paths_to_dataset2);
+fps = 26.06 / num_slices;
 
 ds1 = DaySummary([], path_to_dataset1);
 ds2 = cell(num_slices, 1);
@@ -37,12 +39,12 @@ load('match_pre.mat', 'info');
 for k = 1:num_slices
     close all;
 
-    matched_corrlist = match_1p2p(ds1, ds2{k}, info.tform);
+    [matched, non_matched] = match_1p2p(ds1, ds2{k}, info.tform, fps);
     cprintf('blue', 'Found %d matched cells between 1P and %s\n',...
-        size(matched_corrlist,1), paths_to_dataset2{k});
+        size(matched,1), paths_to_dataset2{k});
     
-    save('matched_corrlist.mat', 'matched_corrlist');
-    movefile('matched_corrlist.mat', paths_to_dataset2{k});
+    save('corrlist.mat', 'matched', 'non_matched');
+    movefile('corrlist.mat', paths_to_dataset2{k});
 end
 
 %% Show 1P:2P cell maps, filling in cells that matched
@@ -50,9 +52,9 @@ end
 % Load all matched_corrlists
 matches = cell(num_slices, 1);
 for k = 1:num_slices
-    path_to_mat = fullfile(paths_to_dataset2{k}, 'matched_corrlist.mat');
+    path_to_mat = fullfile(paths_to_dataset2{k}, 'corrlist.mat');
     m = load(path_to_mat);
-    matches{k} = m.matched_corrlist;
+    matches{k} = m.matched;
 end
 clear path_to_mat m;
 

@@ -10,7 +10,7 @@ function [matched_corrlist, non_matched_corrlist] = match_1p2p(ds1, ds2, tform, 
 % Output format:
 %   corrlist: [1P-idx 2P-idx corr-val FGF FEV], where
 %       - FGF: Fraction of frames with good fit
-%       - FEV: Fraction explained variance
+%       - FEV: Fraction explained variance (i.e. R squared)
 %
 
 app_name = 'Match 1P/2P';
