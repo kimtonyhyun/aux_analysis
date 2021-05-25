@@ -22,14 +22,17 @@ num_total_trials = length(bdata.lick_responses);
 % Display results
 %------------------------------------------------------------
 
+% Custom "subplot" command that leaves less unusued space between panels
+sp = @(m,n,p) subtightplot(m, n, p, 0.05, 0.05, 0.05); % Gap, Margin-X, Margin-Y
+
 % Encoder velocity and position
-ax1 = subplot(411);
+ax1 = sp(4,1,1);
 
 yyaxis left;
 v_lims = tight_plot(velocity(:,1), velocity(:,2));
 ylabel('Velocity (cm/s)');
 hold on;
-plot(x_lims, [0 0], 'k--');
+% plot(x_lims, [0 0], 'k--');
 y_pos = v_lims(1) + 0.95*diff(v_lims);
 plot(bdata.lick_times,...
      y_pos*ones(size(bdata.lick_times)), 'b.');
@@ -48,7 +51,7 @@ title(sprintf('%s (%d consumed out of %d total trials)',...
 set(ax1, 'TickLength', [0 0]);
 
 % Nose angle
-ax2 = subplot(412);
+ax2 = sp(4,1,2);
 y_lims = tight_plot(t, alpha_n);
 hold on;
 plot_vertical_lines(movement_onset_times, y_lims, 'r:');
@@ -58,7 +61,7 @@ ylabel('Body angle, \alpha_n (degrees)');
 set(ax2, 'TickLength', [0 0]);
 
 % Limb angles
-ax3 = subplot(413);
+ax3 = sp(4,1,3);
 yyaxis left;
 y_lims = [0 180];
 tight_plot(t, beta_f);
@@ -79,7 +82,7 @@ set(ax3, 'TickLength', [0 0]);
 set(ax3, 'YTick', [0 45 90 135 180]);
 
 % Limb positions
-ax4 = subplot(414);
+ax4 = sp(4,1,4);
 yyaxis left;
 y_lims = tight_plot(t, d_f);
 hold on;
