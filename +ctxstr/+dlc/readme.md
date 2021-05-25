@@ -49,6 +49,11 @@ In addition, one can play back the behavioral video with the DLC coordinates ove
 ```
 >> ctxstr.dlc.verify(dlc, 'oh28-0208-down.mp4');
 ```
+Optionally, one can draw lines between the front limbs, between the hind limbs, and between the nose and tail, by using the optional `draw_lines` toggle:
+```
+>> ctxstr.dlc.verify(dlc, 'oh28-0208-down.mp4', 'drawlines');
+```
+
 ## 3. Compute the skeleton
 
 Finally, we convert the DLC coordinates to a "skeletal" representation. We use the following definition:
