@@ -7,7 +7,7 @@ The instructions assume that you have access to:
 
 ## 1. Parse the Saleae data
 
-First, parse the Saleae data (as usual):
+Parse the Saleae data (as usual), by first exporting the Saleae log to CSV file (e.g. `behavior.csv`) using Logic software.
 ```
 >> ctxstr.parse_saleae('behavior.csv');
 Loading Saleae data into memory... Done in 12.5 seconds!
@@ -61,9 +61,23 @@ The skeleton coordinates can be calculated as:
 ```
 which creates `skeleton.mat` to the working directory.
 
-We can visualize the "skeletal" mouse movement aligned to other behavioral variables (e.g. reward delivery, licking, encoder velocity) using:
+We can visualize the "skeletal" mouse movement aligned to other behavioral variables using:
 ```
 >> load('ctxstr.mat')
 >> sdata = load('skeleton.mat');
 >> ctxstr.dlc.show_skeleton(sdata, behavior);
 ```
+which produces the following plot:
+![oh28-0208-dlc](https://user-images.githubusercontent.com/2081503/119431741-f6334100-bcc7-11eb-8f74-b01694f599c6.png)
+
+By zooming in, the behavioral annotations will be more clear:
+![oh28-0208-dlc_zoom](https://user-images.githubusercontent.com/2081503/119431760-faf7f500-bcc7-11eb-860f-e2f0e4dfc5e1.png)
+
+The top panel contains behavioral measurements from the Saleae log:
+- Blue curve is the encoder velocity;
+- Red curve shows the encoder position, from 0 to ~750 (which was the reward threshold for this session);
+- Dotted blue vertical line indicates reward delivery;
+- Blue dots (at top) indicate licks;
+- Dotted red vertical line indicates "movement onset", as defined as the time where the mouse first crosses 10% of the reward threshold distance on each trial (see `ctxstr.parse_saleae`).
+
+The bottom three panels show the skeletal coordinates.
