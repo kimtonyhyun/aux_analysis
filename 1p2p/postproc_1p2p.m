@@ -76,28 +76,43 @@ switch dirname
         rec1_path = 'ext1/ls_ti4';
         rec2_path = fullfile(merge_dirname, 'from_2p');
         movie_filename = get_most_recent_file('', '*_dff_ti4.hdf5');
+        use_ls = true;
         
     otherwise % Assume 2P
         rec1_path = 'ext1/ls_ti4';
         rec2_path = fullfile(merge_dirname, 'from_1p');
         movie_filename = get_most_recent_file('', '*_zsc_ti4.hdf5');
+        use_ls = false;
 end
-rec_out_path = fullfile(merge_dirname, 'concat');
 
 rec1 = load(get_most_recent_file(rec1_path, 'rec_*.mat'));
 rec2 = load(get_most_recent_file(rec2_path, 'rec_*.mat'));
 
 filters = cat(3, rec1.filters, rec2.filters);
-traces = cat(2, rec1.traces, rec2.traces);
 
-info.type = 'merge';
-info.num_pairs = rec1.info.num_pairs + rec2.info.num_pairs;
-info.merge = {rec1_path, rec2_path};
+if use_ls
+    rec_out_path = fullfile(merge_dirname, 'concat_ls');
+    
+    % Recompute traces via least squares using all filters
+    cprintf('blue', 'Recomputing least squares traces after combining "%s" (%d cells) and "%s" (%d cells)\n',...
+        rec1_path, rec1.info.num_pairs,...
+        rec2_path, rec2.info.num_pairs);
+    merged_rec = backapply_filters(filters, movie_filename, 'ls', 'fix', 'percentile');
+else
+    rec_out_path = fullfile(merge_dirname, 'concat');
+    
+    % Simple concatenation: Just stack rec1 and rec2 traces
+    cprintf('blue', 'Concatenating "%s" (%d cells) and "%s" (%d cells)\n',...
+        rec1_path, rec1.info.num_pairs,...
+        rec2_path, rec2.info.num_pairs);
+    traces = cat(2, rec1.traces, rec2.traces);
 
-merged_rec = save_rec(info, filters, traces);
-cprintf('blue', 'Merged "%s" (%d cells) and "%s" (%d cells)\n',...
-    rec1_path, rec1.info.num_pairs,...
-    rec2_path, rec2.info.num_pairs);
+    info.type = 'concat';
+    info.num_pairs = rec1.info.num_pairs + rec2.info.num_pairs;
+    info.merge = {rec1_path, rec2_path};
+
+    merged_rec = save_rec(info, filters, traces);
+end
 
 mkdir(rec_out_path);
 movefile(merged_rec, rec_out_path);
@@ -109,7 +124,7 @@ M = load_movie(movie_filename);
 initial_cell_count = rec1.info.num_pairs;
 clearvars -except ds M merge_dirname initial_cell_count;
 
-cprintf('blue', 'Please classify "merge/concat"...\n');
+cprintf('blue', 'Ready for classification...\n');
 classify_cells(ds, M);
 cprintf('blue', 'Gained %d cells!\n', ds.num_classified_cells - initial_cell_count);
 
