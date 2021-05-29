@@ -34,8 +34,8 @@ dataset_name = dirname;
 num_cells_1p = ds.num_classified_cells;
 num_cells_2p = ds2.num_classified_cells;
 
-title_str = sprintf('%s (PRE-merge)\n%s (%d cells; blue) vs. %s (%d cells; red)',...
-    dataset_name, path_to_dataset1, num_cells_1p, path_to_dataset2, num_cells_2p);
+title_str = sprintf('%s (PRE-merge)\n%s (%d cells; blue) vs. %s (%d cells; red)\nFilled indicates alignment points (%d cells)',...
+    dataset_name, path_to_dataset1, num_cells_1p, path_to_dataset2, num_cells_2p, size(inds,1));
 title(title_str, 'Interpreter', 'none');
 set(gca, 'FontSize', 18);
 print('-dpng', 'overlay_pre');
