@@ -28,7 +28,16 @@ close all;
 [m_1to2, m_2to1, info] = run_alignment(ds, ds2, 'alignment_cell_inds', inds); %#ok<*ASGLU>
 save('match_pre', 'm_1to2', 'm_2to1', 'info', '-v7.3');
 
-%% Save image of the spatial alignment
+%% Show the initial spatial alignment
+
+load('match_pre.mat', 'info');
+inds = info.alignment.selected_cells;
+
+figure;
+plot_boundaries(ds, 'color', 'b', 'linewidth', 2, 'fill', inds(:,1));
+hold on;
+plot_boundaries(ds2, 'color', 'r', 'linewidth', 1, 'fill', inds(:,2), 'tform', info.tform);
+hold off;
 
 dataset_name = dirname;
 num_cells_1p = ds.num_classified_cells;
@@ -38,6 +47,9 @@ title_str = sprintf('%s (PRE-merge)\n%s (%d cells; blue) vs. %s (%d cells; red)\
     dataset_name, path_to_dataset1, num_cells_1p, path_to_dataset2, num_cells_2p, size(inds,1));
 title(title_str, 'Interpreter', 'none');
 set(gca, 'FontSize', 18);
+
+%%
+
 print('-dpng', 'overlay_pre');
 
 %% Transfer cell filters across modalities
