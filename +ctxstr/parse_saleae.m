@@ -23,11 +23,21 @@ t = toc; fprintf('Done in %.1f seconds!\n', t);
 % Parse behavioral data at full resolution
 %------------------------------------------------------------
 
+% Behavior camera
+% In principle, the 'behavior_recording_duration' is the length of time
+% over which the task is active (i.e. period of time during which the mouse
+% can earn rewards for movement).
+behavior_frame_times = find_edges(data, behavior_clock_ch);
+behavior_recording_duration = behavior_frame_times(end) - behavior_frame_times(1);
+T_beh = mean(diff(behavior_frame_times));
+fprintf('Behavior camera:\n  Found %d frames at %.2f FPS\n  Total length of behavioral recording: %.1f minutes\n',...
+    length(behavior_frame_times), 1/T_beh, behavior_recording_duration/60);
+
 % Encoder
 cpr = 500; % clicks per rotation
 pos = parse_encoder(data, encA_ch, encB_ch); % [time enc_count]
-fprintf('Encoder: %.1f rotations over %.1f seconds (%.1f minutes)\n',...
-    pos(end,2)/cpr, pos(end,1), pos(end,1)/60);
+fprintf('Encoder:\n  Logged %.1f rotations over %.1f seconds\n',...
+    pos(end,2)/cpr, pos(end,1));
 
 % Velocity
 R = 14.5/2; % cm, measured 2020 Nov 17
@@ -38,7 +48,7 @@ t = dt:dt:(times(end)-dt);
 pos2 = interp1(pos(:,1), pos_cm, t+dt/2);
 pos1 = interp1(pos(:,1), pos_cm, t-dt/2);
 velocity = (pos2-pos1)/dt; % cm/s
-fprintf('Computed velocity over dt=%.3f second windows\n', dt);
+fprintf('  Computed velocity over dt=%.3f second windows\n', dt);
 
 % Rewards
 us_times = find_edges(data, us_ch);
@@ -46,7 +56,7 @@ us_times = find_edges(data, us_ch);
 % Determine the number of pulses per reward. We assume pulses that occur in
 % a rapid (sub-second) succession are part of a single reward
 num_pulses_per_reward = sum((us_times - us_times(1)) < 0.1);
-fprintf('Detected %d pulses per reward\n', num_pulses_per_reward);
+fprintf('Rewards:\n  Detected %d solenoid pulses per reward\n', num_pulses_per_reward);
 us_times = us_times(1:num_pulses_per_reward:end);
 
 % Movement onset
@@ -65,7 +75,7 @@ end
 % animal movement.
 us_times = us_times(2:end);
 num_rewards = num_rewards-1;
-fprintf('Detected %d rewards, excluding the first (free) reward\n', num_rewards);
+fprintf('  Detected %d rewards, excluding the first (free) reward\n', num_rewards);
 
 pos_by_trial = cell(num_rewards, 1);
 for k = 1:num_rewards
@@ -77,7 +87,7 @@ end
 
 % Next, determine the empirical distance threhsold for reward
 us_threshold = mean(cellfun(@(x) x(end,2), pos_by_trial));
-fprintf('On average, reward delivered after %.1f encoder clicks\n', us_threshold);
+fprintf('  On average, reward delivered after %.1f encoder clicks\n', us_threshold);
 
 % Finally, determine the movement onset based on distance traveled
 movement_onset_threshold = 0.1;
@@ -116,18 +126,34 @@ for k = 1:num_rewards
         end
     end
 end
-fprintf('Lick responses in %d out of %d rewards (%.1f%% hit rate, using %.1f second response window)\n',...
+fprintf('  Lick responses in %d out of %d rewards (%.1f%% hit rate, using %.1f second response window)\n',...
     sum(lick_responses), num_rewards, sum(lick_responses)/num_rewards*100, lick_response_window);
 
-% Behavior camera
-behavior_frame_times = find_edges(data, behavior_clock_ch);
-T_beh = mean(diff(behavior_frame_times));
-fprintf('Found %d behavior frames at %.2f FPS\n',...
-    length(behavior_frame_times), 1/T_beh);
-
+% Parse opto stats
 opto_periods = find_pulses(data, opto_shutter_ch);
-num_opto_periods = size(opto_periods, 1);
-fprintf('Found %d opto periods\n', num_opto_periods);
+
+opto_duration = sum(diff(opto_periods, [], 2));
+nonopto_duration = (behavior_recording_duration - opto_duration);
+
+opto_duration = opto_duration/60; % min
+nonopto_duration = nonopto_duration/60;
+
+num_opto_rewards = 0;
+num_nonopto_rewards = 0;
+for k = 1:num_rewards
+    us_time = us_times(k);
+    if any((opto_periods(:,1) < us_time) & (us_time < opto_periods(:,2)))
+        num_opto_rewards = num_opto_rewards + 1;
+    else
+        num_nonopto_rewards = num_nonopto_rewards + 1;
+    end
+end
+
+fprintf('Opto:\n  Found %d opto periods\n', size(opto_periods, 1));
+fprintf('  %d rewards occur during opto (%1.f min; %.1f rewards/min)\n',...
+    num_opto_rewards, opto_duration, num_opto_rewards/opto_duration);
+fprintf('  %d rewards occur during non-opto (%.1f min; %.1f rewards/min)\n',...
+    num_nonopto_rewards, nonopto_duration, num_nonopto_rewards/nonopto_duration);
 
 % Package for output
 behavior.frame_times = behavior_frame_times;
