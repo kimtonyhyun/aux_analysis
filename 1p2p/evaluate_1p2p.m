@@ -17,7 +17,7 @@ fps = 25.4;
 
 [matched, non_matched] = match_1p2p(ds, ds2, info.tform, fps);
 
-save('corrlist', 'matched', 'non_matched');
+% save('corrlist', 'matched', 'non_matched');
 cprintf('blue', 'Found %d matched cells between 1P and 2P\n', size(matched,1));
 
 %% Show the spatial alignment, using previously computed transformation
@@ -49,17 +49,19 @@ print('-dpng', 'overlay_post');
 %   - slope > 1 means that 1P had higher SNR
 %   - slope < 1 means that 2P had higher SNR
 
-load('matched_corrlist.mat');
-num_matches = size(matched_corrlist, 1);
+corrlist = load('corrlist.mat');
+num_matches = size(corrlist.matched, 1);
 snr_slopes = zeros(num_matches, 1);
 for k = 1:num_matches
-    match = matched_corrlist(k,:);
-    tr1 = ds.get_trace(match(1), 'zsc');
-    tr2 = ds2.get_trace(match(2), 'zsc');
-    snr_slopes(k) = fit_1p2p_slope(tr2, tr1);
+    match = corrlist.matched(k,:);
+    tr1 = ds.get_trace(match(1), 'zsc')';
+    tr2 = ds2.get_trace(match(2), 'zsc')';
+    fit = fit_1p2p(tr1, tr2, 25.4);
+    snr_slopes(k) = fit.slope;
 end
 
-save('matched_snr', 'snr_slopes');
+log_snrs = log10(snr_slopes);
+% save('matched_snr', 'snr_slopes');
 
 %% Display SNR distribution
 
