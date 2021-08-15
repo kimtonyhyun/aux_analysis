@@ -42,6 +42,7 @@ yyaxis right;
 p_lims = tight_plot(position(:,1), position(:,2));
 ylabel('Position (encoder count)');
 hold on;
+plot_rectangles(bdata.opto_periods, p_lims);
 plot_vertical_lines(movement_onset_times, p_lims, 'r:');
 plot_vertical_lines(us_times, p_lims, 'b:');
 hold off;
@@ -54,6 +55,7 @@ set(ax1, 'TickLength', [0 0]);
 ax2 = sp(4,1,2);
 y_lims = tight_plot(t, alpha_n);
 hold on;
+plot_rectangles(bdata.opto_periods, y_lims);
 plot_vertical_lines(movement_onset_times, y_lims, 'r:');
 plot_vertical_lines(us_times, y_lims, 'b:');
 hold off;
@@ -66,6 +68,7 @@ yyaxis left;
 y_lims = [0 180];
 tight_plot(t, beta_f);
 hold on;
+plot_rectangles(bdata.opto_periods, y_lims);
 plot(t([1 end]), 90*[1 1], 'k--');
 plot_vertical_lines(movement_onset_times, y_lims, 'r:');
 plot_vertical_lines(us_times, y_lims, 'b:');
@@ -86,6 +89,7 @@ ax4 = sp(4,1,4);
 yyaxis left;
 y_lims = tight_plot(t, d_f);
 hold on;
+plot_rectangles(bdata.opto_periods, y_lims);
 plot_vertical_lines(movement_onset_times, y_lims, 'r:');
 plot_vertical_lines(us_times, y_lims, 'b:');
 hold off;
@@ -98,3 +102,17 @@ ylabel('Hind limb position, d_h (px)');
 
 linkaxes([ax1 ax2 ax3 ax4], 'x');
 zoom xon;
+
+end
+
+function plot_rectangles(x_ranges, y_lims)
+
+for k = 1:size(x_ranges,1)
+    x_range = x_ranges(k,:);
+    w = x_range(2) - x_range(1);
+    h = y_lims(2) - y_lims(1);
+    rectangle('Position', [x_range(1) y_lims(1) w h],...
+        'EdgeColor', 'none', 'FaceColor', [0 1 1 0.15]);
+end
+
+end

@@ -17,7 +17,7 @@ fps = 25.4;
 
 [matched, non_matched] = match_1p2p(ds, ds2, info.tform, fps);
 
-% save('corrlist', 'matched', 'non_matched');
+save('corrlist', 'matched', 'non_matched');
 cprintf('blue', 'Found %d matched cells between 1P and 2P\n', size(matched,1));
 
 %% Show the spatial alignment, using previously computed transformation
