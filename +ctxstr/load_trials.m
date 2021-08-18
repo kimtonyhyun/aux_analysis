@@ -1,5 +1,7 @@
-function trial_data = load_into_trials(path_to_behavior, path_to_skeleton)
-% Load various behavioral data into a trial structure
+function trial_data = load_trials(path_to_behavior, path_to_skeleton)
+% Load various behavioral data into a trial structure. Requires:
+%   - Output of 'parse_saleae' (i.e. "ctxstr.mat")
+%   - Output of 'dlc.compute_skeleton' (i.e. "skeleton.mat")
 
 % Defaults
 %------------------------------------------------------------
@@ -10,29 +12,35 @@ if ~exist('path_to_behavior', 'var')
 end
 bdata = load(path_to_behavior);
 behavior = bdata.behavior;
+fprintf('Loaded behavioral data from "%s"\n', path_to_behavior);
 
 if ~exist('path_to_skeleton', 'var')
     path_to_skeleton = 'skeleton.mat';
 end
 sdata = load(path_to_skeleton);
+fprintf('Loaded skeleton (DLC) data from "%s"\n', path_to_skeleton);
 
-% Parse into trials. Note that 'position', 'velocity', 'beta_X' have
+% Parse into trials. Note that 'position', 'velocity', 't_dlc' have
 % different time-bases, as indicated in the comments below.
 %------------------------------------------------------------
 num_trials = length(behavior.us_times);
-trial_data = struct('times', [],...
+trial_data = struct('ind', [],...
+                    'times', [],...
                     'start_time', [],...
                     'movement_onset_time', [],...
                     'us_time', [],...
                     'lick_times', [],...
                     'position', [],... % [t_p, pos]
                     'velocity', [],... % [t_v, vel]
-                    'beta_f', [],... % [t_dlc, beta_f]
-                    'beta_h', [],... % [t_dlc, beta_h]
+                    't_dlc', [],... % [times(s) index-in-video-file]
+                    'beta_f', [],... % [beta_f]
+                    'beta_h', [],... % [beta_h]
                     'lick_response', false);
 trial_data = repmat(trial_data, num_trials, 1);
 
 for k = 1:num_trials
+    trial_data(k).ind = k;
+    
     trial_data(k).position = behavior.position.by_trial{k};
     trial_data(k).lick_response = behavior.lick_responses(k);
     trial_data(k).start_time = trial_data(k).position(1,1);
@@ -48,9 +56,9 @@ for k = 1:num_trials
     trial_data(k).velocity = behavior.velocity(ind1:ind2, :);
     
     [ind1, ind2] = find_inds(sdata.t, t_lims);
-    t_dlc = sdata.t(ind1:ind2);
-    trial_data(k).beta_f = [t_dlc sdata.beta_f(ind1:ind2)];
-    trial_data(k).beta_h = [t_dlc sdata.beta_h(ind1:ind2)];
+    trial_data(k).t_dlc = [sdata.t(ind1:ind2) (ind1:ind2)'];
+    trial_data(k).beta_f = sdata.beta_f(ind1:ind2);
+    trial_data(k).beta_h = sdata.beta_h(ind1:ind2);
 end
 
 end
