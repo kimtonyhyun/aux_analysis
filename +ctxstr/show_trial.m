@@ -36,11 +36,16 @@ else
         t_load, t_load/num_frames*1e3);
        
     % Set up interactive elements
+    subplot(ax1);
+    yyaxis right;
+    hc1 = plot_vertical_lines(state.t1, p_lims, 'k-', 'HitTest', 'off');
+    hold on;
+    
     subplot(ax2);
     yyaxis right;
     h1 = plot_vertical_lines(state.t1, a_lims, 'k:', 'HitTest', 'off');
     hold on;
-    hc = plot_vertical_lines(state.t1, a_lims, 'k-', 'HitTest', 'off');
+    hc2 = plot_vertical_lines(state.t1, a_lims, 'k-', 'HitTest', 'off');
     h2 = plot_vertical_lines(state.t2, a_lims, 'k:', 'HitTest', 'off');
     
     subplot(axb);
@@ -143,7 +148,8 @@ xlim(t_lims);
         k = max(1,k); k = min(k,num_frames); % Clamp
         
         t = t_dlc(k);
-        set(hc, 'XData', [t t NaN]);
+        set(hc1, 'XData', [t t NaN]);
+        set(hc2, 'XData', [t t NaN]);
         set(h_b, 'CData', Mb(:,:,k));
         title(axb, sprintf('Frame %d of %d', k, num_frames));
         drawnow;
