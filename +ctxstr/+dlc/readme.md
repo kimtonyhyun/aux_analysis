@@ -68,11 +68,9 @@ which creates `skeleton.mat` to the working directory.
 
 We can visualize the "skeletal" mouse movement aligned to other behavioral variables using:
 ```
->> load('ctxstr.mat')
->> sdata = load('skeleton.mat');
->> ctxstr.dlc.show_skeleton(sdata, behavior);
+>> ctxstr.dlc.show_skeleton;
 ```
-which produces the following plot:
+which loads `ctxstr.mat` and `skeleton.mat` from the current working directory, and produces the following plot:
 ![oh28-0208-dlc](https://user-images.githubusercontent.com/2081503/119431741-f6334100-bcc7-11eb-8f74-b01694f599c6.png)
 
 By zooming in, the behavioral annotations will be more clear:
