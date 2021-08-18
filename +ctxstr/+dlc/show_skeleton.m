@@ -1,4 +1,19 @@
-function show_skeleton(sdata, bdata)
+function show_skeleton(path_to_behavior, path_to_skeleton)
+
+% Defaults
+%------------------------------------------------------------
+if ~exist('path_to_behavior', 'var')
+    path_to_behavior = 'ctxstr.mat';
+end
+bdata = load(path_to_behavior);
+behavior = bdata.behavior;
+fprintf('Loaded behavioral data from "%s"\n', path_to_behavior);
+
+if ~exist('path_to_skeleton', 'var')
+    path_to_skeleton = 'skeleton.mat';
+end
+sdata = load(path_to_skeleton);
+fprintf('Loaded skeleton (DLC) data from "%s"\n', path_to_skeleton);
 
 t = sdata.t;
 alpha_n = sdata.alpha_n; % Nose angle
@@ -9,15 +24,15 @@ d_h = sdata.d_h; % Hind limb position
 
 % Behavior metadata
 dataset_name = dirname;
-x_lims = bdata.position.cont([1 end],1);
+x_lims = behavior.position.cont([1 end],1);
 
-velocity = bdata.velocity;
-position = cat(1, bdata.position.by_trial{:}); % Wrapped position
+velocity = behavior.velocity;
+position = cat(1, behavior.position.by_trial{:}); % Wrapped position
 
-movement_onset_times = bdata.movement_onset_times;
-us_times = bdata.us_times;
+movement_onset_times = behavior.movement_onset_times;
+us_times = behavior.us_times;
 num_trials = length(us_times);
-num_total_trials = length(bdata.lick_responses);
+num_total_trials = length(behavior.lick_responses);
 
 % Display results
 %------------------------------------------------------------
@@ -34,15 +49,15 @@ ylabel('Velocity (cm/s)');
 hold on;
 % plot(x_lims, [0 0], 'k--');
 y_pos = v_lims(1) + 0.95*diff(v_lims);
-plot(bdata.lick_times,...
-     y_pos*ones(size(bdata.lick_times)), 'b.');
+plot(behavior.lick_times,...
+     y_pos*ones(size(behavior.lick_times)), 'b.');
 hold off;
 
 yyaxis right;
 p_lims = tight_plot(position(:,1), position(:,2));
 ylabel('Position (encoder count)');
 hold on;
-plot_rectangles(bdata.opto_periods, p_lims);
+plot_rectangles(behavior.opto_periods, p_lims);
 plot_vertical_lines(movement_onset_times, p_lims, 'r:');
 plot_vertical_lines(us_times, p_lims, 'b:');
 hold off;
@@ -55,7 +70,7 @@ set(ax1, 'TickLength', [0 0]);
 ax2 = sp(4,1,2);
 y_lims = tight_plot(t, alpha_n);
 hold on;
-plot_rectangles(bdata.opto_periods, y_lims);
+plot_rectangles(behavior.opto_periods, y_lims);
 plot_vertical_lines(movement_onset_times, y_lims, 'r:');
 plot_vertical_lines(us_times, y_lims, 'b:');
 hold off;
@@ -68,7 +83,7 @@ yyaxis left;
 y_lims = [0 180];
 tight_plot(t, beta_f);
 hold on;
-plot_rectangles(bdata.opto_periods, y_lims);
+plot_rectangles(behavior.opto_periods, y_lims);
 plot(t([1 end]), 90*[1 1], 'k--');
 plot_vertical_lines(movement_onset_times, y_lims, 'r:');
 plot_vertical_lines(us_times, y_lims, 'b:');
@@ -89,7 +104,7 @@ ax4 = sp(4,1,4);
 yyaxis left;
 y_lims = tight_plot(t, d_f);
 hold on;
-plot_rectangles(bdata.opto_periods, y_lims);
+plot_rectangles(behavior.opto_periods, y_lims);
 plot_vertical_lines(movement_onset_times, y_lims, 'r:');
 plot_vertical_lines(us_times, y_lims, 'b:');
 hold off;
