@@ -14,8 +14,8 @@ x_lims = bdata.position.cont([1 end],1);
 velocity = bdata.velocity;
 position = cat(1, bdata.position.by_trial{:}); % Wrapped position
 
-movement_onset_times = bdata.movement_onset_times(bdata.lick_responses);
-us_times = bdata.us_times(bdata.lick_responses);
+movement_onset_times = bdata.movement_onset_times;
+us_times = bdata.us_times;
 num_trials = length(us_times);
 num_total_trials = length(bdata.lick_responses);
 
