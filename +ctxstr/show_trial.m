@@ -10,6 +10,10 @@ a_lims = [0 180];
 
 hfig = figure;
 
+state.t1 = t_dlc(1);
+state.t2 = t_dlc(end);
+state.curr_frame = [];
+
 if ~exist('vid', 'var')
     ax1 = subplot(2,1,1);
     ax2 = subplot(2,1,2);
@@ -32,23 +36,23 @@ else
         t_load, t_load/num_frames*1e3);
        
     % Set up interactive elements
-    subplot(ax1);
-    yyaxis right;
-    h1 = plot_vertical_lines(t_dlc(1), p_lims, 'k-');
-    hold on;
     subplot(ax2);
     yyaxis right;
-    h2 = plot_vertical_lines(t_dlc(1), a_lims, 'k-');
+    h1 = plot_vertical_lines(state.t1, a_lims, 'k:', 'HitTest', 'off');
     hold on;
+    hc = plot_vertical_lines(state.t1, a_lims, 'k-', 'HitTest', 'off');
+    h2 = plot_vertical_lines(state.t2, a_lims, 'k:', 'HitTest', 'off');
     
-    h_b = imagesc(axb, Mb(:,:,1));
-    colormap gray;
+    subplot(axb);
+    h_b = imagesc(Mb(:,:,1), [0 255]);
+    axis image; colormap gray;
     render_frame(1);
     
     % Set up handlers
     set(hfig, 'WindowScrollWheelFcn', @scroll_frame);
-    set(ax1, 'ButtonDownFcn', @go_to_selected_frame);
-    set(ax2, 'ButtonDownFcn', @go_to_selected_frame);
+    set(ax1, 'ButtonDownFcn', @click_handler);
+    set(ax2, 'ButtonDownFcn', @click_handler);
+    set(h_b, 'ButtonDownFcn', @playback_handler);
 end
 
 subplot(ax1);
@@ -88,17 +92,45 @@ ylabel('Hind limb angle (\circ)');
 xlabel('Time (s)');
 xlim(t_lims);
 
-    function go_to_selected_frame(~, e)
+    function click_handler(~, e)
         t = e.IntersectionPoint(1);
         
         % Find the DLC frame nearest to the selected point
         [~, k] = min(abs(t_dlc-t));
+        t = t_dlc(k);
         
-        render_frame(k);
+        switch e.Button
+            case 1 % Left click
+                state.t1 = t;
+                set(h1, 'XData', [t t NaN]);
+                
+                render_frame(k);
+                
+            case 3 % Right click
+                state.t2 = t;
+                set(h2, 'XData', [t t NaN]);
+        end
+    end
+
+    function playback_handler(~, ~)
+        % Disable additional clicks during playback
+        set(h_b, 'ButtonDownFcn', []);
+        
+        t1 = min([state.t1 state.t2]);
+        t2 = max([state.t1 state.t2]);
+        
+        [~, k1] = min(abs(t_dlc-t1));
+        [~, k2] = min(abs(t_dlc-t2));
+        for k = k1:k2
+            render_frame(k);
+        end
+        
+        % Re-enable click
+        set(h_b, 'ButtonDownFcn', @playback_handler);
     end
 
     function scroll_frame(~, e)
-        k = get(h_b, 'UserData');
+        k = state.curr_frame;
         if (e.VerticalScrollCount < 0) % Scroll up
             k = k - 1;
         else
@@ -108,14 +140,15 @@ xlim(t_lims);
     end
 
     function render_frame(k)
-        k = max(1,k); k = min(k,length(t_dlc)); % Clamp
+        k = max(1,k); k = min(k,num_frames); % Clamp
         
         t = t_dlc(k);
-        set(h1, 'XData', [t t NaN]);
-        set(h2, 'XData', [t t NaN]);
+        set(hc, 'XData', [t t NaN]);
         set(h_b, 'CData', Mb(:,:,k));
-        set(h_b, 'UserData', k);
         title(axb, sprintf('Frame %d of %d', k, num_frames));
+        drawnow;
+        
+        state.curr_frame = k;
     end
 
 end % show_trial
