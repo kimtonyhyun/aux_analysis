@@ -32,7 +32,7 @@ end
 Ms = zeros(new_size(1), new_size(2), num_frames, 'single');
 
 for k = 1:num_frames
-    frame = M(:,:,k);
+    frame = single(M(:,:,k));
     frame = imresize(frame, new_size);
     frame = (frame - orig_clim(1)) / diff(orig_clim);
     
