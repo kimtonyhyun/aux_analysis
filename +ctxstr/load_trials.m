@@ -35,7 +35,8 @@ trial_data = struct('ind', [],...
                     't_dlc', [],... % [times(s) index-in-video-file]
                     'beta_f', [],... % [beta_f]
                     'beta_h', [],... % [beta_h]
-                    'lick_response', false);
+                    'lick_response', false,...
+                    'opto', []);
 trial_data = repmat(trial_data, num_trials, 1);
 
 for k = 1:num_trials
@@ -59,6 +60,13 @@ for k = 1:num_trials
     trial_data(k).t_dlc = [sdata.t(ind1:ind2) (ind1:ind2)'];
     trial_data(k).beta_f = sdata.beta_f(ind1:ind2);
     trial_data(k).beta_h = sdata.beta_h(ind1:ind2);
+    
+    for m = 1:size(behavior.opto_periods,1)
+        t = range_intersection(behavior.opto_periods(m,:), t_lims);
+        if ~isempty(t)
+            trial_data(k).opto = t;
+        end
+    end
 end
 
 end
