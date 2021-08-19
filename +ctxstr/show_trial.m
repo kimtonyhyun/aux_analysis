@@ -133,6 +133,7 @@ xlim(t_lims);
                     break;
                 end
             end
+            playback_active = false;
         end
     end
 
