@@ -14,13 +14,16 @@ playback_active = false;
 state.t1 = t_dlc(1);
 state.curr_frame = [];
 
+% Custom "subplot" command that leaves less unusued space between panels
+sp = @(m,n,p) subtightplot(m, n, p, 0.05, 0.05, 0.05); % Gap, Margin-X, Margin-Y
+
 if ~exist('vid', 'var')
-    ax1 = subplot(2,1,1);
-    ax2 = subplot(2,1,2);
+    ax1 = sp(2,1,1);
+    ax2 = sp(2,1,2);
 else
-    ax1 = subplot(2,2,1);
-    ax2 = subplot(2,2,3);
-    axb = subplot(2,2,[2 4]);
+    ax1 = sp(2,2,1);
+    ax2 = sp(2,2,3);
+    axb = sp(2,2,[2 4]);
     
     % Load behavioral movie for the trial
     %------------------------------------------------------------
@@ -50,6 +53,8 @@ else
     
     subplot(axb);
     h_b = imagesc(Mb(:,:,1), [0 255]);
+    set(axb, 'XTick', []);
+    set(axb, 'YTick', []);
     axis image; colormap gray;
     render_frame(1);
     
