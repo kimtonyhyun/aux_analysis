@@ -10,8 +10,8 @@ a_lims = [0 180];
 
 hfig = figure;
 
+playback_active = false;
 state.t1 = t_dlc(1);
-state.t2 = t_dlc(end);
 state.curr_frame = [];
 
 if ~exist('vid', 'var')
@@ -38,15 +38,15 @@ else
     % Set up interactive elements
     subplot(ax1);
     yyaxis right;
-    hc1 = plot_vertical_lines(state.t1, p_lims, 'k-', 'HitTest', 'off');
+    h_time_origin1 = plot_vertical_lines(state.t1, p_lims, 'k:', 'HitTest', 'off');
     hold on;
+    h_time_current1 = plot_vertical_lines(state.t1, p_lims, 'k-', 'HitTest', 'off');
     
     subplot(ax2);
     yyaxis right;
-    h1 = plot_vertical_lines(state.t1, a_lims, 'k:', 'HitTest', 'off');
+    h_time_origin2 = plot_vertical_lines(state.t1, a_lims, 'k:', 'HitTest', 'off');
     hold on;
-    hc2 = plot_vertical_lines(state.t1, a_lims, 'k-', 'HitTest', 'off');
-    h2 = plot_vertical_lines(state.t2, a_lims, 'k:', 'HitTest', 'off');
+    h_time_current2 = plot_vertical_lines(state.t1, a_lims, 'k-', 'HitTest', 'off');
     
     subplot(axb);
     h_b = imagesc(Mb(:,:,1), [0 255]);
@@ -87,7 +87,7 @@ yyaxis right;
 plot(t_dlc, trial.beta_h, 'HitTest', 'off');
 hold on;
 plot_rectangles(trial.opto, a_lims);
-plot(t_lims, 90*[1 1], 'k--');
+plot(t_lims, 90*[1 1], 'k--', 'HitTest', 'off');
 plot_vertical_lines(trial.movement_onset_time, a_lims, 'r:', 'HitTest', 'off');
 plot_vertical_lines([t0 trial.us_time], a_lims, 'b:', 'HitTest', 'off');
 plot(trial.lick_times, 175*ones(size(trial.lick_times)), 'b.', 'HitTest', 'off');
@@ -109,31 +109,31 @@ xlim(t_lims);
         switch e.Button
             case 1 % Left click
                 state.t1 = t;
-                set(h1, 'XData', [t t NaN]);
+                set(h_time_origin1, 'XData', [t t NaN]);
+                set(h_time_origin2, 'XData', [t t NaN]);
                 
                 render_frame(k);
+                playback_active = false;
                 
             case 3 % Right click
-                state.t2 = t;
-                set(h2, 'XData', [t t NaN]);
+                fprintf('  Not implemented\n');
         end
     end
 
     function playback_handler(~, ~)
-        % Disable additional clicks during playback
-        set(h_b, 'ButtonDownFcn', []);
-        
-        t1 = min([state.t1 state.t2]);
-        t2 = max([state.t1 state.t2]);
-        
-        [~, k1] = min(abs(t_dlc-t1));
-        [~, k2] = min(abs(t_dlc-t2));
-        for k = k1:k2
-            render_frame(k);
+        if playback_active
+            playback_active = false;
+        else
+            [~, k1] = min(abs(t_dlc-state.t1));
+            playback_active = true;
+            for k = k1:num_frames
+                if playback_active
+                    render_frame(k);
+                else
+                    break;
+                end
+            end
         end
-        
-        % Re-enable click
-        set(h_b, 'ButtonDownFcn', @playback_handler);
     end
 
     function scroll_frame(~, e)
@@ -150,8 +150,8 @@ xlim(t_lims);
         k = max(1,k); k = min(k,num_frames); % Clamp
         
         t = t_dlc(k);
-        set(hc1, 'XData', [t t NaN]);
-        set(hc2, 'XData', [t t NaN]);
+        set(h_time_current1, 'XData', [t t NaN]);
+        set(h_time_current2, 'XData', [t t NaN]);
         set(h_b, 'CData', Mb(:,:,k));
         title(axb, sprintf('Frame %d of %d', k, num_frames));
         drawnow;
