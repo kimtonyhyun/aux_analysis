@@ -1,4 +1,4 @@
-function show_trial(trial, vid)
+function hfig = show_trial(trial, vid, hfig)
 
 t_lims = trial.times;
 t0 = trial.start_time;
@@ -8,7 +8,12 @@ t_dlc = trial.t_dlc(:,1);
 p_lims = trial.position([1 end],2);
 a_lims = [0 180];
 
-hfig = figure;
+if exist('hfig', 'var')
+    figure(hfig);
+    clf;
+else
+    hfig = figure;
+end
 
 playback_active = false;
 state.t1 = t_dlc(1);
@@ -78,6 +83,7 @@ hold on;
 plot_rectangles(trial.opto, p_lims);
 plot_vertical_lines(trial.movement_onset_time, p_lims, 'r:', 'HitTest', 'off');
 plot_vertical_lines([t0 trial.us_time], p_lims, 'b:', 'HitTest', 'off');
+plot(trial.lick_times, 0.95*p_lims(2)*ones(size(trial.lick_times)), 'b.', 'HitTest', 'off');
 hold off;
 set(ax1, 'TickLength', [0 0]);
 title(sprintf('Trial %d', trial.ind));
@@ -95,7 +101,7 @@ plot_rectangles(trial.opto, a_lims);
 plot(t_lims, 90*[1 1], 'k--', 'HitTest', 'off');
 plot_vertical_lines(trial.movement_onset_time, a_lims, 'r:', 'HitTest', 'off');
 plot_vertical_lines([t0 trial.us_time], a_lims, 'b:', 'HitTest', 'off');
-plot(trial.lick_times, 175*ones(size(trial.lick_times)), 'b.', 'HitTest', 'off');
+plot(trial.lick_times, 0.95*a_lims(2)*ones(size(trial.lick_times)), 'b.', 'HitTest', 'off');
 hold off;
 ylim(a_lims);
 set(ax2, 'YTick', 0:45:180);
