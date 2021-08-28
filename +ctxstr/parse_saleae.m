@@ -1,5 +1,9 @@
 function [ctx, str, behavior, info] = parse_saleae(source)
 
+if ~exist('source', 'var')
+    source = 'behavior.csv';
+end
+
 % Define Saleae channels
 encA_ch = 0;
 encB_ch = 1;
