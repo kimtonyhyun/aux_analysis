@@ -30,8 +30,8 @@ t = toc; fprintf('Done in %.1f seconds!\n', t);
 behavior_frame_times = find_edges(data, behavior_clock_ch);
 behavior_recording_duration = behavior_frame_times(end) - behavior_frame_times(1);
 T_beh = mean(diff(behavior_frame_times));
-fprintf('Behavior camera:\n  Found %d frames at %.2f FPS\n  Total length of behavioral recording: %.1f minutes\n',...
-    length(behavior_frame_times), 1/T_beh, behavior_recording_duration/60);
+fprintf('Behavior camera:\n  Found %d frames at %.2f FPS\n  Total length of behavioral recording: %.1f s (=%.1f min)\n',...
+    length(behavior_frame_times), 1/T_beh, behavior_recording_duration, behavior_recording_duration/60);
 
 % Encoder
 cpr = 500; % clicks per rotation
