@@ -47,11 +47,11 @@ At this point, one can visualize all DLC coordinates as traces (e.g. to look for
 ```
 In addition, one can play back the behavioral video with the DLC coordinates overlaid, by using:
 ```
->> ctxstr.dlc.verify(dlc, 'oh28-0208-down.mp4');
+>> ctxstr.dlc.verify('oh28-0208-down.mp4', dlc);
 ```
 Optionally, one can draw lines between the front limbs, between the hind limbs, and between the nose and tail, by using the optional `draw_lines` toggle:
 ```
->> ctxstr.dlc.verify(dlc, 'oh28-0208-down.mp4', 'drawlines');
+>> ctxstr.dlc.verify('oh28-0208-down.mp4', dlc, 'drawlines');
 ```
 
 ## 3. Compute the skeleton
