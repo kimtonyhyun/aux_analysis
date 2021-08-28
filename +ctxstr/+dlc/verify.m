@@ -1,7 +1,7 @@
-function verify(dlc, behavior_vid, varargin)
+function verify(behavior_vid, dlc, varargin)
 % Example usage:
 % >> dlc = load('dlc.mat');
-% >> ctxstr.dlc.verify(dlc, 'oh21-10-22-down.mp4');
+% >> ctxstr.dlc.verify('oh21-10-22-down.mp4', dlc);
 
 draw_lines = false;
 for k = 1:length(varargin)
@@ -12,6 +12,10 @@ for k = 1:length(varargin)
                 draw_lines = true;
         end
     end
+end
+
+if ~exist('dlc', 'var')
+    dlc = load('dlc.mat');
 end
 
 num_coords = length(dlc.t);

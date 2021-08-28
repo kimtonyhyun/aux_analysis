@@ -2,6 +2,10 @@ function compute_skeleton(dlc_data)
 % Compute skeleton parameters from raw DLC coordinates. See definitions in
 % the 2020 Oct 20 diagram.
 
+if ~exist('dlc_data', 'var')
+    dlc_data = load('dlc.mat');
+end
+
 t = dlc_data.t;
 
 front_left = dlc_data.front_left(:,1:2);
