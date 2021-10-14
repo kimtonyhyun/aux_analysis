@@ -165,7 +165,7 @@ xlim(t_lims);
         set(h_time_current1, 'XData', [t t NaN]);
         set(h_time_current2, 'XData', [t t NaN]);
         set(h_b, 'CData', Mb(:,:,k));
-        title(axb, sprintf('Frame %d of %d', k, num_frames));
+        title(axb, sprintf('Frame %d of %d; Time = %.2f s', k, num_frames, t));
         drawnow;
         
         state.curr_frame = k;
