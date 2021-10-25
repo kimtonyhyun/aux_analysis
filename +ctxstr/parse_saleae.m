@@ -62,13 +62,16 @@ us_times = find_edges(data, us_ch);
 num_pulses_per_reward = sum((us_times - us_times(1)) < 0.1);
 fprintf('Rewards:\n  Detected %d solenoid pulses per reward\n', num_pulses_per_reward);
 us_times = us_times(1:num_pulses_per_reward:end);
+num_rewards = length(us_times);
+
+trial_start_times = us_times(1:end-1);
+trial_durations = diff(us_times);
 
 % Movement onset
 % Onset defined by distance traveled towards reward threshold
 
 % First, determine the reward threshold from the position data. To do this,
 % split the position trace across individual trials, defined by the US.
-num_rewards = length(us_times);
 inds = zeros(num_rewards,1);
 for k = 1:num_rewards
     us_time = us_times(k);
@@ -165,8 +168,10 @@ behavior.position.cont = pos; % [time encoder-counts]
 behavior.position.by_trial = pos_by_trial; % Can be converted into a regular matrix by: pos_wrapped = cat(1, behavior.position.by_trial{:});
 behavior.position.us_threshold = us_threshold;
 behavior.velocity = [t' velocity']; % [time cm/s]
+behavior.trial_start_times = trial_start_times;
 behavior.movement_onset_times = movement_onset_times;
 behavior.us_times = us_times;
+behavior.trial_durations = trial_durations;
 behavior.lick_times = lick_times;
 behavior.lick_responses = logical(lick_responses);
 behavior.opto_periods = opto_periods;
@@ -190,14 +195,14 @@ elseif (num_str_frames == 0) % Ctx-only imaging
 elseif (num_ctx_frames == 0) % Str-only imaging
     imaging_start_time = str_frame_times(1);
     imaging_end_time = str_frame_times(end);
-else % Dual-site imaging
+else
+    % Dual-site imaging. Note that trials are exported only if the trial
+    % is captured by _both_ ctx and str recordings.
     imaging_start_time = max(ctx_frame_times(1), str_frame_times(1));
     imaging_end_time = min(ctx_frame_times(end), str_frame_times(end));
 end
 
-% For a trial to be considered to be "contained" in the imaging period, the
-% motion onset time must also be covered by the imaging period.
-first_imaged_trial = find(movement_onset_times > imaging_start_time, 1, 'first');
+first_imaged_trial = find(trial_start_times > imaging_start_time, 1, 'first');
 last_imaged_trial = find(us_times < imaging_end_time, 1, 'last');
 imaged_trials = first_imaged_trial:last_imaged_trial;
 fprintf('%d of %d trials (rewards) fully contained in the imaging period\n', length(imaged_trials), num_rewards);
@@ -264,6 +269,7 @@ info.saleae.time_window = times([1 end])'; % seconds
 info.params.velocity_dt = dt; % Used for velocity computation
 info.params.movement_onset_threshold = movement_onset_threshold;
 info.params.lick_response_window = lick_response_window; % seconds
+info.imaged_trials = imaged_trials;
 
 save('ctxstr.mat', 'ctx', 'str', 'behavior', 'info');
 
@@ -281,8 +287,12 @@ function generate_pmtext(outname, movement_onset_frames, reward_frames, response
         mof = movement_onset_frames(k);
         rf = reward_frames(k);
         
-        % Trial frames
-        % Note: We provide a 2 s buffer around motion onset and reward
+        % Trial frames. Notes:
+        %   - We provide a 2 s buffer around motion onset and reward.
+        %   - The fixed 2 s buffer means that even if the USes demarking
+        %     each trial was contained in the imaging period, it's possible
+        %     that the 2 s buffers may not be fully contained in the 
+        %     imaging period.
         tf = [mof-2*imaging_fps mof rf rf+2*imaging_fps];
         if (tf(1) > 0) && (tf(4) < max_frames)
             fprintf(fid, '%s %d %d %d %d\n', pm_filler,...
