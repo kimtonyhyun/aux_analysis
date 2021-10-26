@@ -207,8 +207,9 @@ last_imaged_trial = find(us_times < imaging_end_time, 1, 'last');
 imaged_trials = first_imaged_trial:last_imaged_trial;
 fprintf('%d of %d trials (rewards) fully contained in the imaging period\n', length(imaged_trials), num_rewards);
 
-imaged_us_times = us_times(imaged_trials);
+imaged_trial_start_times = trial_start_times(imaged_trials);
 imaged_movement_onset_times = movement_onset_times(imaged_trials);
+imaged_us_times = us_times(imaged_trials);
 imaged_lick_responses = lick_responses(imaged_trials);
 
 % Ctx
@@ -221,16 +222,19 @@ else
     
     ctx.frame_times = ctx_frame_times;
     
-    ctx.us = assign_edge_to_frames(imaged_us_times, ctx_frame_times);
-    ctx_us_frames = find(ctx.us);
+    ctx.trial_start = assign_edge_to_frames(imaged_trial_start_times, ctx_frame_times);
+    ctx_trial_start_frames = find(ctx.trial_start);
     
     ctx.movement_onset = assign_edge_to_frames(imaged_movement_onset_times, ctx_frame_times);
     ctx_movement_onset_frames = find(ctx.movement_onset);
     
+    ctx.us = assign_edge_to_frames(imaged_us_times, ctx_frame_times);
+    ctx_us_frames = find(ctx.us);
+    
     ctx.lick = assign_edge_to_frames(lick_times, ctx_frame_times);
     ctx.velocity = interp1(t, velocity, ctx_frame_times);  
     
-    generate_pmtext('ctx.txt', ctx_movement_onset_frames, ctx_us_frames, imaged_lick_responses, ctx_fps, num_ctx_frames);
+    generate_pmtext('ctx.txt', ctx_trial_start_frames, ctx_movement_onset_frames, ctx_us_frames, imaged_lick_responses, ctx_fps, num_ctx_frames);
 end
 
 % Str
@@ -243,16 +247,19 @@ else
     
     str.frame_times = str_frame_times;
     
-    str.us = assign_edge_to_frames(imaged_us_times, str_frame_times);
-    str_us_frames = find(str.us);
+    str.trial_start = assign_edge_to_frames(imaged_trial_start_times, str_frame_times);
+    str_trial_start_frames = find(str.trial_start);
     
     str.movement_onset = assign_edge_to_frames(imaged_movement_onset_times, str_frame_times);
     str_movement_onset_frames = find(str.movement_onset);
     
+    str.us = assign_edge_to_frames(imaged_us_times, str_frame_times);
+    str_us_frames = find(str.us);
+    
     str.lick = assign_edge_to_frames(lick_times, str_frame_times);
     str.velocity = interp1(t, velocity, str_frame_times);
 
-    generate_pmtext('str.txt', str_movement_onset_frames, str_us_frames, imaged_lick_responses, str_fps, num_str_frames);
+    generate_pmtext('str.txt', str_trial_start_frames, str_movement_onset_frames, str_us_frames, imaged_lick_responses, str_fps, num_str_frames);
 end
 
 % Save results to file
@@ -275,7 +282,7 @@ save('ctxstr.mat', 'ctx', 'str', 'behavior', 'info');
 
 end % parse_ctxstr
 
-function generate_pmtext(outname, movement_onset_frames, reward_frames, responses, imaging_fps, max_frames)
+function generate_pmtext(outname, trial_start_frames, movement_onset_frames, reward_frames, responses, imaging_fps, max_frames)
     fid = fopen(outname, 'w');
     for k = 1:length(reward_frames)
         if responses(k)
@@ -284,16 +291,15 @@ function generate_pmtext(outname, movement_onset_frames, reward_frames, response
             pm_filler = 'east north south 10.0'; % "Incorrect" trial
         end
         
+        tsf = trial_start_frames(k);
         mof = movement_onset_frames(k);
         rf = reward_frames(k);
         
         % Trial frames. Notes:
-        %   - We provide a 2 s buffer around motion onset and reward.
-        %   - The fixed 2 s buffer means that even if the USes demarking
-        %     each trial was contained in the imaging period, it's possible
-        %     that the 2 s buffers may not be fully contained in the 
-        %     imaging period.
-        tf = [mof-2*imaging_fps mof rf rf+2*imaging_fps];
+        %   - We provide a 2 s buffer after reward.
+        %   - It's possible that the 2 s buffer is not fully contained in
+        %     the imaging period, for the last trial.
+        tf = [tsf mof rf rf+2*imaging_fps];
         if (tf(1) > 0) && (tf(4) < max_frames)
             fprintf(fid, '%s %d %d %d %d\n', pm_filler,...
                 tf(1), tf(2), tf(3), tf(4));
