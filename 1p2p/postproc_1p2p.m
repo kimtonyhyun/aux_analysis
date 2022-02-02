@@ -8,8 +8,8 @@ clear all;
 path_to_dataset1 = '1P';
 path_to_dataset2 = '2P';
 
-ds = DaySummary([], fullfile(path_to_dataset1, 'ext1/proj_ti4'));
-ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/proj_ti4'));
+ds = DaySummary([], fullfile(path_to_dataset1, 'ext1/ls_ti4'));
+ds2 = DaySummary([], fullfile(path_to_dataset2, 'ext1/ls_ti4'));
 
 %% Temporal correlations facilitate identification of matched cells
 

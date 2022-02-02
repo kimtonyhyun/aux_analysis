@@ -9,6 +9,7 @@ filename_1p = get_most_recent_file('', '*.hdf5');
 filename_2p = get_most_recent_file('', '*.tif');
 
 M_2p = load_scanimage_tif(filename_2p);
+% M_2p = M_2p(:,:,1:2:end);
 
 %%
 
@@ -40,7 +41,7 @@ M_2p = M_2p(:,:,keep_frames);
 
 horiz_trim = 15;
 keep_cols_2p = (1+horiz_trim):(size(M_2p,2)-horiz_trim);
-keep_rows_2p = 80:440;
+keep_rows_2p = 85:445;
 
 M_2p = M_2p(keep_rows_2p, keep_cols_2p, :);
 
@@ -106,13 +107,13 @@ config = get_defaults([]);
 config.preprocess = 0;
 config.remove_stationary_baseline = 0;
 config.cellfind_filter_type = 'none';
-config.cellfind_min_snr = 1;
+config.cellfind_min_snr = 0;
 
 switch dirname
     case '1P'
         config.num_partitions_x = 3;
         config.num_partitions_y = 3;
-        config.avg_cell_radius = 15;
+        config.avg_cell_radius = 10;
         
     otherwise % Assume 2P
         config.num_partitions_x = 1;
