@@ -32,7 +32,11 @@ else
     
     % Load behavioral movie for the trial
     %------------------------------------------------------------
-    Mb = load_behavior_movie_frames(vid, trial.t_dlc(1,2), trial.t_dlc(end,2));
+    if iscell(vid) % Videos have been pre-loaded into memory
+        Mb = vid{trial.ind};
+    else % Assume VideoReader object
+        Mb = load_behavior_movie_frames(vid, trial.t_dlc(1,2), trial.t_dlc(end,2));
+    end
     num_frames = size(Mb, 3);
        
     % Set up interactive elements
