@@ -32,16 +32,8 @@ else
     
     % Load behavioral movie for the trial
     %------------------------------------------------------------
-    frames_to_load = trial.t_dlc([1 end],2);
-    num_frames = diff(frames_to_load) + 1;
-    tic;
-    fprintf('Loading frames %d-%d (%d total) for Trial %d... ',...
-        frames_to_load(1), frames_to_load(2), num_frames, trial.ind);
-    Mb = vid.read(frames_to_load);
-    Mb = squeeze(Mb(:,:,1,:)); % Data is grayscale
-    t_load = toc;
-    fprintf('Done! (%.1f s; %.1f ms/frame)\n',...
-        t_load, t_load/num_frames*1e3);
+    Mb = ctxstr.load_behavior_movie(vid, trial.t_dlc(1,2), trial.t_dlc(end,2));
+    num_frames = size(Mb, 3);
        
     % Set up interactive elements
     subplot(ax1);
