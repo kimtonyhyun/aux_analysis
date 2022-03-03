@@ -32,7 +32,7 @@ else
     
     % Load behavioral movie for the trial
     %------------------------------------------------------------
-    Mb = ctxstr.load_behavior_movie(vid, trial.t_dlc(1,2), trial.t_dlc(end,2));
+    Mb = load_behavior_movie_frames(vid, trial.t_dlc(1,2), trial.t_dlc(end,2));
     num_frames = size(Mb, 3);
        
     % Set up interactive elements
