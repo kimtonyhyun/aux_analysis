@@ -67,9 +67,6 @@ num_rewards = length(us_times);
 trial_start_times = us_times(1:end-1);
 trial_durations = diff(us_times);
 
-% Movement onset
-% Onset defined by distance traveled towards reward threshold
-
 % First, determine the reward threshold from the position data. To do this,
 % split the position trace across individual trials, defined by the US.
 inds = zeros(num_rewards,1);
@@ -96,7 +93,7 @@ end
 us_threshold = mean(cellfun(@(x) x(end,2), pos_by_trial));
 fprintf('  On average, reward delivered after %.1f encoder clicks\n', us_threshold);
 
-% Finally, determine the movement onset based on distance traveled
+% Finally, determine an _approximate_ movement onset based on distance traveled
 movement_onset_threshold = 0.1;
 movement_onset_times = zeros(num_rewards,1);
 for k = 1:num_rewards
