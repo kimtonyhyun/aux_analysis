@@ -2,10 +2,14 @@ function analyze_motion(trials, Mb)
 
 num_trials = length(trials);
 
-% Begin classification
+% For each movement type (e.g. motion onsets), the entry for the k-th trial
+% is a list of times (s; relative to Saleae record) where the movement was
+% observed. Each trial may have multiple times where a specific movement
+% type was observed (e.g. multiple movement onsets if the mouse came to
+% rest before completing the trial). In the future, may add more movement
+% types beyond motion onsets.
 %------------------------------------------------------------
-timestamp = datestr(now, 'yymmdd-HHMMSS');
-output_name = sprintf('tdt_%s.mat', timestamp);
+onsets = cell(num_trials, 1);
 
 h = figure;
 
@@ -23,6 +27,7 @@ while (trial_idx <= num_trials)
     if (~isnan(val)) % Is a number. Check if it is a valid index and jump to it
         if ((1 <= val) && (val <= num_trials))
             trial_idx = val;
+            ctxstr.show_trial(trials(trial_idx), Mb, h);
         else
             fprintf('  Sorry, %d is not a valid trial index\n', val);
         end
@@ -30,13 +35,15 @@ while (trial_idx <= num_trials)
 
         resp = lower(resp);
         switch (resp)
-            % Application options
+            % Label movements
             %------------------------------------------------------------
             case 'c'
                 t0 = h.UserData.t0;
                 fprintf('Selected time: %.3f s\n', t0);
-                
-            case ''  % Go to next unlabeled cell candidate, loop at end
+            
+            % Application options
+            %------------------------------------------------------------                
+            case ''
                 if trial_idx < num_trials
                     trial_idx = trial_idx + 1;
                     ctxstr.show_trial(trials(trial_idx), Mb, h);

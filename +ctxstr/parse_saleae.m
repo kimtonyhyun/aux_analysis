@@ -47,7 +47,7 @@ fprintf('Encoder:\n  Logged %.1f rotations over %.1f seconds\n',...
 R = 14.5/2; % cm, measured 2020 Nov 17
 pos_cm = 2*pi*R/cpr*pos(:,2); % Convert to distance (cm)
 
-dt = 0.25; % seconds, used for velocity estimation
+dt = 0.1; % seconds, used for velocity estimation
 t = dt:dt:(times(end)-dt);
 pos2 = interp1(pos(:,1), pos_cm, t+dt/2);
 pos1 = interp1(pos(:,1), pos_cm, t-dt/2);
