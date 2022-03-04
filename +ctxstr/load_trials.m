@@ -20,46 +20,46 @@ end
 sdata = load(path_to_skeleton);
 fprintf('Loaded skeleton (DLC) data from "%s"\n', path_to_skeleton);
 
-% Parse into trials. Note that 'position', 'velocity', 't_dlc' have
-% different time-bases, as indicated in the comments below.
+% Parse into trials. Note that 'position', 'velocity', 'dlc.t' have
+% different time-bases.
 %------------------------------------------------------------
 num_trials = length(behavior.us_times);
 trial_data = struct('ind', [],...
                     'times', [],...
                     'start_time', [],...
-                    'movement_onset_time', [],...
                     'us_time', [],...
+                    'duration', [],...
+                    'lick_response', false,...
                     'lick_times', [],...
                     'position', [],... % [t_p, pos]
                     'velocity', [],... % [t_v, vel]
-                    't_dlc', [],... % [times(s) index-in-video-file]
-                    'beta_f', [],... % [beta_f]
-                    'beta_h', [],... % [beta_h]
-                    'lick_response', false,...
+                    'dlc', [],...
+                    'motion', [],...
                     'opto', []);
 trial_data = repmat(trial_data, num_trials, 1);
 
 for k = 1:num_trials
     trial_data(k).ind = k;
-    
-    trial_data(k).position = behavior.position.by_trial{k};
-    trial_data(k).lick_response = behavior.lick_responses(k);
-    trial_data(k).start_time = trial_data(k).position(1,1);
-    trial_data(k).movement_onset_time = behavior.movement_onset_times(k);
-    trial_data(k).us_time = behavior.us_times(k);
+    trial_data(k).position = behavior.position.by_trial{k}; % Use prior trial parsing from 'parse_saleae'
     
     t_lims = trial_data(k).position([1 end],1) + trial_padding * [-1 1]';
-    trial_data(k).times = t_lims;
+    trial_data(k).times = t_lims; % Includes padding
     
-    trial_data(k).lick_times = find_licks(behavior.lick_times, t_lims);
+    trial_data(k).start_time = trial_data(k).position(1,1); % Defined by previous US
+    trial_data(k).us_time = behavior.us_times(k);
+    trial_data(k).duration = trial_data(k).us_time - trial_data(k).start_time;
+    
+    trial_data(k).lick_response = behavior.lick_responses(k);
+    trial_data(k).lick_times = find_licks(behavior.lick_times, t_lims); % All licks in trial + padding
     
     [ind1, ind2] = find_inds(behavior.velocity(:,1), t_lims);
     trial_data(k).velocity = behavior.velocity(ind1:ind2, :);
     
     [ind1, ind2] = find_inds(sdata.t, t_lims);
-    trial_data(k).t_dlc = [sdata.t(ind1:ind2) (ind1:ind2)'];
-    trial_data(k).beta_f = sdata.beta_f(ind1:ind2);
-    trial_data(k).beta_h = sdata.beta_h(ind1:ind2);
+    dlc_data.t = [sdata.t(ind1:ind2) (ind1:ind2)'];
+    dlc_data.beta_f = sdata.beta_f(ind1:ind2);
+    dlc_data.beta_h = sdata.beta_h(ind1:ind2);
+    trial_data(k).dlc = dlc_data;
     
     for m = 1:size(behavior.opto_periods,1)
         t = range_intersection(behavior.opto_periods(m,:), t_lims);

@@ -89,7 +89,7 @@ for k = 1:num_rewards
     pos_by_trial{k} = pos_k;
 end
 
-% Next, determine the empirical distance threhsold for reward
+% Next, determine the empirical distance threshold for reward
 us_threshold = mean(cellfun(@(x) x(end,2), pos_by_trial));
 fprintf('  On average, reward delivered after %.1f encoder clicks\n', us_threshold);
 
@@ -183,6 +183,7 @@ str_frame_times = find_edges(data, str_clock_ch);
 num_str_frames = length(str_frame_times);
 
 % Find USes that occured during imaging
+is_dual = false;
 if (num_ctx_frames == 0) && (num_str_frames == 0) % Behavior only
     imaging_start_time = Inf;
     imaging_end_time = -Inf;
@@ -195,6 +196,7 @@ elseif (num_ctx_frames == 0) % Str-only imaging
 else
     % Dual-site imaging. Note that trials are exported only if the trial
     % is captured by _both_ ctx and str recordings.
+    is_dual = true;
     imaging_start_time = max(ctx_frame_times(1), str_frame_times(1));
     imaging_end_time = min(ctx_frame_times(end), str_frame_times(end));
 end
@@ -202,7 +204,11 @@ end
 first_imaged_trial = find(trial_start_times > imaging_start_time, 1, 'first');
 last_imaged_trial = find(us_times < imaging_end_time, 1, 'last');
 imaged_trials = first_imaged_trial:last_imaged_trial;
-fprintf('%d of %d trials (rewards) fully contained in the imaging period\n', length(imaged_trials), num_rewards);
+if is_dual
+    fprintf('%d of %d trials (rewards) fully contained in BOTH ctx and str imaging periods\n', length(imaged_trials), num_rewards);
+else
+    fprintf('%d of %d trials (rewards) fully contained in the imaging period\n', length(imaged_trials), num_rewards);
+end
 
 imaged_trial_start_times = trial_start_times(imaged_trials);
 imaged_movement_onset_times = movement_onset_times(imaged_trials);
