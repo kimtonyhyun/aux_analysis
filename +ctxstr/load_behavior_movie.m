@@ -10,5 +10,5 @@ Mb = cell(num_trials, 1);
 for k = 1:num_trials
     fprintf('%d/%d: ', k, num_trials);
     Mb{k} = load_behavior_movie_frames(vid,...
-                trials(k).t_dlc(1,2), trials(k).t_dlc(end,2));
+                trials(k).dlc.t(1,2), trials(k).dlc.t(end,2));
 end
