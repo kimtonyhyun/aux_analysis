@@ -1,4 +1,4 @@
-function trial_data = load_trials(path_to_behavior, path_to_skeleton)
+function trial_data = load_trials(path_to_behavior, path_to_skeleton, path_to_motion)
 % Load various behavioral data into a trial structure. Requires:
 %   - Output of 'parse_saleae' (i.e. "ctxstr.mat")
 %   - Output of 'dlc.compute_skeleton' (i.e. "skeleton.mat")
@@ -8,17 +8,28 @@ function trial_data = load_trials(path_to_behavior, path_to_skeleton)
 trial_padding = 1; % seconds. Visualize period before and after each trial
 
 if ~exist('path_to_behavior', 'var')
-    path_to_behavior = 'ctxstr.mat';
+    path_to_behavior = fullfile(pwd, 'ctxstr.mat');
 end
 bdata = load(path_to_behavior);
 behavior = bdata.behavior;
 fprintf('Loaded behavioral data from "%s"\n', path_to_behavior);
 
 if ~exist('path_to_skeleton', 'var')
-    path_to_skeleton = 'skeleton.mat';
+    path_to_skeleton = fullfile(pwd, 'skeleton.mat');
 end
 sdata = load(path_to_skeleton);
 fprintf('Loaded skeleton (DLC) data from "%s"\n', path_to_skeleton);
+
+if ~exist('path_to_motion', 'var')
+    % If motion file not provided, try to find it
+    path_to_motion = get_most_recent_file(pwd, 'motion_*.mat');
+end
+if ~isempty(path_to_motion)
+    mdata = load(path_to_motion);
+    fprintf('Loaded motion analysis data from "%s"\n', path_to_motion);
+else
+    mdata = [];
+end
 
 % Parse into trials. Note that 'position', 'velocity', 'dlc.t' have
 % different time-bases.
@@ -34,8 +45,8 @@ trial_data = struct('ind', [],...
                     'position', [],... % [t_p, pos]
                     'velocity', [],... % [t_v, vel]
                     'dlc', [],...
-                    'motion', [],...
-                    'opto', []);
+                    'opto', [],...
+                    'motion', struct('onsets', []));
 trial_data = repmat(trial_data, num_trials, 1);
 
 for k = 1:num_trials
@@ -66,6 +77,10 @@ for k = 1:num_trials
         if ~isempty(t)
             trial_data(k).opto = t;
         end
+    end
+    
+    if ~isempty(mdata)
+        trial_data(k).motion.onsets = mdata.onsets{k};
     end
 end
 

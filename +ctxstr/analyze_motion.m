@@ -1,4 +1,4 @@
-function analyze_motion(trials, Mb)
+function motion = analyze_motion(trials, Mb)
 
 num_trials = length(trials);
 
@@ -13,21 +13,21 @@ onsets = cell(num_trials, 1);
 
 h = figure;
 
-trial_idx = 1;
-ctxstr.show_trial(trials(trial_idx), Mb, h);
+k = 1; % Trial index
+ctxstr.show_trial(trials(k), Mb, h);
 
-while (trial_idx <= num_trials)   
+while (k <= num_trials)   
 
     % Prompt for user interaction
-    prompt = sprintf('motion analyzer (Trial %d of %d) >> ', ...
-                        trial_idx, num_trials);
+    prompt = sprintf('motion analyzer (%d/%d) >> ', ...
+                        k, num_trials);
     resp = strtrim(input(prompt, 's'));
     
     val = str2double(resp);
     if (~isnan(val)) % Is a number. Check if it is a valid index and jump to it
         if ((1 <= val) && (val <= num_trials))
-            trial_idx = val;
-            ctxstr.show_trial(trials(trial_idx), Mb, h);
+            k = val;
+            ctxstr.show_trial(trials(k), Mb, h);
         else
             fprintf('  Sorry, %d is not a valid trial index\n', val);
         end
@@ -38,15 +38,16 @@ while (trial_idx <= num_trials)
             % Label movements
             %------------------------------------------------------------
             case 'c'
-                t0 = h.UserData.t0;
-                fprintf('Selected time: %.3f s\n', t0);
+                t0 = h.UserData.t0; % Selected time
+                onsets{k} = [onsets{k} t0];
+                fprintf('  Motion onset at t=%.3f s\n', t0);
             
             % Application options
             %------------------------------------------------------------                
             case ''
-                if trial_idx < num_trials
-                    trial_idx = trial_idx + 1;
-                    ctxstr.show_trial(trials(trial_idx), Mb, h);
+                if k < num_trials
+                    k = k + 1;
+                    ctxstr.show_trial(trials(k), Mb, h);
                 else
                     cprintf('blue', 'Analyzed all trials!\n');
                 end
@@ -63,6 +64,14 @@ while (trial_idx <= num_trials)
         end
     end
 end
+
+% Save data
+%------------------------------------------------------------
+timestamp = datestr(now, 'yymmdd-HHMMSS');
+output_name = sprintf('motion_%s.mat', timestamp);
+save(output_name, 'onsets');
+
+motion.onsets = onsets;
 
     % Auxiliary functions
     %------------------------------------------------------------
