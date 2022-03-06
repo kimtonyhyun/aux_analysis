@@ -6,7 +6,7 @@ num_ctx_cells = size(ctx.traces,1);
 num_d1_cells = length(tdt.pos);
 num_d2_cells = length(tdt.neg);
 
-sp = @(m,n,p) subtightplot(m, n, p, 0.02, 0.05, 0.05); % Gap, Margin-X, Margin-Y
+sp = @(m,n,p) subtightplot(m, n, p, 0.01, 0.05, 0.02); % Gap, Margin-X, Margin-Y
 
 p_lims = [0 session.behavior.position.us_threshold]; % Y-scale for encoder position
 v_lims = [-5 max(session.behavior.velocity(:,2))];
@@ -16,6 +16,8 @@ ctx_max = ctx.fps * max(mean(ctx.traces, 1));
 d1_max = str.fps * max(mean(str.traces(tdt.pos,:),1));
 d2_max = str.fps * max(mean(str.traces(tdt.neg,:),1));
 a_lims = [0 max([ctx_max d1_max d2_max])];
+
+v_color = [0 0.4470 0.7410];
 
 for k = 1:num_trials_to_show
     trial_idx = trials_to_show(k);
@@ -79,13 +81,14 @@ for k = 1:num_trials_to_show
     plot(str_t, mean_d2_trace, 'b');
     plot_vertical_lines([trial.start_time, trial.us_time], a_lims, 'b:');
     plot_vertical_lines(trial.motion.onsets, a_lims, 'r:');
+    plot(trial.lick_times, 0.95*a_lims(2)*ones(size(trial.lick_times)), 'b.');
     hold off;
     xlim(t_lims);
     ylim(a_lims);
     if k == 1
         ylabel('Pop. mean spike rate (Hz)');
     else
-%         set(gca, 'YTick', []);
+        set(gca, 'YTick', []);
     end
     set(gca, 'XTick', []);
     set(gca, 'TickLength', [0 0]);
@@ -94,7 +97,7 @@ for k = 1:num_trials_to_show
     yyaxis left;
     plot(trial.velocity(:,1), trial.velocity(:,2));
     hold on;
-    plot(t_lims, [0 0], 'k:');
+    plot(t_lims, [0 0], '--', 'Color', v_color);
     hold off;
     ylim(v_lims);
     if k == 1

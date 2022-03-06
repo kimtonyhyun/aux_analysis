@@ -24,4 +24,4 @@ trials = ctxstr.load_trials;
 
 %%
 
-show_ctxstr_trials(111:120, session, trials, ctx, str, tdt);
+ctxstr.show_ctxstr_trials(91:100, session, trials, ctx, str, tdt);
