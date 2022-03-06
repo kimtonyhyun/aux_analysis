@@ -1,10 +1,12 @@
 function trial_data = load_trials(path_to_behavior, path_to_skeleton, path_to_motion)
-% Load various behavioral data into a trial structure. Requires:
-%   - Output of 'parse_saleae' (i.e. "ctxstr.mat")
-%   - Output of 'dlc.compute_skeleton' (i.e. "skeleton.mat")
+% Load various behavioral data into a trial structure.
+%   Requires: 
+%     - Output of 'parse_saleae' (i.e. "ctxstr.mat")
+%   Optionally reads in:
+%     - Output of 'dlc.compute_skeleton' (i.e. "skeleton.mat")
+%     - Output of 'analyze_motion' (i.e. "motion_*.mat")
 
-% Defaults
-%------------------------------------------------------------
+% Default params
 trial_padding = 1; % seconds. Visualize period before and after each trial
 
 if ~exist('path_to_behavior', 'var')
@@ -15,10 +17,14 @@ behavior = bdata.behavior;
 fprintf('Loaded behavioral data from "%s"\n', path_to_behavior);
 
 if ~exist('path_to_skeleton', 'var')
-    path_to_skeleton = fullfile(pwd, 'skeleton.mat');
+    path_to_skeleton = get_most_recent_file(pwd, 'skeleton.mat');
 end
-sdata = load(path_to_skeleton);
-fprintf('Loaded skeleton (DLC) data from "%s"\n', path_to_skeleton);
+if ~isempty(path_to_skeleton)
+    sdata = load(path_to_skeleton);
+    fprintf('Loaded skeleton (DLC) data from "%s"\n', path_to_skeleton);
+else
+    sdata = [];
+end
 
 if ~exist('path_to_motion', 'var')
     % If motion file not provided, try to find it
@@ -66,17 +72,19 @@ for k = 1:num_trials
     [ind1, ind2] = find_inds(behavior.velocity(:,1), t_lims);
     trial_data(k).velocity = behavior.velocity(ind1:ind2, :);
     
-    [ind1, ind2] = find_inds(sdata.t, t_lims);
-    dlc_data.t = [sdata.t(ind1:ind2) (ind1:ind2)'];
-    dlc_data.beta_f = sdata.beta_f(ind1:ind2);
-    dlc_data.beta_h = sdata.beta_h(ind1:ind2);
-    trial_data(k).dlc = dlc_data;
-    
     for m = 1:size(behavior.opto_periods,1)
         t = range_intersection(behavior.opto_periods(m,:), t_lims);
         if ~isempty(t)
             trial_data(k).opto = t;
         end
+    end
+    
+    if ~isempty(sdata)
+        [ind1, ind2] = find_inds(sdata.t, t_lims);
+        dlc_data.t = [sdata.t(ind1:ind2) (ind1:ind2)'];
+        dlc_data.beta_f = sdata.beta_f(ind1:ind2);
+        dlc_data.beta_h = sdata.beta_h(ind1:ind2);
+        trial_data(k).dlc = dlc_data;
     end
     
     if ~isempty(mdata)
