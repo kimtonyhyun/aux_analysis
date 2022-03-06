@@ -33,7 +33,7 @@ num_pages = size(trial_chunks, 1);
 for k = 1:num_pages
     trials_to_show = session.info.imaged_trials(trial_chunks(k,1):trial_chunks(k,2));
     ctxstr.show_ctxstr_trials(trials_to_show, session, trials, ctx, str, tdt);
-    fprintf('Page %d/%d: Showing Trials %d to %d...', k, num_pages,...
+    fprintf('Page %d/%d: Showing Trials %d to %d...\n', k, num_pages,...
         trials_to_show(1), trials_to_show(end));
     pause;
 end

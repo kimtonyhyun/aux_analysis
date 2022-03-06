@@ -41,7 +41,7 @@ for k = 1:num_trials_to_show
     % Plots: 1) Velocity and position
     %------------------------------------------------------------
     sp(5, num_trials_to_show, k);
-    title(sprintf('Trial %d', trial_idx));
+    title(sprintf('Trial %d (%.1f s)', trial_idx, trial.duration));
     yyaxis left;
     plot(trial.velocity(:,1), trial.velocity(:,2));
     hold on;

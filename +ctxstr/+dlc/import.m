@@ -4,7 +4,7 @@ function data = import(behavior, dlc_filename, varargin)
 
 % Default parameters:
 % - Median filtering window of 1 is equivalent to no filtering
-medfilt_window = 1;
+medfilt_window = 5;
 
 for k = 1:length(varargin)
     vararg = varargin{k};
@@ -14,6 +14,15 @@ for k = 1:length(varargin)
                 medfilt_window = varargin{k+1};
         end
     end
+end
+
+if ~exist('behavior', 'var')
+    bdata = load('ctxstr.mat');
+    behavior = bdata.behavior;
+end
+
+if ~exist('dlc_filename', 'var')
+    dlc_filename = 'filtered-DLC.mat';
 end
 
 % Import data
