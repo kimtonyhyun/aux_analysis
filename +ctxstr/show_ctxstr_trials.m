@@ -42,6 +42,9 @@ for k = 1:num_trials_to_show
     
     sp(5, num_trials_to_show, k);
     imagesc(ctx_t, 1:num_ctx_cells, ctx_traces);
+    hold on;
+    plot_vertical_lines([trial.start_time, trial.us_time], [1 num_ctx_cells], 'w:');
+    hold off;
     xlim(t_lims);
     title(sprintf('Trial %d', trial_idx));
     if k == 1
@@ -54,6 +57,9 @@ for k = 1:num_trials_to_show
     
     sp(5, num_trials_to_show, num_trials_to_show+k);
     imagesc(str_t, 1:num_d1_cells, d1_traces); hold on;
+    hold on;
+    plot_vertical_lines([trial.start_time, trial.us_time], [1 num_d1_cells], 'w:');
+    hold off;
     xlim(t_lims);
     if k == 1
         ylabel('Str (tdt-pos)');
@@ -65,6 +71,9 @@ for k = 1:num_trials_to_show
     
     sp(5, num_trials_to_show, 2*num_trials_to_show+k);
     imagesc(str_t, 1:num_d2_cells, d2_traces); hold on;
+    hold on;
+    plot_vertical_lines([trial.start_time, trial.us_time], [1 num_d2_cells], 'w:');
+    hold off;
     xlim(t_lims);
     if k == 1
         ylabel('Str (tdt-neg)');
