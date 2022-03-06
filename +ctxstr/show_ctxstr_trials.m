@@ -12,9 +12,9 @@ p_lims = [0 session.behavior.position.us_threshold]; % Y-scale for encoder posit
 v_lims = [-5 max(session.behavior.velocity(:,2))];
 
 % Compute Y-scale for mean pop. activity
-ctx_max = ctx.fps * max(mean(ctx.traces, 1));
-d1_max = str.fps * max(mean(str.traces(tdt.pos,:),1));
-d2_max = str.fps * max(mean(str.traces(tdt.neg,:),1));
+ctx_max = max(mean(ctx.traces, 1));
+d1_max = max(mean(str.traces(tdt.pos,:),1));
+d2_max = max(mean(str.traces(tdt.neg,:),1));
 a_lims = [0 1.1*max([ctx_max d1_max d2_max])];
 
 v_color = [0 0.4470 0.7410];
@@ -27,12 +27,12 @@ for k = 1:num_trials_to_show
     
     ctx_frames = find_frames_in_trial(ctx.t, t_lims);
     ctx_t = ctx.t(ctx_frames);
-    ctx_traces = ctx.fps * ctx.traces(:,ctx_frames); % Multiply CASCADE traces by fps for firing rate (Hz)
+    ctx_traces = ctx.traces(:,ctx_frames);
     mean_ctx_trace = mean(ctx_traces, 1);    
     
     str_frames = find_frames_in_trial(str.t, t_lims);
     str_t = str.t(str_frames);
-    str_traces = str.fps * str.traces(:, str_frames);
+    str_traces = str.traces(:, str_frames);
     d1_traces = str_traces(tdt.pos, :);
     d2_traces = str_traces(tdt.neg, :);
     mean_d1_trace = mean(d1_traces, 1);
