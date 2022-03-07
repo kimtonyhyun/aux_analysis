@@ -15,7 +15,8 @@ v_lims = [-5 max(session.behavior.velocity(:,2))];
 ctx_max = max(mean(ctx.traces, 1));
 d1_max = max(mean(str.traces(tdt.pos,:),1));
 d2_max = max(mean(str.traces(tdt.neg,:),1));
-a_lims = [0 1.1*max([ctx_max d1_max d2_max])];
+ctx_a_lims = [0 1.1*ctx_max];
+str_a_lims = [0 1.1*max([d1_max d2_max])];
 
 v_color = [0 0.4470 0.7410];
 
@@ -40,7 +41,7 @@ for k = 1:num_trials_to_show
     
     % Plots: 1) Velocity and position
     %------------------------------------------------------------
-    sp(5, num_trials_to_show, k);
+    ax1 = sp(5, num_trials_to_show, k);
     title(sprintf('Trial %d (%.1f s)', trial_idx, trial.duration));
     yyaxis left;
     plot(trial.velocity(:,1), trial.velocity(:,2));
@@ -72,19 +73,27 @@ for k = 1:num_trials_to_show
     
     % 2) Population mean spike rates
     %------------------------------------------------------------
-    sp(5, num_trials_to_show, num_trials_to_show+k);
+    ax2 = sp(5, num_trials_to_show, num_trials_to_show+k);
+    yyaxis left;
     plot(ctx_t, mean_ctx_trace, 'k');
+    ylim(ctx_a_lims);
+    if k == 1
+        ylabel('Ctx pop. mean spike rate (Hz)');
+    else
+        set(gca, 'YTick', []);
+    end
+    yyaxis right;
+    plot(str_t, mean_d1_trace, 'r-');
     hold on;
-    plot(str_t, mean_d1_trace, 'r');
-    plot(str_t, mean_d2_trace, 'b');
-    plot_vertical_lines([trial.start_time, trial.us_time], a_lims, 'b:');
-    plot_vertical_lines(trial.motion.onsets, a_lims, 'r:');
-    plot(trial.lick_times, 0.95*a_lims(2)*ones(size(trial.lick_times)), 'b.');
+    plot(str_t, mean_d2_trace, 'b-');
+    ylim(str_a_lims);
+    plot_vertical_lines([trial.start_time, trial.us_time], str_a_lims, 'b:');
+    plot_vertical_lines(trial.motion.onsets, str_a_lims, 'r:');
+    plot(trial.lick_times, 0.95*str_a_lims(2)*ones(size(trial.lick_times)), 'b.');
     hold off;
     xlim(t_lims);
-    ylim(a_lims);
-    if k == 1
-        ylabel('Pop. mean spike rate (Hz)');
+    if k == num_trials_to_show
+        ylabel('Str pop. mean spike rate (Hz)');
     else
         set(gca, 'YTick', []);
     end
@@ -93,7 +102,7 @@ for k = 1:num_trials_to_show
     
     % 3) Ctx raster
     %------------------------------------------------------------
-    sp(5, num_trials_to_show, 2*num_trials_to_show + k);
+    ax3 = sp(5, num_trials_to_show, 2*num_trials_to_show + k);
     imagesc(ctx_t, 1:num_ctx_cells, ctx_traces);
     hold on;
     plot_vertical_lines([trial.start_time, trial.us_time], [1 num_ctx_cells], 'w:');
@@ -110,7 +119,7 @@ for k = 1:num_trials_to_show
     
     % 4) D1 raster
     %------------------------------------------------------------
-    sp(5, num_trials_to_show, 3*num_trials_to_show+k);
+    ax4 = sp(5, num_trials_to_show, 3*num_trials_to_show+k);
     imagesc(str_t, 1:num_d1_cells, d1_traces); hold on;
     hold on;
     plot_vertical_lines([trial.start_time, trial.us_time], [1 num_d1_cells], 'w:');
@@ -127,7 +136,7 @@ for k = 1:num_trials_to_show
     
     % 5) D2 raster
     %------------------------------------------------------------
-    sp(5, num_trials_to_show, 4*num_trials_to_show+k);
+    ax5 = sp(5, num_trials_to_show, 4*num_trials_to_show+k);
     imagesc(str_t, 1:num_d2_cells, d2_traces); hold on;
     hold on;
     plot_vertical_lines([trial.start_time, trial.us_time], [1 num_d2_cells], 'w:');
@@ -141,6 +150,9 @@ for k = 1:num_trials_to_show
     end
     xlabel('Time (s)');
     set(gca, 'TickLength', [0 0]);
+    
+    linkaxes([ax1 ax2 ax3 ax4 ax5], 'x');
+    zoom xon;
 end
 
 end % show_ctxstr_trials
