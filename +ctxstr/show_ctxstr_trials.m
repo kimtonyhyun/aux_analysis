@@ -8,7 +8,7 @@ num_d2_cells = length(tdt.neg);
 
 sp = @(m,n,p) subtightplot(m, n, p, 0.01, [0.04 0.025], 0.02); % Gap, Margin-X, Margin-Y
 
-p_lims = [0 session.behavior.position.us_threshold]; % Y-scale for encoder position
+p_lims = [-50 session.behavior.position.us_threshold]; % Y-scale for encoder position
 v_lims = [-5 max(session.behavior.velocity(:,2))];
 
 % Compute Y-scale for mean pop. activity
@@ -26,12 +26,12 @@ for k = 1:num_trials_to_show
     
     t_lims = trial.times; % Includes trial padding
     
-    ctx_frames = find_frames_in_trial(ctx.t, t_lims);
+    ctx_frames = ctxstr.find_frames_in_trial(ctx.t, t_lims);
     ctx_t = ctx.t(ctx_frames);
     ctx_traces = ctx.traces(:,ctx_frames);
     mean_ctx_trace = mean(ctx_traces, 1);    
-    
-    str_frames = find_frames_in_trial(str.t, t_lims);
+       
+    str_frames = ctxstr.find_frames_in_trial(str.t, t_lims);
     str_t = str.t(str_frames);
     str_traces = str.traces(:, str_frames);
     d1_traces = str_traces(tdt.pos, :);
@@ -39,6 +39,11 @@ for k = 1:num_trials_to_show
     mean_d1_trace = mean(d1_traces, 1);
     mean_d2_trace = mean(d2_traces, 1);
     
+    % Test: Try sorting cells by activation order
+%     ctx_traces = sort_raster(ctx_traces);
+%     d1_traces = sort_raster(d1_traces);
+%     d2_traces = sort_raster(d2_traces);
+
     % Plots: 1) Velocity and position
     %------------------------------------------------------------
     ax1 = sp(5, num_trials_to_show, k);
@@ -157,8 +162,8 @@ end
 
 end % show_ctxstr_trials
 
-function frames_in_trial = find_frames_in_trial(t, t_trial)
-
-frames_in_trial = find((t > t_trial(1)) & (t < t_trial(2)));
-
-end % find_frames_in_trial
+function sorted_raster = sort_raster(raster)
+    [~, max_frame] = max(raster,[],2);
+    [~, order] = sort(max_frame, 'ascend');
+    sorted_raster = raster(order,:);
+end
