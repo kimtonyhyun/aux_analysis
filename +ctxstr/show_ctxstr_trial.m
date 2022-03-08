@@ -13,13 +13,15 @@ fps = 15;
 path_to_ctx = 'ctx/union_15hz/dff';
 path_to_str = 'str/union_15hz/dff';
 
-ctx = load(get_most_recent_file(path_to_ctx, 'cascade_*.mat'), 'spike_probs');
-ctx.traces = fps * ctx.spike_probs'; % Convert to spike rates (Hz); [Cells x Time]
+cdata = load(get_most_recent_file(path_to_ctx, 'cascade_*.mat'), 'spike_probs');
+ctx.traces = fps * cdata.spike_probs'; % Convert to spike rates (Hz); [Cells x Time]
 ctx.t = mean(reshape(session.ctx.frame_times, [2 16000]), 1); % Assume ctx data temporally binned by factor 2
+clear cdata;
 
-str = load(get_most_recent_file(path_to_str, 'cascade_*.mat'), 'spike_probs');
-str.traces = fps * str.spike_probs';
+sdata = load(get_most_recent_file(path_to_str, 'cascade_*.mat'), 'spike_probs');
+str.traces = fps * sdata.spike_probs';
 str.t = mean(reshape(session.str.frame_times, [3 16000]), 1); % Assume str data temporally binned by factor 3
+clear sdata;
 
 tdt = load_tdt(path_to_str);
 
@@ -33,7 +35,13 @@ num_pages = size(trial_chunks, 1);
 
 for k = 1:num_pages
     trials_to_show = session.info.imaged_trials(trial_chunks(k,1):trial_chunks(k,2));
-    ctxstr.show_ctxstr_trials(trials_to_show, session, trials, ctx, str, tdt);
+    
+    if ~isempty(tdt)
+        ctxstr.vis.show_ctxstr_tdt(trials_to_show, session, trials, ctx, str, tdt);
+    else
+        ctxstr.vis.show_ctxstr(trials_to_show, session, trials, ctx, str);
+    end
+    
     fprintf('Page %d/%d: Showing Trials %d to %d...\n', k, num_pages,...
         trials_to_show(1), trials_to_show(end));
     pause;
