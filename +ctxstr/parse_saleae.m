@@ -299,10 +299,10 @@ function generate_pmtext(outname, trial_start_frames, movement_onset_frames, rew
         rf = reward_frames(k);
         
         % Trial frames. Notes:
-        %   - We provide a 2 s buffer after reward.
-        %   - It's possible that the 2 s buffer is not fully contained in
-        %     the imaging period, for the last trial.
-        tf = [tsf mof rf rf+2*imaging_fps];
+        %   - We provide a 1 s buffer after reward.
+        %   - It's possible that the buffer is not fully contained in the
+        %     imaging period, for the last trial.
+        tf = [tsf mof rf rf+1*imaging_fps];
         if (tf(1) > 0) && (tf(4) < max_frames)
             fprintf(fid, '%s %d %d %d %d\n', pm_filler,...
                 tf(1), tf(2), tf(3), tf(4));
