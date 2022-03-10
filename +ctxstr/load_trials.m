@@ -69,8 +69,8 @@ for k = 1:num_trials
     trial_data(k).lick_response = behavior.lick_responses(k);
     trial_data(k).lick_times = find_licks(behavior.lick_times, t_lims); % All licks in trial + padding
     
-    [ind1, ind2] = find_inds(behavior.velocity(:,1), t_lims);
-    trial_data(k).velocity = behavior.velocity(ind1:ind2, :);
+    inds = ctxstr.core.find_frames_in_trial(behavior.velocity(:,1), t_lims);
+    trial_data(k).velocity = behavior.velocity(inds, :);
     
     for m = 1:size(behavior.opto_periods,1)
         t = range_intersection(behavior.opto_periods(m,:), t_lims);
@@ -80,10 +80,10 @@ for k = 1:num_trials
     end
     
     if ~isempty(sdata)
-        [ind1, ind2] = find_inds(sdata.t, t_lims);
-        dlc_data.t = [sdata.t(ind1:ind2) (ind1:ind2)'];
-        dlc_data.beta_f = sdata.beta_f(ind1:ind2);
-        dlc_data.beta_h = sdata.beta_h(ind1:ind2);
+        inds = ctxstr.core.find_frames_in_trial(sdata.t, t_lims);
+        dlc_data.t = [sdata.t(inds) inds'];
+        dlc_data.beta_f = sdata.beta_f(inds);
+        dlc_data.beta_h = sdata.beta_h(inds);
         trial_data(k).dlc = dlc_data;
     end
     
@@ -92,11 +92,6 @@ for k = 1:num_trials
     end
 end
 
-end
-
-function [ind1, ind2] = find_inds(t, tlims)
-    ind1 = find(t >= tlims(1), 1, 'first');
-    ind2 = find(t <= tlims(2), 1, 'last'); 
 end
 
 function licks = find_licks(all_licks, tlims)
