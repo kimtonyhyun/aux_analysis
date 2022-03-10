@@ -26,12 +26,12 @@ for k = 1:num_trials_to_show
     
     t_lims = trial.times; % Includes trial padding
     
-    ctx_frames = ctxstr.find_frames_in_trial(ctx.t, t_lims);
+    ctx_frames = ctxstr.core.find_frames_in_trial(ctx.t, t_lims);
     ctx_t = ctx.t(ctx_frames);
     ctx_traces = ctx.traces(:,ctx_frames);
     mean_ctx_trace = mean(ctx_traces, 1);    
        
-    str_frames = ctxstr.find_frames_in_trial(str.t, t_lims);
+    str_frames = ctxstr.core.find_frames_in_trial(str.t, t_lims);
     str_t = str.t(str_frames);
     str_traces = str.traces(:, str_frames);
     d1_traces = str_traces(tdt.pos, :);
