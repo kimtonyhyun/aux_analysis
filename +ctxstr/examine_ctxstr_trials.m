@@ -46,3 +46,87 @@ for k = 1:num_pages
         trials_to_show(1), trials_to_show(end));
     pause;
 end
+
+%% Ctx
+
+for cell_idx = 1:size(ctx.traces, 1)
+    clf;
+    [R_us, t_us, info_us] = ctxstr.core.compute_us_aligned_raster(cell_idx, session.info.imaged_trials, trials, ctx);
+    [R_mo, t_mo, info_mo] = ctxstr.core.compute_mo_aligned_raster(cell_idx, session.info.imaged_trials, trials, ctx);
+
+    ax1 = subplot(3,2,1);
+    hold on;
+    for k = 1:info_us.n
+        plot(info_us.trial_times{k}, info_us.traces{k}, 'k-');
+    end
+    hold off;
+    xlim(info_us.t_lims);
+    title(sprintf('Cell idx=%d', cell_idx));
+
+    ax2 = subplot(3,2,2);
+    hold on;
+    for k = 1:info_mo.n
+        plot(info_mo.trial_times{k}, info_mo.traces{k}, 'k-');
+    end
+    hold off;
+    xlim(info_mo.t_lims);
+
+    ax3 = subplot(3,2,[3 5]);
+    imAlpha = ones(size(R_us));
+    imAlpha(isnan(R_us)) = 0;
+    imagesc(t_us, 1:info_us.n, R_us, 'AlphaData', imAlpha);
+
+    ax4 = subplot(3,2,[4 6]);
+    imAlpha = ones(size(R_mo));
+    imAlpha(isnan(R_mo)) = 0;
+    imagesc(t_mo, 1:info_mo.n, R_mo, 'AlphaData', imAlpha);
+
+    linkaxes([ax1 ax3], 'x');
+    linkaxes([ax2 ax4], 'x');
+    xlim(ax3, [-8 0]);
+    xlim(ax4, [-3 5]);
+    
+    pause;
+end
+
+%% Str
+
+for cell_idx = 1:size(str.traces, 1)
+    clf;
+    [R_us, t_us, info_us] = ctxstr.core.compute_us_aligned_raster(cell_idx, session.info.imaged_trials, trials, str);
+    [R_mo, t_mo, info_mo] = ctxstr.core.compute_mo_aligned_raster(cell_idx, session.info.imaged_trials, trials, str);
+
+    ax1 = subplot(3,2,1);
+    hold on;
+    for k = 1:info_us.n
+        plot(info_us.trial_times{k}, info_us.traces{k}, 'k-');
+    end
+    hold off;
+    xlim(info_us.t_lims);
+    title(sprintf('Cell idx=%d', cell_idx));
+
+    ax2 = subplot(3,2,2);
+    hold on;
+    for k = 1:info_mo.n
+        plot(info_mo.trial_times{k}, info_mo.traces{k}, 'k-');
+    end
+    hold off;
+    xlim(info_mo.t_lims);
+
+    ax3 = subplot(3,2,[3 5]);
+    imAlpha = ones(size(R_us));
+    imAlpha(isnan(R_us)) = 0;
+    imagesc(t_us, 1:info_us.n, R_us, 'AlphaData', imAlpha);
+
+    ax4 = subplot(3,2,[4 6]);
+    imAlpha = ones(size(R_mo));
+    imAlpha(isnan(R_mo)) = 0;
+    imagesc(t_mo, 1:info_mo.n, R_mo, 'AlphaData', imAlpha);
+
+    linkaxes([ax1 ax3], 'x');
+    linkaxes([ax2 ax4], 'x');
+    xlim(ax3, [-8 0]);
+    xlim(ax4, [-3 5]);
+    
+    pause;
+end
