@@ -16,11 +16,13 @@ path_to_str = 'str/union_15hz/dff';
 cdata = load(get_most_recent_file(path_to_ctx, 'cascade_*.mat'), 'spike_probs');
 ctx.traces = fps * cdata.spike_probs'; % Convert to spike rates (Hz); [Cells x Time]
 ctx.t = ctxstr.core.bin_frame_times(session.ctx.frame_times, 2); % Assume ctx data temporally binned by factor 2
+num_ctx_cells = size(ctx.traces, 1);
 clear cdata;
 
 sdata = load(get_most_recent_file(path_to_str, 'cascade_*.mat'), 'spike_probs');
 str.traces = fps * sdata.spike_probs';
 str.t = ctxstr.core.bin_frame_times(session.str.frame_times, 3);
+num_str_cells = size(str.traces, 1);
 clear sdata;
 
 tdt = load_tdt(path_to_str);
@@ -61,7 +63,7 @@ for cell_idx = 1:size(ctx.traces, 1)
     end
     hold off;
     xlim(info_us.t_lims);
-    title(sprintf('Cell idx=%d', cell_idx));
+    title(sprintf('Ctx cell idx=%d out of %d', cell_idx, num_ctx_cells));
 
     ax2 = subplot(3,2,2);
     hold on;
@@ -103,7 +105,7 @@ for cell_idx = 1:size(str.traces, 1)
     end
     hold off;
     xlim(info_us.t_lims);
-    title(sprintf('Cell idx=%d', cell_idx));
+    title(sprintf('Str cell idx=%d out of %d', cell_idx, num_str_cells));
 
     ax2 = subplot(3,2,2);
     hold on;
