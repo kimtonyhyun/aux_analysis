@@ -109,7 +109,7 @@ boxplot_wrapper(days_cell, IRIs_corr, 'Notch', 'off', 'OutlierSize', 4);
 % xlabel('Days in training');
 ylabel({'Inter-reward interval (s)', 'Consumed trials only'});
 grid on;
-ylim([0 100]);
+ylim([0 25]);
 
 subplot(3,3,6);
 plot(num_rewards_corr, 1./cellfun(@median, IRIs_corr, 'UniformOutput', true),...
