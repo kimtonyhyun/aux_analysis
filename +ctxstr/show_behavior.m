@@ -6,6 +6,9 @@ function show_behavior(bdata)
 %
 % FIXME: Don't use "motion onsets" from 'parse_ctxstr'.
 
+% Defaults
+font_size = 18;
+
 if ~exist('bdata', 'var')
     path_to_behavior = 'ctxstr.mat';
     bdata = load(path_to_behavior);
@@ -20,12 +23,12 @@ x_lims = bdata.position.cont([1 end],1);
 velocity = bdata.velocity;
 position = cat(1, bdata.position.by_trial{:}); % Wrapped position
 
-% We plot only consumed trials
-movement_onset_times = bdata.movement_onset_times(bdata.lick_responses);
-us_times = bdata.us_times(bdata.lick_responses);
+% Plot all trials
+movement_onset_times = bdata.movement_onset_times;
+us_times = bdata.us_times;
 runtimes = us_times - movement_onset_times;
 avg_runtime = mean(runtimes);
-num_trials = length(us_times);
+num_lick_trials = sum(bdata.lick_responses);
 num_total_trials = length(bdata.lick_responses);
 
 % Show velocity and position over the session
@@ -53,8 +56,9 @@ xlim(x_lims);
 zoom xon;
 xlabel('Time (s)');
 title(sprintf('%s (%d consumed out of %d total trials)',...
-        dataset_name, num_trials, num_total_trials));
+        dataset_name, num_lick_trials, num_total_trials));
 set(ax1, 'TickLength', [0 0]);
+set(ax1, 'FontSize', font_size);
 
 
 % Align to movement onset
@@ -69,8 +73,9 @@ P_movement_onset = get_aligned_raster(position, movement_onset_times(1:end-1), t
 % Velocity
 subplot(3,4,5);
 imagesc(t, 1:size(V_movement_onset,1), V_movement_onset);
-ylabel(sprintf('Consumed trials (%d)', num_trials));
+ylabel(sprintf('All trials (%d)', num_total_trials));
 title('Velocity');
+set(gca, 'FontSize', font_size);
 
 subplot(3,4,9);
 plotShadedErrorBar(t, V_movement_onset, [0 0.447 0.741]);
@@ -84,11 +89,13 @@ xlim(t([1 end]));
 ylim(v_lims);
 % grid on;
 xlabel('Time relative to 10% distance threshold (s)');
+set(gca, 'FontSize', font_size);
 
 % Position
 subplot(3,4,6);
 imagesc(t, 1:size(P_movement_onset,1), P_movement_onset);
 title('Position');
+set(gca, 'FontSize', font_size);
 
 subplot(3,4,10);
 plotShadedErrorBar(t, P_movement_onset, [0.85 0.325 0.098]);
@@ -101,7 +108,8 @@ ylabel('Position (encoder count)');
 xlim(t([1 end]));
 ylim(p_lims);
 % grid on;
-xlabel('Time relative to 10% distance threshold (s)');
+% xlabel('Time relative to 10% distance threshold (s)');
+set(gca, 'FontSize', font_size);
 
 % Align to US
 %------------------------------------------------------------
@@ -114,6 +122,7 @@ P_us = get_aligned_raster(position, us_times(1:end-1), t);
 subplot(3,4,7);
 imagesc(t, 1:size(V_us,1), V_us);
 title('Velocity');
+set(gca, 'FontSize', font_size);
 
 subplot(3,4,11);
 plotShadedErrorBar(t, V_us, [0 0.447 0.741]); % New Matlab "blue" color
@@ -127,11 +136,13 @@ xlim(t([1 end]));
 ylim(v_lims);
 % grid on;
 xlabel('Time relative to US (s)');
+set(gca, 'FontSize', font_size);
 
 % Position
 subplot(3,4,8);
 imagesc(t, 1:size(P_us,1), P_us);
 title('Position');
+set(gca, 'FontSize', font_size);
 
 subplot(3,4,12);
 plotShadedErrorBar(t, P_us, [0.85 0.325 0.098]); % New Matlab "red" color
@@ -144,7 +155,8 @@ ylabel('Position (encoder count)');
 xlim(t([1 end]));
 ylim(p_lims);
 % grid on;
-xlabel('Time relative to US (s)');
+% xlabel('Time relative to US (s)');
+set(gca, 'FontSize', font_size);
 
 end
 
