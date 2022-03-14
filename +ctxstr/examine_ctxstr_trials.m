@@ -51,84 +51,16 @@ end
 
 %% Ctx
 
-for cell_idx = 1:size(ctx.traces, 1)
-    clf;
-    [R_us, t_us, info_us] = ctxstr.core.compute_us_aligned_raster(cell_idx, session.info.imaged_trials, trials, ctx);
-    [R_mo, t_mo, info_mo] = ctxstr.core.compute_mo_aligned_raster(cell_idx, session.info.imaged_trials, trials, ctx);
-
-    ax1 = subplot(3,2,1);
-    hold on;
-    for k = 1:info_us.n
-        plot(info_us.trial_times{k}, info_us.traces{k}, 'k-');
-    end
-    hold off;
-    xlim(info_us.t_lims);
-    title(sprintf('Ctx cell idx=%d out of %d', cell_idx, num_ctx_cells));
-
-    ax2 = subplot(3,2,2);
-    hold on;
-    for k = 1:info_mo.n
-        plot(info_mo.trial_times{k}, info_mo.traces{k}, 'k-');
-    end
-    hold off;
-    xlim(info_mo.t_lims);
-
-    ax3 = subplot(3,2,[3 5]);
-    imAlpha = ones(size(R_us));
-    imAlpha(isnan(R_us)) = 0;
-    imagesc(t_us, 1:info_us.n, R_us, 'AlphaData', imAlpha);
-
-    ax4 = subplot(3,2,[4 6]);
-    imAlpha = ones(size(R_mo));
-    imAlpha(isnan(R_mo)) = 0;
-    imagesc(t_mo, 1:info_mo.n, R_mo, 'AlphaData', imAlpha);
-
-    linkaxes([ax1 ax3], 'x');
-    linkaxes([ax2 ax4], 'x');
-    xlim(ax3, [-8 0]);
-    xlim(ax4, [-3 5]);
-    
+for cell_idx = 1:num_ctx_cells
+    ctxstr.vis.show_aligned_raster(cell_idx, session.info.imaged_trials, trials, ctx);
+    title(sprintf('%s-ctx, cell=%d/%d', dataset_name, cell_idx, num_ctx_cells));
     pause;
 end
 
 %% Str
 
-for cell_idx = 1:size(str.traces, 1)
-    clf;
-    [R_us, t_us, info_us] = ctxstr.core.compute_us_aligned_raster(cell_idx, session.info.imaged_trials, trials, str);
-    [R_mo, t_mo, info_mo] = ctxstr.core.compute_mo_aligned_raster(cell_idx, session.info.imaged_trials, trials, str);
-
-    ax1 = subplot(3,2,1);
-    hold on;
-    for k = 1:info_us.n
-        plot(info_us.trial_times{k}, info_us.traces{k}, 'k-');
-    end
-    hold off;
-    xlim(info_us.t_lims);
-    title(sprintf('Str cell idx=%d out of %d', cell_idx, num_str_cells));
-
-    ax2 = subplot(3,2,2);
-    hold on;
-    for k = 1:info_mo.n
-        plot(info_mo.trial_times{k}, info_mo.traces{k}, 'k-');
-    end
-    hold off;
-    xlim(info_mo.t_lims);
-
-    ax3 = subplot(3,2,[3 5]);
-    imAlpha = ones(size(R_us));
-    imAlpha(isnan(R_us)) = 0;
-    imagesc(t_us, 1:info_us.n, R_us, 'AlphaData', imAlpha);
-
-    ax4 = subplot(3,2,[4 6]);
-    imAlpha = ones(size(R_mo));
-    imAlpha(isnan(R_mo)) = 0;
-    imagesc(t_mo, 1:info_mo.n, R_mo, 'AlphaData', imAlpha);
-
-    linkaxes([ax1 ax3], 'x');
-    linkaxes([ax2 ax4], 'x');
-    xlim(ax3, [-8 0]);
-    xlim(ax4, [-3 5]);
-    
+for cell_idx = 1:num_str_cells
+    ctxstr.vis.show_aligned_raster(cell_idx, session.info.imaged_trials, trials, str);
+    title(sprintf('%s-str, cell=%d/%d', dataset_name, cell_idx, num_str_cells));
     pause;
 end
