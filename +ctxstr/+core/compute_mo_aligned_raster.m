@@ -4,6 +4,7 @@ function [R_mo, t_mo, info] = compute_mo_aligned_raster(cell_idx, trials_to_use,
 % trials may have multiple identified motion onsets.
 
 num_trials = length(trials_to_use);
+post_mo_padding = 1; % s
 t_mo_lims = [Inf -Inf];
 
 traces = cell(num_trials, 1);
@@ -22,7 +23,7 @@ for k = 1:num_trials
     if ~isempty(trial.motion.onsets)
         mo_time = trial.motion.onsets(1); % FIXME: Handle multiple MOs in trial
         
-        [frames_k, times_k] = ctxstr.core.find_frames_in_trial(imdata.t, [trial.start_time, trial.us_time]); % No padding
+        [frames_k, times_k] = ctxstr.core.find_frames_in_trial(imdata.t, [trial.start_time, trial.us_time+post_mo_padding]); % No padding
         traces{k} = imdata.traces(cell_idx, frames_k);
         trial_times{k} = times_k - mo_time; % Time relative to MO
 
