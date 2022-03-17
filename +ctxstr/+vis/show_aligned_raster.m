@@ -12,6 +12,26 @@ sp = @(m,n,p) subtightplot(m, n, p, 0.05, 0.05, 0.05); % Gap, Margin-X, Margin-Y
 
 ax1 = sp(3,2,[1 3]);
 plot_transparent_raster(t_us, R_us);
+hold on;
+mo_color = 'w';
+for k = 1:info_us.n
+    trial_idx = info_us.orig_trial_inds(k);
+    trial = trials(trial_idx);
+    
+    mo_times = trial.motion.onsets;
+    if ~isempty(mo_times)
+        mo_times = mo_times - trial.us_time;
+        plot(mo_times, k*ones(size(mo_times)), '.', 'Color', mo_color);
+        switch mo_color % Toggle colors
+            case 'w'
+                mo_color = 'r';
+            otherwise
+                mo_color = 'w';
+        end
+    end
+end
+plot([0 0], [0 info_us.n], 'c--'); % Mark US time
+hold off;
 set(ax1, 'TickLength', [0 0]);
 set(ax1, 'FontSize', font_size);
 ylabel('Trial index');
@@ -20,7 +40,9 @@ ax2 = sp(3,2,5);
 cla;
 hold on;
 for k = 1:info_us.n
-    plot(info_us.trial_times{k}, info_us.traces{k}, '-', 'Color', color_for_individual_trial);
+    if ~isempty(info_us.trial_times{k})
+        plot(info_us.trial_times{k}, info_us.traces{k}, '-', 'Color', color_for_individual_trial);
+    end
 end
 hold off;
 xlabel('Time relative to US (s)');
@@ -31,16 +53,24 @@ set(ax2, 'FontSize', font_size);
 ax3 = sp(3,2,[2 4]);
 plot_transparent_raster(t_mo, R_mo);
 hold on;
+mo_color = 'w';
 for k = 1:info_mo.n
     trial_idx = info_mo.orig_trial_inds(k);
     mo_times = trials(trial_idx).motion.onsets;
-    mo_times = mo_times - mo_times(1); % Time relative to first MO of trial
-    plot(mo_times, k*ones(size(mo_times)), 'w.');
+    if ~isempty(mo_times)
+        mo_times = mo_times - mo_times(1); % Time relative to first MO of trial
+        plot(mo_times, k*ones(size(mo_times)), '.', 'Color', mo_color);
+        switch mo_color
+            case 'w'
+                mo_color = 'r';
+            otherwise
+                mo_color = 'w';
+        end
+    end
 end
 hold off;
 set(ax3, 'TickLength', [0 0]);
 set(ax3, 'FontSize', font_size);
-ylabel('Motion onset index');
 title('Aligned to first MO of each trial');
 
 ax4 = sp(3,2,6);
@@ -55,9 +85,11 @@ set(ax4, 'TickLength', [0 0]);
 set(ax4, 'FontSize', font_size);
 
 linkaxes([ax1 ax2], 'x');
-xlim(ax1, [-8 0]);
 linkaxes([ax3 ax4], 'x');
-xlim(ax3, [-3 5]);
+% Important that the two columns share the same range of displayed time, in
+% order to allow for qualitative visual comparisons
+xlim(ax1, [-8 1]);
+xlim(ax3, [-3 6]);
 subplot(ax1);
 
 end

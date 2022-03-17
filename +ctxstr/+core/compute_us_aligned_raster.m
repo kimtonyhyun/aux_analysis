@@ -1,17 +1,21 @@
 function [R_us, t_us, info] = compute_us_aligned_raster(cell_idx, trials_to_use, trials, imdata)
 
 num_trials = length(trials_to_use);
-t_us_lims = [Inf 0];
+post_us_padding = 1; % s
+t_us_lims = [Inf post_us_padding];
 
 traces = cell(num_trials, 1);
 trial_times = cell(num_trials, 1);
+orig_trial_inds = zeros(num_trials, 1);
 
 % First, parse out traces and intra-trial time for each trial
 for k = 1:num_trials
     trial_ind = trials_to_use(k);
+    orig_trial_inds(k) = trial_ind;
+    
     trial = trials(trial_ind);
     
-    [frames_k, times_k] = ctxstr.core.find_frames_in_trial(imdata.t, [trial.start_time, trial.us_time]); % No padding
+    [frames_k, times_k] = ctxstr.core.find_frames_in_trial(imdata.t, [trial.start_time, trial.us_time+post_us_padding]);
     traces{k} = imdata.traces(cell_idx, frames_k);
     trial_times{k} = times_k - trial.us_time; % Time relative to US
     
@@ -33,3 +37,4 @@ info.n = num_trials;
 info.traces = traces;
 info.trial_times = trial_times;
 info.t_lims = t_us_lims;
+info.orig_trial_inds = orig_trial_inds;
