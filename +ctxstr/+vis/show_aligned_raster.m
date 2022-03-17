@@ -33,7 +33,7 @@ for k = 1:info_us.n
         end
     end
 end
-plot(zeros(1,info_us.n), 1:info_us.n, 'c.'); % Mark US time
+plot(zeros(1,info_us.n), 1:info_us.n, 'cx'); % Mark US time
 hold off;
 set(ax1, 'TickLength', [0 0]);
 set(ax1, 'FontSize', font_size);
@@ -81,7 +81,7 @@ for k = 1:info_mo.n
             otherwise
                 mo_color = 'w';
         end
-        plot(trial.us_time - first_mo_time, k, 'c.');
+        plot(trial.us_time - first_mo_time, k, 'cx');
     end
 end
 hold off;
