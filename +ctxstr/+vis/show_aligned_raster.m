@@ -30,9 +30,18 @@ set(ax2, 'FontSize', font_size);
 
 ax3 = sp(3,2,[2 4]);
 plot_transparent_raster(t_mo, R_mo);
+hold on;
+for k = 1:info_mo.n
+    trial_idx = info_mo.orig_trial_inds(k);
+    mo_times = trials(trial_idx).motion.onsets;
+    mo_times = mo_times - mo_times(1); % Time relative to first MO of trial
+    plot(mo_times, k*ones(size(mo_times)), 'w.');
+end
+hold off;
 set(ax3, 'TickLength', [0 0]);
 set(ax3, 'FontSize', font_size);
 ylabel('Motion onset index');
+title('Aligned to first MO of each trial');
 
 ax4 = sp(3,2,6);
 cla;
