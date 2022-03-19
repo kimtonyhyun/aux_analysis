@@ -4,6 +4,7 @@ function show_aligned_raster(cell_idx, trials_to_show, trials, imdata)
 font_size = 18;
 pre_us_tr_color = 0.5 * [1 1 1];
 post_us_tr_color = 0.9 * [1 1 1];
+resp_ind_width = 0.25; % Size, in seconds, of the response indicator
 
 % Custom "subplot" command that leaves less unusued space between panels
 sp = @(m,n,p) subtightplot(m, n, p, 0.05, 0.05, 0.05); % Gap, Margin-X, Margin-Y
@@ -21,6 +22,7 @@ for k = 1:info_us.n
     trial_idx = info_us.orig_trial_inds(k);
     trial = trials(trial_idx);
     
+    % Indicate motion onset times
     mo_times = trial.motion.onsets;
     if ~isempty(mo_times)
         mo_times = mo_times - trial.us_time;
@@ -32,6 +34,22 @@ for k = 1:info_us.n
                 mo_color = 'w';
         end
     end
+    
+    % Indicate first lick after US
+    first_lick_ind = find(trial.lick_times > trial.us_time, 1);
+    if ~isempty(first_lick_ind)
+        first_lick_time = trial.lick_times(first_lick_ind);
+        plot(first_lick_time - trial.us_time, k, 'k.');
+    end
+    
+    % Did the mouse lick within the response window?
+    if trial.lick_response
+        resp_color = 'g';
+    else
+        resp_color = 'r';
+    end
+    rectangle('Position', [t_us(end) k-0.5 resp_ind_width 1],...
+        'FaceColor', resp_color, 'EdgeColor', 'none');
 end
 plot(zeros(1,info_us.n), 1:info_us.n, 'cx'); % Mark US time
 hold off;
@@ -117,8 +135,8 @@ linkaxes([ax1 ax2], 'x');
 linkaxes([ax3 ax4], 'x');
 % Important that the two columns share the same range of displayed time, in
 % order to allow for qualitative visual comparisons
-xlim(ax1, [-8 1]);
-xlim(ax3, [-3 6]);
+xlim(ax1, [-8 1+resp_ind_width]);
+xlim(ax3, [-3 6+resp_ind_width]);
 subplot(ax1);
 
 end
