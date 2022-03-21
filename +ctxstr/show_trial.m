@@ -82,7 +82,9 @@ set(h_b, 'ButtonDownFcn', @playback_handler);
 %------------------------------------------------------------
 subplot(ax1);
 yyaxis left;
-tight_plot(trial.velocity(:,1), trial.velocity(:,2), 'Color', color1, 'HitTest', 'off');
+v_lims = tight_plot(trial.velocity(:,1), trial.velocity(:,2), 'Color', color1, 'HitTest', 'off');
+v_lims(1) = min([-5 v_lims(1)]);
+ylim(v_lims);
 plot(t_lims, [0 0], ':', 'Color', color1);
 ylabel('Velocity (cm/s)');
 yyaxis right;

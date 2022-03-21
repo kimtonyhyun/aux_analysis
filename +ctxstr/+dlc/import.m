@@ -99,9 +99,9 @@ info.medfilt_window = medfilt_window; %#ok<STRNU>
 
 save('dlc.mat', 't', 'front_right', 'front_left', 'hind_right', 'hind_left', 'nose', 'tail', 'info');
 
-% Visualize results
-dlc = load('dlc.mat');
-ctxstr.dlc.plot_coords(dlc);
+% % Visualize results
+% dlc = load('dlc.mat');
+% ctxstr.dlc.plot_coords(dlc);
 
 end % import_dlc
 
