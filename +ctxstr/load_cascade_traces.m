@@ -1,4 +1,6 @@
-function [traces, tdt] = load_cascade_traces(path_to_imdata, fps)
+function [traces, info] = load_cascade_traces(path_to_imdata, fps)
+% Note: 'traces' only contains cells that have been classified to be true
+% cells in the associated classification file.
 
 data = load(get_most_recent_file(path_to_imdata, 'cascade_*.mat'), 'spike_probs');
 class = load_cell_class(path_to_imdata);
@@ -21,6 +23,10 @@ if ~isempty(tdt)
     tdt_neg_cells = tdt_neg_cells(class);
     tdt.neg = find(tdt_neg_cells);
 end
+
+info.rec_name = get_most_recent_file(path_to_imdata, 'rec_*.mat');
+info.cell_ids_in_rec = find(class);
+info.tdt = tdt;
 
 end
 

@@ -13,11 +13,11 @@ fps = 15;
 path_to_ctx = 'ctx/union_15hz/dff';
 path_to_str = 'str/union_15hz/dff';
 
-ctx.traces = ctxstr.load_cascade_traces(path_to_ctx, fps);
+[ctx.traces, ctx_info] = ctxstr.load_cascade_traces(path_to_ctx, fps);
 ctx.t = ctxstr.core.bin_frame_times(session.ctx.frame_times, 2); % Assume ctx data temporally binned by factor 2
 num_ctx_cells = size(ctx.traces, 1);
 
-[str.traces, tdt] = ctxstr.load_cascade_traces(path_to_str, fps);
+[str.traces, str_info] = ctxstr.load_cascade_traces(path_to_str, fps);
 str.t = ctxstr.core.bin_frame_times(session.str.frame_times, 3);
 num_str_cells = size(str.traces, 1);
 
@@ -32,8 +32,8 @@ num_pages = size(trial_chunks, 1);
 for k = 1:num_pages
     trials_to_show = session.info.imaged_trials(trial_chunks(k,1):trial_chunks(k,2));
     
-    if ~isempty(tdt)
-        ctxstr.vis.show_ctxstr_tdt(trials_to_show, session, trials, ctx, str, tdt);
+    if ~isempty(str_info.tdt)
+        ctxstr.vis.show_ctxstr_tdt(trials_to_show, session, trials, ctx, str, str_info.tdt);
     else
         ctxstr.vis.show_ctxstr(trials_to_show, session, trials, ctx, str);
     end
@@ -45,16 +45,18 @@ end
 
 %% Ctx
 
-for cell_idx = 1:num_ctx_cells
-    ctxstr.vis.show_aligned_raster(cell_idx, session.info.imaged_trials, trials, ctx);
-    title(sprintf('%s-ctx, cell=%d/%d', dataset_name, cell_idx, num_ctx_cells));
+for k = 1:num_ctx_cells
+    ctxstr.vis.show_aligned_raster(k, session.info.imaged_trials, trials, ctx);
+    cell_id_in_rec = ctx_info.cell_ids_in_rec(k);
+    title(sprintf('%s-ctx, cell #=%d (rec)', dataset_name, cell_id_in_rec));
     pause;
 end
 
 %% Str
 
-for cell_idx = 1:num_str_cells
-    ctxstr.vis.show_aligned_raster(cell_idx, session.info.imaged_trials, trials, str);
-    title(sprintf('%s-str, cell=%d/%d', dataset_name, cell_idx, num_str_cells));
+for k = 1:num_str_cells
+    ctxstr.vis.show_aligned_raster(k, session.info.imaged_trials, trials, str);
+    cell_id_in_rec = str_info.cell_ids_in_rec(k);
+    title(sprintf('%s-str, cell #=%d (rec)', dataset_name, cell_id_in_rec));
     pause;
 end
