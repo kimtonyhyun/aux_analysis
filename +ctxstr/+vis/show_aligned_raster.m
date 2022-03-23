@@ -19,7 +19,7 @@ plot_transparent_raster(t_us, R_us);
 hold on;
 mo_color = 'w';
 for k = 1:info_us.n
-    trial_idx = info_us.orig_trial_inds(k);
+    trial_idx = info_us.trial_inds(k);
     trial = trials(trial_idx);
     
     % Indicate motion onset times
@@ -85,7 +85,7 @@ plot_transparent_raster(t_mo, R_mo);
 hold on;
 mo_color = 'w';
 for k = 1:info_mo.n
-    trial_idx = info_mo.orig_trial_inds(k);
+    trial_idx = info_mo.trial_inds(k);
     trial = trials(trial_idx);
     
     mo_times = trial.motion.onsets;
@@ -114,7 +114,7 @@ cla;
 hold on;
 for k = 1:info_mo.n
     if ~isempty(info_mo.trial_times{k})
-        trial_idx = info_mo.orig_trial_inds(k);
+        trial_idx = info_mo.trial_inds(k);
         trial = trials(trial_idx);
         us_time = trial.us_time - trial.motion.onsets(1);
         

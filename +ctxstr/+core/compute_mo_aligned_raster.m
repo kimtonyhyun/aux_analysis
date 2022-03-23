@@ -9,14 +9,11 @@ t_mo_lims = [Inf -Inf];
 
 traces = cell(num_trials, 1);
 trial_times = cell(num_trials, 1);
-orig_trial_inds = zeros(num_trials, 1);
 
 % First, parse out traces and intra-trial time for each trial containing a
 % motion onset.
 for k = 1:num_trials
-    trial_ind = trials_to_use(k);
-    orig_trial_inds(k) = trial_ind;
-    
+    trial_ind = trials_to_use(k);  
     trial = trials(trial_ind);
     
     % Some trials may not have an identified motion onset time
@@ -54,4 +51,4 @@ info.n = num_trials;
 info.traces = traces;
 info.trial_times = trial_times;
 info.t_lims = t_mo_lims;
-info.orig_trial_inds = orig_trial_inds;
+info.trial_inds = trials_to_use;

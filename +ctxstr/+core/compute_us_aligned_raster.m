@@ -6,13 +6,10 @@ t_us_lims = [Inf post_us_padding];
 
 traces = cell(num_trials, 1);
 trial_times = cell(num_trials, 1);
-orig_trial_inds = zeros(num_trials, 1);
 
 % First, parse out traces and intra-trial time for each trial
 for k = 1:num_trials
     trial_ind = trials_to_use(k);
-    orig_trial_inds(k) = trial_ind;
-    
     trial = trials(trial_ind);
     
     [frames_k, times_k] = ctxstr.core.find_frames_in_trial(imdata.t, [trial.start_time, trial.us_time+post_us_padding]);
@@ -37,4 +34,4 @@ info.n = num_trials;
 info.traces = traces;
 info.trial_times = trial_times;
 info.t_lims = t_us_lims;
-info.orig_trial_inds = orig_trial_inds;
+info.trial_inds = trials_to_use;
