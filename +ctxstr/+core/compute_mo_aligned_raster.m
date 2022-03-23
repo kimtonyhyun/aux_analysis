@@ -47,7 +47,6 @@ for k = 1:num_trials
 end
 
 % Auxiliary information
-info.n = num_trials;
 info.traces = traces;
 info.trial_times = trial_times;
 info.t_lims = t_mo_lims;

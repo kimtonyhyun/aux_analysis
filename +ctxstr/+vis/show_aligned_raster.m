@@ -18,7 +18,7 @@ ax1 = sp(3,2,[1 3]);
 plot_transparent_raster(t_us, R_us);
 hold on;
 mo_color = 'w';
-for k = 1:info_us.n
+for k = 1:length(info_us.trial_inds)
     trial_idx = info_us.trial_inds(k);
     trial = trials(trial_idx);
     
@@ -35,7 +35,8 @@ for k = 1:info_us.n
         end
     end
     
-    % Indicate first lick after US
+    % Indicate US and first lick after US
+    plot(0, k, 'cx');
     first_lick_ind = find(trial.lick_times > trial.us_time, 1);
     if ~isempty(first_lick_ind)
         first_lick_time = trial.lick_times(first_lick_ind);
@@ -51,7 +52,6 @@ for k = 1:info_us.n
     rectangle('Position', [t_us(end) k-0.5 resp_ind_width 1],...
         'FaceColor', resp_color, 'EdgeColor', 'none');
 end
-plot(zeros(1,info_us.n), 1:info_us.n, 'cx'); % Mark US time
 hold off;
 set(ax1, 'TickLength', [0 0]);
 set(ax1, 'FontSize', font_size);
@@ -62,15 +62,13 @@ ylabel('Trial index');
 ax2 = sp(3,2,5);
 cla;
 hold on;
-for k = 1:info_us.n
-    if ~isempty(info_us.trial_times{k})
-        t = info_us.trial_times{k};
-        tr = info_us.traces{k};
-        
-        pre_us = t < 0;
-        plot(t(pre_us), tr(pre_us), '-', 'Color', pre_us_tr_color);
-        plot(t(~pre_us), tr(~pre_us), '-', 'Color', post_us_tr_color);
-    end
+for k = 1:length(info_us.trial_inds)
+    t = info_us.trial_times{k};
+    tr = info_us.traces{k};
+
+    pre_us = t < 0;
+    plot(t(pre_us), tr(pre_us), '-', 'Color', pre_us_tr_color);
+    plot(t(~pre_us), tr(~pre_us), '-', 'Color', post_us_tr_color);
 end
 hold off;
 xlabel('Time relative to US (s)');
@@ -84,7 +82,7 @@ ax3 = sp(3,2,[2 4]);
 plot_transparent_raster(t_mo, R_mo);
 hold on;
 mo_color = 'w';
-for k = 1:info_mo.n
+for k = 1:length(info_mo.trial_inds)
     trial_idx = info_mo.trial_inds(k);
     trial = trials(trial_idx);
     
@@ -112,7 +110,7 @@ title('Aligned to first MO of each trial');
 ax4 = sp(3,2,6);
 cla;
 hold on;
-for k = 1:info_mo.n
+for k = 1:length(info_mo.trial_inds)
     if ~isempty(info_mo.trial_times{k})
         trial_idx = info_mo.trial_inds(k);
         trial = trials(trial_idx);
