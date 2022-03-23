@@ -18,15 +18,14 @@ ax1 = sp(3,2,[1 3]);
 plot_transparent_raster(t_us, R_us);
 hold on;
 mo_color = 'w';
-for k = 1:length(info_us.trial_inds)
-    trial_idx = info_us.trial_inds(k);
+for trial_idx = info_us.trial_inds
     trial = trials(trial_idx);
     
     % Indicate motion onset times
     mo_times = trial.motion.onsets;
     if ~isempty(mo_times)
         mo_times = mo_times - trial.us_time;
-        plot(mo_times, k*ones(size(mo_times)), '.', 'Color', mo_color);
+        plot(mo_times, trial_idx*ones(size(mo_times)), '.', 'Color', mo_color);
         switch mo_color % Toggle colors
             case 'w'
                 mo_color = 'r';
@@ -36,11 +35,11 @@ for k = 1:length(info_us.trial_inds)
     end
     
     % Indicate US and first lick after US
-    plot(0, k, 'cx');
+    plot(0, trial_idx, 'cx');
     first_lick_ind = find(trial.lick_times > trial.us_time, 1);
     if ~isempty(first_lick_ind)
         first_lick_time = trial.lick_times(first_lick_ind);
-        plot(first_lick_time - trial.us_time, k, 'k.');
+        plot(first_lick_time - trial.us_time, trial_idx, 'k.');
     end
     
     % Did the mouse lick within the response window?
@@ -49,7 +48,7 @@ for k = 1:length(info_us.trial_inds)
     else
         resp_color = 'r';
     end
-    rectangle('Position', [t_us(end) k-0.5 resp_ind_width 1],...
+    rectangle('Position', [t_us(end) trial_idx-0.5 resp_ind_width 1],...
         'FaceColor', resp_color, 'EdgeColor', 'none');
 end
 hold off;
@@ -62,9 +61,9 @@ ylabel('Trial index');
 ax2 = sp(3,2,5);
 cla;
 hold on;
-for k = 1:length(info_us.trial_inds)
-    t = info_us.trial_times{k};
-    tr = info_us.traces{k};
+for trial_idx = info_us.trial_inds
+    t = info_us.trial_times{trial_idx};
+    tr = info_us.traces{trial_idx};
 
     pre_us = t < 0;
     plot(t(pre_us), tr(pre_us), '-', 'Color', pre_us_tr_color);
@@ -82,22 +81,21 @@ ax3 = sp(3,2,[2 4]);
 plot_transparent_raster(t_mo, R_mo);
 hold on;
 mo_color = 'w';
-for k = 1:length(info_mo.trial_inds)
-    trial_idx = info_mo.trial_inds(k);
+for trial_idx = info_mo.trial_inds
     trial = trials(trial_idx);
     
     mo_times = trial.motion.onsets;
     if ~isempty(mo_times)
         first_mo_time = mo_times(1);
         mo_times = mo_times - first_mo_time;
-        plot(mo_times, k*ones(size(mo_times)), '.', 'Color', mo_color);
+        plot(mo_times, trial_idx*ones(size(mo_times)), '.', 'Color', mo_color);
         switch mo_color
             case 'w'
                 mo_color = 'r';
             otherwise
                 mo_color = 'w';
         end
-        plot(trial.us_time - first_mo_time, k, 'cx');
+        plot(trial.us_time - first_mo_time, trial_idx, 'cx');
     end
 end
 hold off;
@@ -110,14 +108,13 @@ title('Aligned to first MO of each trial');
 ax4 = sp(3,2,6);
 cla;
 hold on;
-for k = 1:length(info_mo.trial_inds)
-    if ~isempty(info_mo.trial_times{k})
-        trial_idx = info_mo.trial_inds(k);
+for trial_idx = info_mo.trial_inds
+    if ~isempty(info_mo.trial_times{trial_idx})
         trial = trials(trial_idx);
         us_time = trial.us_time - trial.motion.onsets(1);
         
-        t = info_mo.trial_times{k};
-        tr = info_mo.traces{k};
+        t = info_mo.trial_times{trial_idx};
+        tr = info_mo.traces{trial_idx};
         
         pre_us = t < us_time;
         plot(t(pre_us), tr(pre_us), '-', 'Color', pre_us_tr_color);
