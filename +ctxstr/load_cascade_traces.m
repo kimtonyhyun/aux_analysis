@@ -24,7 +24,7 @@ if ~isempty(tdt)
     tdt.neg = find(tdt_neg_cells);
 end
 
-info.rec_name = get_most_recent_file(path_to_imdata, 'rec_*.mat');
+[~, info.rec_name] = fileparts(get_most_recent_file(path_to_imdata, 'rec_*.mat'));
 info.cell_ids_in_rec = find(class);
 info.tdt = tdt;
 

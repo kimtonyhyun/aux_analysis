@@ -48,7 +48,8 @@ end
 for k = 1:num_ctx_cells
     ctxstr.vis.show_aligned_raster(k, session.info.imaged_trials, trials, ctx);
     cell_id_in_rec = ctx_info.cell_ids_in_rec(k);
-    title(sprintf('%s-ctx, cell #=%d (rec)', dataset_name, cell_id_in_rec));
+    title(sprintf('%s-ctx, cell #=%d (%s)', dataset_name, cell_id_in_rec, ctx_info.rec_name),...
+          'Interpreter', 'None');
     pause;
 end
 
@@ -57,6 +58,7 @@ end
 for k = 1:num_str_cells
     ctxstr.vis.show_aligned_raster(k, session.info.imaged_trials, trials, str);
     cell_id_in_rec = str_info.cell_ids_in_rec(k);
-    title(sprintf('%s-str, cell #=%d (rec)', dataset_name, cell_id_in_rec));
+    title(sprintf('%s-str, cell #=%d (%s)', dataset_name, cell_id_in_rec, str_info.rec_name),...
+          'Interpreter', 'None');
     pause;
 end
