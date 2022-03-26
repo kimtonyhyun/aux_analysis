@@ -1,4 +1,14 @@
-function show_ctxstr(trials_to_show, session, trials, ctx, str)
+function show_ctxstr(trials_to_show, session, trials, ctx, str, varargin)
+
+dataset_name = '';
+for k = 1:length(varargin)
+    if ischar(varargin{k})
+        switch lower(varargin{k})
+            case {'dataset_name', 'name'}
+                dataset_name = varargin{k+1};
+        end
+    end
+end
 
 num_trials_to_show = length(trials_to_show);
 
@@ -10,10 +20,21 @@ sp = @(m,n,p) subtightplot(m, n, p, 0.01, [0.04 0.025], 0.02); % Gap, Margin-X, 
 p_lims = [-50 session.behavior.position.us_threshold]; % Y-scale for encoder position
 v_lims = [-5 max(session.behavior.velocity(:,2))];
 
+% Rescale neural data 
+%------------------------------------------------------------
+for k = 1:size(ctx.traces,1)
+    tr = ctx.traces(k,:);
+    ctx.traces(k,:) = tr / max(tr);
+end
+for k = 1:size(str.traces,1)
+    tr = str.traces(k,:);
+    str.traces(k,:) = tr / max(tr);
+end
+
 % Compute Y-scale for mean pop. activity
-ctx_max = max(mean(ctx.traces, 1));
+ctx_max = max(sum(ctx.traces, 1));
 ctx_a_lims = [0 1.1*ctx_max];
-str_max = max(mean(str.traces, 1));
+str_max = max(sum(str.traces, 1));
 str_a_lims = [0 1.1*str_max];
 
 v_color = [0 0.4470 0.7410];
@@ -27,17 +48,21 @@ for k = 1:num_trials_to_show
     ctx_frames = ctxstr.core.find_frames_in_trial(ctx.t, t_lims);
     ctx_t = ctx.t(ctx_frames);
     ctx_traces = ctx.traces(:,ctx_frames);
-    mean_ctx_trace = mean(ctx_traces, 1);    
+    pop_ctx_trace = sum(ctx_traces, 1);    
        
     str_frames = ctxstr.core.find_frames_in_trial(str.t, t_lims);
     str_t = str.t(str_frames);
     str_traces = str.traces(:, str_frames);
-    mean_str_trace = mean(str_traces, 1);
+    pop_str_trace = sum(str_traces, 1);
 
     % Plots: 1) Velocity and position
     %------------------------------------------------------------
     ax1 = sp(4, num_trials_to_show, k);
-    title(sprintf('Trial %d (%.1f s)', trial_idx, trial.duration));
+    if ~isempty(dataset_name) && (k == 1)
+        title(sprintf('%s, Trial %d (%.1f s)', dataset_name, trial_idx, trial.duration));
+    else
+        title(sprintf('Trial %d (%.1f s)', trial_idx, trial.duration));
+    end
     yyaxis left;
     plot(trial.velocity(:,1), trial.velocity(:,2));
     hold on;
@@ -70,15 +95,15 @@ for k = 1:num_trials_to_show
     %------------------------------------------------------------
     ax2 = sp(4, num_trials_to_show, num_trials_to_show+k);
     yyaxis left;
-    plot(ctx_t, mean_ctx_trace, 'k');
+    plot(ctx_t, pop_ctx_trace, 'k');
     ylim(ctx_a_lims);
     if k == 1
-        ylabel('Ctx pop. mean spike rate (Hz)');
+        ylabel('Ctx pop. activity');
     else
         set(gca, 'YTick', []);
     end
     yyaxis right;
-    plot(str_t, mean_str_trace, 'm-');
+    plot(str_t, pop_str_trace, 'm-');
     hold on;
     ylim(str_a_lims);
     plot_vertical_lines([trial.start_time, trial.us_time], str_a_lims, 'b:');
@@ -87,7 +112,7 @@ for k = 1:num_trials_to_show
     hold off;
     xlim(t_lims);
     if k == num_trials_to_show
-        ylabel('Str pop. mean spike rate (Hz)');
+        ylabel('Str pop. activity');
     else
         set(gca, 'YTick', []);
     end
@@ -104,7 +129,7 @@ for k = 1:num_trials_to_show
     hold off;
     xlim(t_lims);
     if k == 1
-        ylabel('Ctx');
+        ylabel('Ctx neurons');
     else
         set(gca, 'YTick', []);
     end
@@ -121,7 +146,7 @@ for k = 1:num_trials_to_show
     hold off;
     xlim(t_lims);
     if k == 1
-        ylabel('Str');
+        ylabel('Str neurons');
     else
         set(gca, 'YTick', []);
     end

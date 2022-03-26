@@ -31,16 +31,18 @@ num_pages = size(trial_chunks, 1);
 
 for k = 1:num_pages
     trials_to_show = session.info.imaged_trials(trial_chunks(k,1):trial_chunks(k,2));
+    ctxstr.vis.show_ctxstr(trials_to_show, session, trials, ctx, str, 'name', dataset_name);
     
-    if ~isempty(str_info.tdt)
-        ctxstr.vis.show_ctxstr_tdt(trials_to_show, session, trials, ctx, str, str_info.tdt);
-    else
-        ctxstr.vis.show_ctxstr(trials_to_show, session, trials, ctx, str);
-    end
+%     if ~isempty(str_info.tdt)
+%         ctxstr.vis.show_ctxstr_tdt(trials_to_show, session, trials, ctx, str, str_info.tdt);
+%     else
+%         ctxstr.vis.show_ctxstr(trials_to_show, session, trials, ctx, str, 'name', dataset_name);
+%     end
     
     fprintf('Page %d/%d: Showing Trials %d to %d...\n', k, num_pages,...
         trials_to_show(1), trials_to_show(end));
-    pause;
+    print('-dpng', sprintf('%s_trials_pg%02d.png', dataset_name, k));
+%     pause;
 end
 
 %% Ctx
