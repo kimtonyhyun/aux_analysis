@@ -1,11 +1,19 @@
 function show_ctxstr(trials_to_show, session, trials, ctx, str, varargin)
 
+% Defaults
 dataset_name = '';
+ctx_max = []; % Determines ylim for displaying neural activity traces
+str_max = [];
+
 for k = 1:length(varargin)
     if ischar(varargin{k})
         switch lower(varargin{k})
             case {'dataset_name', 'name'}
                 dataset_name = varargin{k+1};
+            case 'ctx_max'
+                ctx_max = varargin{k+1};
+            case 'str_max'
+                str_max = varargin{k+1};
         end
     end
 end
@@ -20,24 +28,19 @@ sp = @(m,n,p) subtightplot(m, n, p, 0.01, [0.04 0.025], 0.02); % Gap, Margin-X, 
 p_lims = [-50 session.behavior.position.us_threshold]; % Y-scale for encoder position
 v_lims = [-5 max(session.behavior.velocity(:,2))];
 
-% Rescale neural data 
-%------------------------------------------------------------
-for k = 1:size(ctx.traces,1)
-    tr = ctx.traces(k,:);
-    ctx.traces(k,:) = tr / max(tr);
+% If not externally provided, calculate appropriate ylim for mean pop. activity
+if isempty(ctx_max)
+    ctx_max = max(sum(ctx.traces, 1));
 end
-for k = 1:size(str.traces,1)
-    tr = str.traces(k,:);
-    str.traces(k,:) = tr / max(tr);
+if isempty(str_max)
+    ctx_max = max(sum(str.traces, 1));
 end
-
-% Compute Y-scale for mean pop. activity
-ctx_max = max(sum(ctx.traces, 1));
 ctx_a_lims = [0 1.1*ctx_max];
-str_max = max(sum(str.traces, 1));
 str_a_lims = [0 1.1*str_max];
 
 v_color = [0 0.4470 0.7410];
+
+num_subplot_columns = max(8, num_trials_to_show);
 
 for k = 1:num_trials_to_show
     trial_idx = trials_to_show(k);
@@ -48,7 +51,7 @@ for k = 1:num_trials_to_show
     ctx_frames = ctxstr.core.find_frames_in_trial(ctx.t, t_lims);
     ctx_t = ctx.t(ctx_frames);
     ctx_traces = ctx.traces(:,ctx_frames);
-    pop_ctx_trace = sum(ctx_traces, 1);    
+    pop_ctx_trace = sum(ctx_traces, 1);
        
     str_frames = ctxstr.core.find_frames_in_trial(str.t, t_lims);
     str_t = str.t(str_frames);
@@ -57,7 +60,7 @@ for k = 1:num_trials_to_show
 
     % Plots: 1) Velocity and position
     %------------------------------------------------------------
-    ax1 = sp(4, num_trials_to_show, k);
+    ax1 = sp(4, num_subplot_columns, k);
     if ~isempty(dataset_name) && (k == 1)
         title(sprintf('%s, Trial %d (%.1f s)', dataset_name, trial_idx, trial.duration));
     else
@@ -93,7 +96,7 @@ for k = 1:num_trials_to_show
     
     % 2) Population mean spike rates
     %------------------------------------------------------------
-    ax2 = sp(4, num_trials_to_show, num_trials_to_show+k);
+    ax2 = sp(4, num_subplot_columns, num_subplot_columns+k);
     yyaxis left;
     plot(ctx_t, pop_ctx_trace, 'k');
     ylim(ctx_a_lims);
@@ -121,7 +124,7 @@ for k = 1:num_trials_to_show
     
     % 3) Ctx raster
     %------------------------------------------------------------
-    ax3 = sp(4, num_trials_to_show, 2*num_trials_to_show + k);
+    ax3 = sp(4, num_subplot_columns, 2*num_subplot_columns + k);
     imagesc(ctx_t, 1:num_ctx_cells, ctx_traces);
     hold on;
     plot_vertical_lines([trial.start_time, trial.us_time], [1 num_ctx_cells], 'w:');
@@ -129,7 +132,7 @@ for k = 1:num_trials_to_show
     hold off;
     xlim(t_lims);
     if k == 1
-        ylabel('Ctx neurons');
+        ylabel(sprintf('Ctx neurons (%d total)', num_ctx_cells));
     else
         set(gca, 'YTick', []);
     end
@@ -138,7 +141,7 @@ for k = 1:num_trials_to_show
     
     % 4) Str raster
     %------------------------------------------------------------
-    ax4 = sp(4, num_trials_to_show, 3*num_trials_to_show+k);
+    ax4 = sp(4, num_subplot_columns, 3*num_subplot_columns+k);
     imagesc(str_t, 1:num_str_cells, str_traces); hold on;
     hold on;
     plot_vertical_lines([trial.start_time, trial.us_time], [1 num_str_cells], 'w:');
@@ -146,7 +149,7 @@ for k = 1:num_trials_to_show
     hold off;
     xlim(t_lims);
     if k == 1
-        ylabel('Str neurons');
+        ylabel(sprintf('Str neurons (%d total)', num_str_cells));
     else
         set(gca, 'YTick', []);
     end
@@ -158,9 +161,3 @@ for k = 1:num_trials_to_show
 end
 
 end % show_ctxstr_trials
-
-function sorted_raster = sort_raster(raster)
-    [~, max_frame] = max(raster,[],2);
-    [~, order] = sort(max_frame, 'ascend');
-    sorted_raster = raster(order,:);
-end
