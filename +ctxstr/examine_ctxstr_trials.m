@@ -3,13 +3,14 @@ clear all;
 dataset_name = dirname;
 
 session = load('ctxstr.mat');
-num_imaged_trials = length(session.info.imaged_trials);
-cprintf('blue', '* * * %s: Contains %d imaged trials * * *\n', dataset_name, num_imaged_trials);
+trials = ctxstr.load_trials;
 
 % Note that 'trials' includes all behavioral trials in the Saleae record,
 % even those that are not captured by imaging. The subset of trials with
 % imaging are in 'session.info.imaged_trials'
-trials = ctxstr.load_trials;
+trials_to_show = session.info.imaged_trials; %#ok<NASGU>
+num_imaged_trials = length(session.info.imaged_trials);
+cprintf('blue', '* * * %s: Contains %d imaged trials * * *\n', dataset_name, num_imaged_trials);
 
 fps = 15;
 path_to_ctx = 'ctx/union_15hz/dff';
@@ -23,8 +24,11 @@ num_ctx_cells = size(ctx.traces, 1);
 str.t = ctxstr.core.bin_frame_times(session.str.frame_times, 3);
 num_str_cells = size(str.traces, 1);
 
-% By default, show all imaged trials
-trials_to_show = session.info.imaged_trials; %#ok<NASGU>
+% Load the behavior video, if available
+vid_filename = get_most_recent_file('.', '*.mp4');
+if ~isempty(vid_filename)
+    vid = VideoReader(vid_filename);
+end
 
 %% 
 
