@@ -57,7 +57,7 @@ trials_to_show = trials_to_show(1:idx);
 clear idx;
 
 % Omit grooming trials
-grooming_trials = [45 219];
+grooming_trials = [5 126 142];
 trials_to_show = setdiff(trials_to_show, grooming_trials);
 
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n', length(trials_to_show), max_trials);
@@ -65,8 +65,11 @@ cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n', l
 % Compute appropriate ylims given this set of trials
 ctx_max = 0; ctx_max_trial_idx = 0;
 str_max = 0; str_max_trial_idx = 0;
-for trial_idx = trials_to_show   
-    ctx_frames = ctxstr.core.find_frames_in_trial(ctx.t, trials(trial_idx).times);
+for trial_idx = trials_to_show
+    trial = trials(trial_idx);
+    trial_times = [trial.start_time trial.us_time]; % No padding
+    
+    ctx_frames = ctxstr.core.find_frames_in_trial(ctx.t, trial_times);
     ctx_traces = ctx.traces(:,ctx_frames);
     max_pop_ctx_trace = max(sum(ctx_traces, 1));
     if max_pop_ctx_trace > ctx_max
@@ -74,7 +77,7 @@ for trial_idx = trials_to_show
         ctx_max_trial_idx = trial_idx;
     end
     
-    str_frames = ctxstr.core.find_frames_in_trial(str.t, trials(trial_idx).times);
+    str_frames = ctxstr.core.find_frames_in_trial(str.t, trial_times);
     str_traces = str.traces(:,str_frames);
     max_pop_str_trace = max(sum(str_traces, 1));
     if max_pop_str_trace > str_max
