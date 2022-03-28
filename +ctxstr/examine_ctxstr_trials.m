@@ -57,10 +57,10 @@ trials_to_show = trials_to_show(1:idx);
 clear idx;
 
 % Omit grooming trials
-grooming_trials = [60 206 207];
+grooming_trials = [45 219];
 trials_to_show = setdiff(trials_to_show, grooming_trials);
 
-cprintf('blue', 'Found %d stereotyped trials out of %d trials total\n', length(trials_to_show), max_trials);
+cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n', length(trials_to_show), max_trials);
 
 % Compute appropriate ylims given this set of trials
 ctx_max = 0; ctx_max_trial_idx = 0;
@@ -82,8 +82,8 @@ for trial_idx = trials_to_show
         str_max_trial_idx = trial_idx;
     end
 end
-fprintf('Maximum ctx activity occurs on Trial %d\n', ctx_max_trial_idx);
-fprintf('Maximum str activity occurs on Trial %d\n', str_max_trial_idx);
+fprintf('  Maximum ctx activity occurs on Trial %d\n', ctx_max_trial_idx);
+fprintf('  Maximum str activity occurs on Trial %d\n', str_max_trial_idx);
 clear ctx_frames ctx_traces max_pop_ctx_trace str_frames str_traces max_pop_str_trace ctx_max_trial_idx str_max_trial_idx
 
 %%
@@ -109,6 +109,7 @@ for k = 1:num_pages
     
     fprintf('Page %d/%d: Showing Trials %d to %d...\n', k, num_pages,...
         trials_to_show_k(1), trials_to_show_k(end));
+    
     print('-dpng', sprintf('%s_st-trials_pg%02d.png', dataset_name, k));
 %     pause;
 end
