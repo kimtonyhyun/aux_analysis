@@ -2,12 +2,21 @@ function [traces, info] = load_cascade_traces(path_to_imdata, fps)
 % Note: 'traces' only contains cells that have been classified to be true
 % cells in the associated classification file.
 
+normalize_traces = true; % TODO: Allow for disabling via varargin
+
 data = load(get_most_recent_file(path_to_imdata, 'cascade_*.mat'), 'spike_probs');
 class = load_cell_class(path_to_imdata);
 num_all_sources = length(class);
 
 traces = fps * data.spike_probs';  % Convert to spike rates (Hz); [Cells x Time]
 traces = traces(class,:); % Return only sources classified to be cells
+
+if normalize_traces
+    for k = 1:size(traces,1)
+        tr = traces(k,:);
+        traces(k,:) = tr / max(tr);
+    end
+end
 
 tdt = load_tdt(path_to_imdata);
 if ~isempty(tdt)

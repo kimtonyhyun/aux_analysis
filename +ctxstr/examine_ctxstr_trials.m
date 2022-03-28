@@ -3,6 +3,8 @@ clear all;
 dataset_name = dirname;
 
 session = load('ctxstr.mat');
+num_imaged_trials = length(session.info.imaged_trials);
+cprintf('blue', '* * * %s: Contains %d imaged trials * * *\n', dataset_name, num_imaged_trials);
 
 % Note that 'trials' includes all behavioral trials in the Saleae record,
 % even those that are not captured by imaging. The subset of trials with
@@ -21,17 +23,6 @@ num_ctx_cells = size(ctx.traces, 1);
 str.t = ctxstr.core.bin_frame_times(session.str.frame_times, 3);
 num_str_cells = size(str.traces, 1);
 
-% Rescale neural data. Each neuron normalized by its own maximum.
-%------------------------------------------------------------
-for k = 1:size(ctx.traces,1)
-    tr = ctx.traces(k,:);
-    ctx.traces(k,:) = tr / max(tr);
-end
-for k = 1:size(str.traces,1)
-    tr = str.traces(k,:);
-    str.traces(k,:) = tr / max(tr);
-end
-
 % By default, show all imaged trials
 trials_to_show = session.info.imaged_trials; %#ok<NASGU>
 
@@ -40,10 +31,9 @@ trials_to_show = session.info.imaged_trials; %#ok<NASGU>
 % Sub-select trials with "stereotyped" movement, requiring:
 %   - Reward-delivery-timed licking at the beginning and end of trial;
 %   - At least one motion onset
-max_trials = length(session.info.imaged_trials);
-trials_to_show = zeros(1, max_trials);
+trials_to_show = zeros(1, num_imaged_trials);
 idx = 0;
-for k = 1:max_trials
+for k = 1:num_imaged_trials
     trial_idx = session.info.imaged_trials(k);
     trial =  trials(trial_idx);
     prev_trial = trials(trial_idx-1);
@@ -57,10 +47,11 @@ trials_to_show = trials_to_show(1:idx);
 clear idx;
 
 % Omit grooming trials
-grooming_trials = [5 126 142];
+grooming_trials = [60 207];
 trials_to_show = setdiff(trials_to_show, grooming_trials);
 
-cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n', length(trials_to_show), max_trials);
+cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
+    length(trials_to_show), num_imaged_trials);
 
 % Compute appropriate ylims given this set of trials
 ctx_max = 0; ctx_max_trial_idx = 0;
@@ -113,8 +104,8 @@ for k = 1:num_pages
     fprintf('Page %d/%d: Showing Trials %d to %d...\n', k, num_pages,...
         trials_to_show_k(1), trials_to_show_k(end));
     
-    print('-dpng', sprintf('%s_st-trials_pg%02d.png', dataset_name, k));
-%     pause;
+%     print('-dpng', sprintf('%s_st-trials_pg%02d.png', dataset_name, k));
+    pause;
 end
 
 %% Ctx
