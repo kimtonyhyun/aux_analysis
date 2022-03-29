@@ -36,7 +36,7 @@ end
 
 %% Omit trials for grooming, etc.
 
-omitted_trials = [28]; % e.g. grooming trials
+omitted_trials = [12 35]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
@@ -69,13 +69,14 @@ clear ctx_frames ctx_traces max_pop_ctx_trace str_frames str_traces max_pop_str_
 
 %% Compute correlations
 
+trials_to_use = st_trial_inds;
+
 resampled_ctx_traces = cell(num_all_trials, 1);
 resampled_str_traces = cell(num_all_trials, 1);
 common_time = cell(num_all_trials, 1);
 
-C = zeros(num_ctx_cells, num_str_cells);
-corrs = zeros(num_ctx_cells, num_str_cells, num_all_trials);
-for k = trials_to_show
+dotprods = zeros(num_ctx_cells, num_str_cells, num_all_trials);
+for k = trials_to_use
     trial = trials(k);
     trial_time = [trial.start_time trial.us_time];
     
@@ -85,14 +86,17 @@ for k = trials_to_show
     [resampled_ctx_traces{k}, resampled_str_traces{k}, common_time{k}] = ctxstr.core.resample_ctxstr_traces(...
         ctx_traces_k, ctx_times_k, str_traces_k, str_times_k);
     
-    corrs(:,:,k) = resampled_ctx_traces{k} * resampled_str_traces{k}';
-    
-    if ~any(isnan(corrs(:,:,k)))
-        C = C + corrs(:,:,k);
+    dotprods(:,:,k) = resampled_ctx_traces{k} * resampled_str_traces{k}';
+end
+
+C = zeros(num_ctx_cells, num_str_cells);
+for k = trials_to_use
+    if ~any(isnan(dotprods(:,:,k)))
+        C = C + dotprods(:,:,k);
     end
 end
 
-%% Display correlations
+%% Display correlation matrix
 
 figure;
 imagesc(C);
@@ -103,6 +107,29 @@ set(gca, 'FontSize', 18);
 set(gca, 'TickLength', [0 0]);
 colorbar;
 title(sprintf('%s correlations', dataset_name));
+
+%% Inspect pairs of single-trial ctxstr traces
+
+ctx_ind = 6;
+str_ind = 51;
+
+figure;
+hold on;
+for k = trials_to_use
+    trial = trials(k);
+    
+    plot(common_time{k}, resampled_ctx_traces{k}(ctx_ind,:), 'k');
+    plot(common_time{k}, resampled_str_traces{k}(str_ind,:), 'm');
+    plot_vertical_lines([trial.start_time, trial.us_time], [0 1], 'b:');
+    plot_vertical_lines(trial.motion.onsets, [0 1], 'r:');
+end
+hold off;
+ylim([0 1]);
+title(sprintf('Ctx=%d, Str=%d', ctx_ind, str_ind));
+zoom xon;
+xlabel('Time (s)');
+ylabel('Activity (norm)');
+set(gca, 'TickLength', [0 0]);
 
 %%
 
