@@ -31,7 +31,7 @@ for k = 1:num_datasets
     %   V: Velocity raster
     %   R: Consumed US within 1 s (default)?
     %   t0: Time window for the velocity trace
-    [V, R, t0] = ctxstr.show_alignment_to_us(d.behavior);
+    [V, R, t0] = ctxstr.behavior.show_alignment_to_us(d.behavior);
     IRI = diff(d.behavior.us_times);    
     
     V_corr{k} = V(R,:); % Correct trials only

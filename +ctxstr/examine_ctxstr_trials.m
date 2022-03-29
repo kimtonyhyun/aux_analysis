@@ -32,7 +32,7 @@ end
 
 %% Select trials with "stereotyped" movements
 
-omitted_trials = [28]; % e.g. grooming trials
+omitted_trials = [12 35]; % e.g. grooming trials
 
 % A trial is "stereotypical" if it contains:
 %   - Reward-delivery-timed licking at the beginning and end of trial;
@@ -105,6 +105,18 @@ for k = trials_to_show
         C = C + corrs(:,:,k);
     end
 end
+
+%% Display correlations
+
+figure;
+imagesc(C);
+axis image;
+xlabel('Str neurons');
+ylabel('Ctx neurons');
+set(gca, 'FontSize', 18);
+set(gca, 'TickLength', [0 0]);
+colorbar;
+title(sprintf('%s correlations', dataset_name));
 
 %%
 
