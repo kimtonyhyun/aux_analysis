@@ -1,4 +1,4 @@
-function show_ctxstr(trials_to_show, session, trials, ctx, str, varargin)
+function show_trials(trials_to_show, session, trials, ctx, str, varargin)
 
 % Defaults
 dataset_name = '';
@@ -48,14 +48,10 @@ for k = 1:num_trials_to_show
     
     t_lims = trial.times; % Includes trial padding
     
-    ctx_frames = ctxstr.core.find_frames_in_trial(ctx.t, t_lims);
-    ctx_t = ctx.t(ctx_frames);
-    ctx_traces = ctx.traces(:,ctx_frames);
+    [ctx_traces, ctx_t] = ctxstr.core.get_trial_traces(ctx, t_lims);
     pop_ctx_trace = sum(ctx_traces, 1);
        
-    str_frames = ctxstr.core.find_frames_in_trial(str.t, t_lims);
-    str_t = str.t(str_frames);
-    str_traces = str.traces(:, str_frames);
+    [str_traces, str_t] = ctxstr.core.get_trial_traces(str, t_lims);
     pop_str_trace = sum(str_traces, 1);
 
     % Plots: 1) Velocity and position
