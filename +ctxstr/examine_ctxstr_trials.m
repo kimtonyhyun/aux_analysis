@@ -30,9 +30,11 @@ if ~isempty(vid_filename)
     vid = VideoReader(vid_filename);
 end
 
-%% 
+%% Select trials with "stereotyped" movements
 
-% Sub-select trials with "stereotyped" movement, requiring:
+omitted_trials = [39 146 149]; % e.g. grooming trials
+
+% A trial is "stereotypical" if it contains:
 %   - Reward-delivery-timed licking at the beginning and end of trial;
 %   - At least one motion onset
 trials_to_show = zeros(1, num_imaged_trials);
@@ -50,10 +52,7 @@ end
 trials_to_show = trials_to_show(1:idx);
 clear idx;
 
-% Omit grooming trials
-grooming_trials = [60 207];
-trials_to_show = setdiff(trials_to_show, grooming_trials);
-
+trials_to_show = setdiff(trials_to_show, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
     length(trials_to_show), num_imaged_trials);
 
@@ -108,8 +107,8 @@ for k = 1:num_pages
     fprintf('Page %d/%d: Showing Trials %d to %d...\n', k, num_pages,...
         trials_to_show_k(1), trials_to_show_k(end));
     
-%     print('-dpng', sprintf('%s_st-trials_pg%02d.png', dataset_name, k));
-    pause;
+    print('-dpng', sprintf('%s_st-trials_pg%02d.png', dataset_name, k));
+%     pause;
 end
 
 %% Ctx

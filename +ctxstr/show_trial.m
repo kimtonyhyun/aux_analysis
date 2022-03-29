@@ -62,9 +62,6 @@ h2_t = plot_vertical_lines(0, a_lims, 'k-', 'HitTest', 'off');
 
 subplot(axb);
 h_b = imagesc(Mb(:,:,1), [0 200]);
-hold on;
-h_rect = rectangle('Position', [0 0 100 100], 'FaceColor', 'r'); % Motion onset rectangle
-h_rect.Visible = 'off';
 % set(axb, 'XTick', []);
 % set(axb, 'YTick', []);
 axis image; colormap gray;
@@ -172,12 +169,6 @@ xlim(t_lims);
         set(h_b, 'CData', Mb(:,:,k));
         title(axb, sprintf('Frame %d of %d; Time = %.3f s', k, num_frames, t));
         
-        % Toggle motion onset rectangle
-        if any(abs(trial.motion.onsets - t) < 0.05/2)
-            h_rect.Visible = 'on';
-        else
-            h_rect.Visible = 'off';
-        end
         drawnow;
     end
 
