@@ -36,7 +36,7 @@ end
 
 %% Omit trials for grooming, etc.
 
-omitted_trials = [12 35]; % e.g. grooming trials
+omitted_trials = [175]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
@@ -75,7 +75,9 @@ resampled_ctx_traces = cell(num_all_trials, 1);
 resampled_str_traces = cell(num_all_trials, 1);
 common_time = cell(num_all_trials, 1);
 
-dotprods = zeros(num_ctx_cells, num_str_cells, num_all_trials);
+ctx_prods = zeros(num_ctx_cells, num_ctx_cells, num_all_trials);
+str_prods = zeros(num_str_cells, num_str_cells, num_all_trials);
+ctxstr_prods = zeros(num_ctx_cells, num_str_cells, num_all_trials);
 for k = trials_to_use
     trial = trials(k);
     trial_time = [trial.start_time trial.us_time];
@@ -86,15 +88,30 @@ for k = trials_to_use
     [resampled_ctx_traces{k}, resampled_str_traces{k}, common_time{k}] = ctxstr.core.resample_ctxstr_traces(...
         ctx_traces_k, ctx_times_k, str_traces_k, str_times_k);
     
-    dotprods(:,:,k) = resampled_ctx_traces{k} * resampled_str_traces{k}';
+    ctx_prods(:,:,k) = resampled_ctx_traces{k} * resampled_ctx_traces{k}';
+    str_prods(:,:,k) = resampled_str_traces{k} * resampled_str_traces{k}';
+    ctxstr_prods(:,:,k) = resampled_ctx_traces{k} * resampled_str_traces{k}';
 end
 
-C = zeros(num_ctx_cells, num_str_cells);
+ctx_prods_acc = zeros(num_ctx_cells, num_ctx_cells);
+str_prods_acc = zeros(num_str_cells, num_str_cells);
+ctxstr_prods_acc = zeros(num_ctx_cells, num_str_cells);
 for k = trials_to_use
-    if ~any(isnan(dotprods(:,:,k)))
-        C = C + dotprods(:,:,k);
+    if ~any(isnan(ctx_prods(:,:,k)))
+        ctx_prods_acc = ctx_prods_acc + ctx_prods(:,:,k).^2;
+    end
+    if ~any(isnan(str_prods(:,:,k)))
+        str_prods_acc = str_prods_acc + str_prods(:,:,k).^2;
+    end
+    if ~any(isnan(ctxstr_prods(:,:,k)))
+        ctxstr_prods_acc = ctxstr_prods_acc + ctxstr_prods(:,:,k).^2;
     end
 end
+
+ctx_trace_norms = diag(sqrt(ctx_prods_acc));
+str_trace_norms = diag(sqrt(str_prods_acc));
+
+C = sqrt(ctxstr_prods_acc);
 
 %% Display correlation matrix
 
@@ -110,7 +127,7 @@ title(sprintf('%s correlations', dataset_name));
 
 %% Inspect pairs of single-trial ctxstr traces
 
-ctx_ind = 6;
+ctx_ind = 47;
 str_ind = 51;
 
 figure;
