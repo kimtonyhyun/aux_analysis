@@ -15,7 +15,7 @@ for k = 1:num_all_trials
     if ismember(k, trials_to_use)
         trial = trials(k);
 
-        [traces_k, times_k] = ctxstr.core.get_trial_traces(imdata,...
+        [traces_k, times_k] = ctxstr.core.get_traces_by_time(imdata,...
             [trial.start_time, trial.us_time+post_us_padding]);
         traces{k} = traces_k(cell_idx,:);
         trial_times{k} = times_k - trial.us_time; % Time relative to US

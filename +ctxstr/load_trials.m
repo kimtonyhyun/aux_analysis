@@ -69,7 +69,7 @@ for k = 1:num_trials
     trial_data(k).lick_response = behavior.lick_responses(k);
     trial_data(k).lick_times = find_licks(behavior.lick_times, t_lims); % All licks in trial + padding
     
-    inds = ctxstr.core.find_frames_in_trial(behavior.velocity(:,1), t_lims);
+    inds = ctxstr.core.find_frames_by_time(behavior.velocity(:,1), t_lims);
     trial_data(k).velocity = behavior.velocity(inds, :);
     
     for m = 1:size(behavior.opto_periods,1)
@@ -80,7 +80,7 @@ for k = 1:num_trials
     end
     
     if ~isempty(sdata)
-        inds = ctxstr.core.find_frames_in_trial(sdata.t, t_lims);
+        inds = ctxstr.core.find_frames_by_time(sdata.t, t_lims);
         dlc_data.t = [sdata.t(inds) inds'];
         dlc_data.beta_f = sdata.beta_f(inds);
         dlc_data.beta_h = sdata.beta_h(inds);
