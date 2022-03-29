@@ -12,6 +12,10 @@ num_all_trials = length(trials);
 num_imaged_trials = length(session.info.imaged_trials);
 cprintf('blue', '* * * %s: Contains %d imaged trials * * *\n', dataset_name, num_imaged_trials);
 
+% "Stereotypical" trials
+st_trial_inds = ctxstr.behavior.find_stereotypical_trials(trials);
+st_trial_inds = intersect(st_trial_inds, session.info.imaged_trials);
+
 fps = 15;
 path_to_ctx = 'ctx/union_15hz/dff';
 path_to_str = 'str/union_15hz/dff';
@@ -30,36 +34,18 @@ if ~isempty(vid_filename)
     vid = VideoReader(vid_filename);
 end
 
-%% Select trials with "stereotyped" movements
+%% Omit trials for grooming, etc.
 
-omitted_trials = [12 35]; % e.g. grooming trials
+omitted_trials = [28]; % e.g. grooming trials
 
-% A trial is "stereotypical" if it contains:
-%   - Reward-delivery-timed licking at the beginning and end of trial;
-%   - At least one motion onset
-trials_to_show = zeros(1, num_imaged_trials);
-idx = 0;
-for k = 1:num_imaged_trials
-    trial_idx = session.info.imaged_trials(k);
-    trial =  trials(trial_idx);
-    prev_trial = trials(trial_idx-1);
-    
-    if prev_trial.lick_response && trial.lick_response && ~isempty(trial.motion.onsets)
-        idx = idx + 1;
-        trials_to_show(idx) = trial_idx;
-    end
-end
-trials_to_show = trials_to_show(1:idx);
-clear idx;
-
-trials_to_show = setdiff(trials_to_show, omitted_trials);
+st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
-    length(trials_to_show), num_imaged_trials);
+    length(st_trial_inds), num_imaged_trials);
 
 % Compute appropriate ylims given this set of trials
 ctx_max = 0; ctx_max_trial_idx = 0;
 str_max = 0; str_max_trial_idx = 0;
-for trial_idx = trials_to_show
+for trial_idx = st_trial_inds
     trial = trials(trial_idx);
     trial_times = [trial.start_time trial.us_time]; % No padding
     
@@ -120,6 +106,8 @@ title(sprintf('%s correlations', dataset_name));
 
 %%
 
+trials_to_show = st_trial_inds;
+
 num_trials_per_page = 8;
 num_trials_to_show = length(trials_to_show);
 
@@ -149,7 +137,7 @@ end
 %% Ctx
 
 for k = 1:num_ctx_cells
-    ctxstr.vis.show_aligned_raster(k, trials_to_show, trials, ctx);
+    ctxstr.vis.show_aligned_raster(k, st_trial_inds, trials, ctx);
     cell_id_in_rec = ctx_info.cell_ids_in_rec(k);
     title(sprintf('%s-ctx, cell #=%d (%s)', dataset_name, cell_id_in_rec, ctx_info.rec_name),...
           'Interpreter', 'None');
@@ -159,7 +147,7 @@ end
 %% Str
 
 for k = 1:num_str_cells
-    ctxstr.vis.show_aligned_raster(k, trials_to_show, trials, str);
+    ctxstr.vis.show_aligned_raster(k, st_trial_inds, trials, str);
     cell_id_in_rec = str_info.cell_ids_in_rec(k);
     title(sprintf('%s-str, cell #=%d (%s)', dataset_name, cell_id_in_rec, str_info.rec_name),...
           'Interpreter', 'None');
