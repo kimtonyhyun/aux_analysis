@@ -8,7 +8,7 @@ trials = ctxstr.load_trials;
 % Note that 'trials' includes all behavioral trials in the Saleae record,
 % even those that are not captured by imaging. The subset of trials with
 % imaging are in 'session.info.imaged_trials'
-trials_to_show = session.info.imaged_trials; %#ok<NASGU>
+num_all_trials = length(trials);
 num_imaged_trials = length(session.info.imaged_trials);
 cprintf('blue', '* * * %s: Contains %d imaged trials * * *\n', dataset_name, num_imaged_trials);
 
@@ -81,71 +81,28 @@ fprintf('  Maximum ctx activity occurs on Trial %d\n', ctx_max_trial_idx);
 fprintf('  Maximum str activity occurs on Trial %d\n', str_max_trial_idx);
 clear ctx_frames ctx_traces max_pop_ctx_trace str_frames str_traces max_pop_str_trace ctx_max_trial_idx str_max_trial_idx
 
-%% Plot MO-triggered velocity profiles for stereotypical trials
-
-sp = @(m,n,p) subtightplot(m, n, p, 0.05, 0.05, 0.05); % Gap, Margin-X, Margin-Y
-sp(4,2,8);
-cla;
-hold on;
-for trial_idx = trials_to_show
-    trial = trials(trial_idx);
-    t = trial.velocity(:,1) - trial.motion.onsets(1);
-%     plot(t, trial.velocity(:,2), 'Color', 0.7*[1 1 1]);
-    plot(t, trial.velocity(:,2));
-end
-hold off;
-xlim([-1 4]);
-xlabel('Time after motion onset (s)');
-% ylabel('Velocity (cm/s)');
-title(dataset_name);
-grid on;
-
 %% Compute correlations
 
-corrs = zeros(num_ctx_cells, num_str_cells);
-for i = 1:num_ctx_cells % i-th ctx cell
-    fprintf('%s: Computing correlations for ctx cell=%d...\n', datestr(now), i);
-    for j = 1:num_str_cells % j-th str cell
-        c = 0;
-        clf;
-        hold on;
-        for k = trials_to_show % k-th trial
-            trial = trials(k);
-            trial_time = [trial.start_time, trial.us_time];
-            
-            % Retrieve the ctx and str traces, at their original sampling
-            [ctx_frames_k, ctx_times_k] = ctxstr.core.find_frames_by_time(ctx.t, trial_time);
-            ctx_tr_i = ctx.traces(i, ctx_frames_k);
-            
-            [str_frames_k, str_times_k] = ctxstr.core.find_frames_by_time(str.t, trial_time);
-            str_tr_j = str.traces(j, str_frames_k);
-            
-            % Resample ctx and str traces for a common timebase
-            t_lims = [max([ctx_times_k(1) str_times_k(1)]) min([ctx_times_k(end) str_times_k(end)])];
-            num_samples = ceil(diff(t_lims) * 15); % At least 15 samples per s
-            t_common = linspace(t_lims(1), t_lims(2), num_samples);
-            
-            ctx_tr_i_resampled = interp1(ctx_times_k, ctx_tr_i, t_common, 'linear');
-            str_tr_j_resampled = interp1(str_times_k, str_tr_j, t_common, 'linear');
-            
-            p = sum(ctx_tr_i_resampled .* str_tr_j_resampled);
-            if ~isnan(p)
-                c = c + p;
-            else
-                cprintf('blue', 'Warning: Found NaN on Trial %d\n', k);
-            end
-            
-            % Debug: Show plot
-            plot(t_common, ctx_tr_i_resampled, 'b');
-            plot(t_common, str_tr_j_resampled, 'r');            
-        end
-        corrs(i,j) = c;
-        hold off;
-        
-        xlabel('Time (s)');
-        ylabel('Trace (norm)');
-        title(sprintf('Ctx cell=%d, Str cell=%d, corr=%.4f', i, j, c));
-        pause;
+resampled_ctx_traces = cell(num_all_trials, 1);
+resampled_str_traces = cell(num_all_trials, 1);
+common_time = cell(num_all_trials, 1);
+
+C = zeros(num_ctx_cells, num_str_cells);
+corrs = zeros(num_ctx_cells, num_str_cells, num_all_trials);
+for k = trials_to_show
+    trial = trials(k);
+    trial_time = [trial.start_time trial.us_time];
+    
+    [ctx_traces_k, ctx_times_k] = ctxstr.core.get_traces_by_time(ctx, trial_time);
+    [str_traces_k, str_times_k] = ctxstr.core.get_traces_by_time(str, trial_time);
+    
+    [resampled_ctx_traces{k}, resampled_str_traces{k}, common_time{k}] = ctxstr.core.resample_ctxstr_traces(...
+        ctx_traces_k, ctx_times_k, str_traces_k, str_times_k);
+    
+    corrs(:,:,k) = resampled_ctx_traces{k} * resampled_str_traces{k}';
+    
+    if ~any(isnan(corrs(:,:,k)))
+        C = C + corrs(:,:,k);
     end
 end
 
