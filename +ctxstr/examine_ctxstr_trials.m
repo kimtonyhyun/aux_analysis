@@ -36,7 +36,7 @@ end
 
 %% Omit trials for grooming, etc.
 
-omitted_trials = [175]; % e.g. grooming trials
+omitted_trials = [23 51 84 85]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
@@ -71,13 +71,9 @@ clear ctx_frames ctx_traces max_pop_ctx_trace str_frames str_traces max_pop_str_
 
 trials_to_use = st_trial_inds;
 
-resampled_ctx_traces = cell(num_all_trials, 1);
-resampled_str_traces = cell(num_all_trials, 1);
-common_time = cell(num_all_trials, 1);
-
-ctx_prods = zeros(num_ctx_cells, num_ctx_cells, num_all_trials);
-str_prods = zeros(num_str_cells, num_str_cells, num_all_trials);
-ctxstr_prods = zeros(num_ctx_cells, num_str_cells, num_all_trials);
+resampled_ctx_traces = cell(1, num_all_trials);
+resampled_str_traces = cell(1, num_all_trials);
+common_time = cell(1, num_all_trials);
 for k = trials_to_use
     trial = trials(k);
     trial_time = [trial.start_time trial.us_time];
@@ -85,33 +81,20 @@ for k = trials_to_use
     [ctx_traces_k, ctx_times_k] = ctxstr.core.get_traces_by_time(ctx, trial_time);
     [str_traces_k, str_times_k] = ctxstr.core.get_traces_by_time(str, trial_time);
     
-    [resampled_ctx_traces{k}, resampled_str_traces{k}, common_time{k}] = ctxstr.core.resample_ctxstr_traces(...
-        ctx_traces_k, ctx_times_k, str_traces_k, str_times_k);
-    
-    ctx_prods(:,:,k) = resampled_ctx_traces{k} * resampled_ctx_traces{k}';
-    str_prods(:,:,k) = resampled_str_traces{k} * resampled_str_traces{k}';
-    ctxstr_prods(:,:,k) = resampled_ctx_traces{k} * resampled_str_traces{k}';
-end
-
-ctx_prods_acc = zeros(num_ctx_cells, num_ctx_cells);
-str_prods_acc = zeros(num_str_cells, num_str_cells);
-ctxstr_prods_acc = zeros(num_ctx_cells, num_str_cells);
-for k = trials_to_use
-    if ~any(isnan(ctx_prods(:,:,k)))
-        ctx_prods_acc = ctx_prods_acc + ctx_prods(:,:,k).^2;
-    end
-    if ~any(isnan(str_prods(:,:,k)))
-        str_prods_acc = str_prods_acc + str_prods(:,:,k).^2;
-    end
-    if ~any(isnan(ctxstr_prods(:,:,k)))
-        ctxstr_prods_acc = ctxstr_prods_acc + ctxstr_prods(:,:,k).^2;
+    if any(isnan(ctx_traces_k(:))) || any(isnan(str_traces_k(:)))
+        trials_to_use = setdiff(trials_to_use, k);
+        fprintf('Omitting Trial %d from correlation calculation due to NaNs\n', k);
+    else
+        [resampled_ctx_traces{k}, resampled_str_traces{k}, common_time{k}] = ctxstr.core.resample_ctxstr_traces(...
+            ctx_traces_k, ctx_times_k, str_traces_k, str_times_k);
     end
 end
 
-ctx_trace_norms = diag(sqrt(ctx_prods_acc));
-str_trace_norms = diag(sqrt(str_prods_acc));
-
-C = sqrt(ctxstr_prods_acc);
+% Method #1: Pearson correlation between traces
+%------------------------------------------------------------
+cont_ctx_traces = cell2mat(resampled_ctx_traces);
+cont_str_traces = cell2mat(resampled_str_traces);
+C = corr(cont_ctx_traces', cont_str_traces');
 
 %% Display correlation matrix
 
@@ -127,26 +110,36 @@ title(sprintf('%s correlations', dataset_name));
 
 %% Inspect pairs of single-trial ctxstr traces
 
-ctx_ind = 47;
-str_ind = 51;
+corrlist = sortrows(corr_to_corrlist(C), 3, 'descend');
+
+num_to_show = 8;
+sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.05, 0.05); % Gap, Margin-X, Margin-Y
 
 figure;
-hold on;
-for k = trials_to_use
-    trial = trials(k);
+for i = 1:num_to_show
+    ctx_ind = corrlist(i,1);
+    str_ind = corrlist(i,2);
+    corr_val = corrlist(i,3);
     
-    plot(common_time{k}, resampled_ctx_traces{k}(ctx_ind,:), 'k');
-    plot(common_time{k}, resampled_str_traces{k}(str_ind,:), 'm');
-    plot_vertical_lines([trial.start_time, trial.us_time], [0 1], 'b:');
-    plot_vertical_lines(trial.motion.onsets, [0 1], 'r:');
+    sp(num_to_show,1,i);
+    hold on;
+    for k = trials_to_use
+        trial = trials(k);
+
+        plot(common_time{k}, resampled_ctx_traces{k}(ctx_ind,:), 'k');
+        plot(common_time{k}, resampled_str_traces{k}(str_ind,:), 'm');
+        plot_vertical_lines([trial.start_time, trial.us_time], [0 1], 'b:');
+        plot_vertical_lines(trial.motion.onsets, [0 1], 'r:');
+    end
+    hold off;
+    ylim([0 1]);
+    ylabel(sprintf('Ctx=%d\nStr=%d\nCorr=%.4f', ctx_ind, str_ind, corr_val));
+    zoom xon;
+    set(gca, 'TickLength', [0 0]);
+    if (i == 1)
+        title(sprintf('%s - Top %d correlated ctx-str pairs', dataset_name, num_to_show));
+    end
 end
-hold off;
-ylim([0 1]);
-title(sprintf('Ctx=%d, Str=%d', ctx_ind, str_ind));
-zoom xon;
-xlabel('Time (s)');
-ylabel('Activity (norm)');
-set(gca, 'TickLength', [0 0]);
 
 %%
 
