@@ -36,7 +36,7 @@ end
 
 %% Omit trials for grooming, etc.
 
-omitted_trials = [16]; % e.g. grooming trials
+omitted_trials = [92]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
@@ -112,6 +112,7 @@ title(sprintf('%s correlations', dataset_name));
 
 %% Inspect pairs of single-trial ctxstr traces
 
+% figure;
 mode = 'ctxstr';
 
 switch (mode)
@@ -139,12 +140,12 @@ switch (mode)
 end
 
 num_to_show = 8;
-sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.05, 0.05); % Gap, Margin-X, Margin-Y
+sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, 0.03); % Gap, Margin-X, Margin-Y
 
 trial_start_times = [trials(trials_to_use).start_time];
 t_lims = [trials(trials_to_use(1)).start_time trials(trials_to_use(end)).us_time];
 
-figure;
+clf;
 for i = 1:num_to_show
     cell_idx1 = corrlist(i,1);
     cell_idx2 = corrlist(i,2);
@@ -156,7 +157,7 @@ for i = 1:num_to_show
         trial = trials(k);
 
         plot(common_time{k}, get_trace1(k, cell_idx1), 'k');
-        plot(common_time{k}, get_trace1(k, cell_idx2), 'm');
+        plot(common_time{k}, get_trace2(k, cell_idx2), 'm');
         plot_vertical_lines([trial.start_time, trial.us_time], [0 1], 'b:');
         plot_vertical_lines(trial.motion.onsets, [0 1], 'r:');
     end
@@ -170,7 +171,8 @@ for i = 1:num_to_show
     set(gca, 'XTick', trial_start_times);
     set(gca, 'XTickLabel', trials_to_use);
     if (i == 1)
-        title(sprintf('%s - Top %d correlated %s pairs', dataset_name, num_to_show, mode));
+        title(sprintf('%s - Top %d correlated %s pairs',...
+            dataset_name, num_to_show, upper(mode)));
     elseif (i == num_to_show)
         xlabel('Trial index');
     end
