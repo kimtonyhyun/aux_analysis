@@ -36,7 +36,7 @@ end
 
 %% Omit trials for grooming, etc.
 
-omitted_trials = [23 51 84 85]; % e.g. grooming trials
+omitted_trials = [16]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
@@ -94,12 +94,14 @@ end
 %------------------------------------------------------------
 cont_ctx_traces = cell2mat(resampled_ctx_traces);
 cont_str_traces = cell2mat(resampled_str_traces);
-C = corr(cont_ctx_traces', cont_str_traces');
+C_ctx = corr(cont_ctx_traces');
+C_str = corr(cont_str_traces');
+C_ctxstr = corr(cont_ctx_traces', cont_str_traces');
 
 %% Display correlation matrix
 
 figure;
-imagesc(C);
+imagesc(C_ctxstr);
 axis image;
 xlabel('Str neurons');
 ylabel('Ctx neurons');
@@ -110,15 +112,42 @@ title(sprintf('%s correlations', dataset_name));
 
 %% Inspect pairs of single-trial ctxstr traces
 
-corrlist = sortrows(corr_to_corrlist(C), 3, 'descend');
+mode = 'ctxstr';
+
+switch (mode)
+    case 'ctxstr'
+        corrlist = sortrows(corr_to_corrlist(C_ctxstr), 3, 'descend');
+        get_trace1 = @(k,i) resampled_ctx_traces{k}(i,:); % i-th ctx cell on k-th trial
+        get_trace2 = @(k,j) resampled_str_traces{k}(j,:); % i-th str cell on k-th trial
+        get_ylabel = @(i,j,c) sprintf('Ctx=%d\nStr=%d\nCorr=%.4f',...
+            ctx_info.cell_ids_in_rec(i), str_info.cell_ids_in_rec(j), c); % Report cell #'s as in the rec file
+        
+    case 'ctx'
+        corrlist = sortrows(corr_to_corrlist(C_ctx, 'upper'), 3, 'descend');
+        get_trace1 = @(k,i) resampled_ctx_traces{k}(i,:);
+        get_trace2 = @(k,j) resampled_ctx_traces{k}(j,:);
+        get_ylabel = @(i,j,c) sprintf('Ctx=%d\nCtx=%d\nCorr=%.4f',...
+            ctx_info.cell_ids_in_rec(i), ctx_info.cell_ids_in_rec(j), c);
+        
+    case 'str'
+        corrlist = sortrows(corr_to_corrlist(C_str, 'upper'), 3, 'descend');
+        get_trace1 = @(k,i) resampled_str_traces{k}(i,:);
+        get_trace2 = @(k,j) resampled_str_traces{k}(j,:);
+        get_ylabel = @(i,j,c) sprintf('Str=%d\nStr=%d\nCorr=%.4f',...
+            str_info.cell_ids_in_rec(i), str_info.cell_ids_in_rec(j), c);
+        
+end
 
 num_to_show = 8;
 sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.05, 0.05); % Gap, Margin-X, Margin-Y
 
+trial_start_times = [trials(trials_to_use).start_time];
+t_lims = [trials(trials_to_use(1)).start_time trials(trials_to_use(end)).us_time];
+
 figure;
 for i = 1:num_to_show
-    ctx_ind = corrlist(i,1);
-    str_ind = corrlist(i,2);
+    cell_idx1 = corrlist(i,1);
+    cell_idx2 = corrlist(i,2);
     corr_val = corrlist(i,3);
     
     sp(num_to_show,1,i);
@@ -126,20 +155,27 @@ for i = 1:num_to_show
     for k = trials_to_use
         trial = trials(k);
 
-        plot(common_time{k}, resampled_ctx_traces{k}(ctx_ind,:), 'k');
-        plot(common_time{k}, resampled_str_traces{k}(str_ind,:), 'm');
+        plot(common_time{k}, get_trace1(k, cell_idx1), 'k');
+        plot(common_time{k}, get_trace1(k, cell_idx2), 'm');
         plot_vertical_lines([trial.start_time, trial.us_time], [0 1], 'b:');
         plot_vertical_lines(trial.motion.onsets, [0 1], 'r:');
     end
     hold off;
     ylim([0 1]);
-    ylabel(sprintf('Ctx=%d\nStr=%d\nCorr=%.4f', ctx_ind, str_ind, corr_val));
+    xlim(t_lims);
+       
+    ylabel(get_ylabel(cell_idx1, cell_idx2, corr_val));
     zoom xon;
     set(gca, 'TickLength', [0 0]);
+    set(gca, 'XTick', trial_start_times);
+    set(gca, 'XTickLabel', trials_to_use);
     if (i == 1)
-        title(sprintf('%s - Top %d correlated ctx-str pairs', dataset_name, num_to_show));
+        title(sprintf('%s - Top %d correlated %s pairs', dataset_name, num_to_show, mode));
+    elseif (i == num_to_show)
+        xlabel('Trial index');
     end
 end
+
 
 %%
 
