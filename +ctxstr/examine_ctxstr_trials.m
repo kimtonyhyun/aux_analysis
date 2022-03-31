@@ -36,7 +36,7 @@ end
 
 %% Omit trials for grooming, etc.
 
-omitted_trials = [92]; % e.g. grooming trials
+omitted_trials = [175]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
@@ -98,22 +98,10 @@ C_ctx = corr(cont_ctx_traces');
 C_str = corr(cont_str_traces');
 C_ctxstr = corr(cont_ctx_traces', cont_str_traces');
 
-%% Display correlation matrix
-
-figure;
-imagesc(C_ctxstr);
-axis image;
-xlabel('Str neurons');
-ylabel('Ctx neurons');
-set(gca, 'FontSize', 18);
-set(gca, 'TickLength', [0 0]);
-colorbar;
-title(sprintf('%s correlations', dataset_name));
-
 %% Inspect pairs of single-trial ctxstr traces
 
 % figure;
-mode = 'ctxstr';
+mode = 'str';
 
 switch (mode)
     case 'ctxstr'
@@ -122,6 +110,8 @@ switch (mode)
         get_trace2 = @(k,j) resampled_str_traces{k}(j,:); % i-th str cell on k-th trial
         get_ylabel = @(i,j,c) sprintf('Ctx=%d\nStr=%d\nCorr=%.4f',...
             ctx_info.cell_ids_in_rec(i), str_info.cell_ids_in_rec(j), c); % Report cell #'s as in the rec file
+        color1 = 'k';
+        color2 = 'm';
         
     case 'ctx'
         corrlist = sortrows(corr_to_corrlist(C_ctx, 'upper'), 3, 'descend');
@@ -129,6 +119,8 @@ switch (mode)
         get_trace2 = @(k,j) resampled_ctx_traces{k}(j,:);
         get_ylabel = @(i,j,c) sprintf('Ctx=%d\nCtx=%d\nCorr=%.4f',...
             ctx_info.cell_ids_in_rec(i), ctx_info.cell_ids_in_rec(j), c);
+        color1 = 'b';
+        color2 = 'r';
         
     case 'str'
         corrlist = sortrows(corr_to_corrlist(C_str, 'upper'), 3, 'descend');
@@ -136,6 +128,8 @@ switch (mode)
         get_trace2 = @(k,j) resampled_str_traces{k}(j,:);
         get_ylabel = @(i,j,c) sprintf('Str=%d\nStr=%d\nCorr=%.4f',...
             str_info.cell_ids_in_rec(i), str_info.cell_ids_in_rec(j), c);
+        color1 = [0 0.447 0.741];
+        color2 = [0.85 0.325 0.098];
         
 end
 
@@ -156,8 +150,8 @@ for i = 1:num_to_show
     for k = trials_to_use
         trial = trials(k);
 
-        plot(common_time{k}, get_trace1(k, cell_idx1), 'k');
-        plot(common_time{k}, get_trace2(k, cell_idx2), 'm');
+        plot(common_time{k}, get_trace1(k, cell_idx1), 'Color', color1);
+        plot(common_time{k}, get_trace2(k, cell_idx2), 'Color', color2);
         plot_vertical_lines([trial.start_time, trial.us_time], [0 1], 'b:');
         plot_vertical_lines(trial.motion.onsets, [0 1], 'r:');
     end
@@ -178,6 +172,17 @@ for i = 1:num_to_show
     end
 end
 
+%% Display correlation matrix
+
+figure;
+imagesc(C_ctxstr);
+axis image;
+xlabel('Str neurons');
+ylabel('Ctx neurons');
+set(gca, 'FontSize', 18);
+set(gca, 'TickLength', [0 0]);
+colorbar;
+title(sprintf('%s correlations', dataset_name));
 
 %%
 
