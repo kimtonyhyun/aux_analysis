@@ -36,7 +36,7 @@ end
 
 %% Omit trials for grooming, etc.
 
-omitted_trials = [175]; % e.g. grooming trials
+omitted_trials = [12 35]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
@@ -67,7 +67,7 @@ fprintf('  Maximum ctx activity occurs on Trial %d\n', ctx_max_trial_idx);
 fprintf('  Maximum str activity occurs on Trial %d\n', str_max_trial_idx);
 clear ctx_frames ctx_traces max_pop_ctx_trace str_frames str_traces max_pop_str_trace ctx_max_trial_idx str_max_trial_idx
 
-%% Compute correlations
+%% Resample traces with a common timebase
 
 trials_to_use = st_trial_inds;
 
@@ -90,18 +90,24 @@ for k = trials_to_use
     end
 end
 
-% Method #1: Pearson correlation between traces
-%------------------------------------------------------------
-cont_ctx_traces = cell2mat(resampled_ctx_traces);
+cont_ctx_traces = cell2mat(resampled_ctx_traces); % [cells x time]
 cont_str_traces = cell2mat(resampled_str_traces);
+
+%% Analysis #1: Pearson correlation between traces
+
 C_ctx = corr(cont_ctx_traces');
 C_str = corr(cont_str_traces');
 C_ctxstr = corr(cont_ctx_traces', cont_str_traces');
 
+%% Analysis #2: Dimensionality
+
+[U_ctx, S_ctx, V_ctx] = svd(cont_ctx_traces);
+[U_str, S_str, V_str] = svd(cont_str_traces);
+
 %% Inspect pairs of single-trial ctxstr traces
 
 % figure;
-mode = 'str';
+mode = 'ctx';
 
 switch (mode)
     case 'ctxstr'
@@ -174,15 +180,36 @@ end
 
 %% Display correlation matrix
 
+corr_scale = [0 0.8];
+
 figure;
-imagesc(C_ctxstr);
+subplot(131);
+imagesc(tril(C_ctx,-1), corr_scale);
+axis image;
+xlabel('Ctx neurons');
+ylabel('Ctx neurons');
+set(gca, 'FontSize', 18);
+set(gca, 'TickLength', [0 0]);
+title(sprintf('%s ctx-ctx correlations', dataset_name));
+
+subplot(132);
+imagesc(tril(C_str,-1), corr_scale);
+axis image;
+xlabel('Str neurons');
+ylabel('Str neurons');
+set(gca, 'FontSize', 18);
+set(gca, 'TickLength', [0 0]);
+title(sprintf('%s str-str correlations', dataset_name));
+
+subplot(133);
+imagesc(C_ctxstr, corr_scale);
 axis image;
 xlabel('Str neurons');
 ylabel('Ctx neurons');
 set(gca, 'FontSize', 18);
 set(gca, 'TickLength', [0 0]);
 colorbar;
-title(sprintf('%s correlations', dataset_name));
+title(sprintf('%s ctx-str correlations', dataset_name));
 
 %%
 
