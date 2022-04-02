@@ -93,7 +93,7 @@ plot_vertical_lines(trial.motion.onsets, p_lims, 'r-', 'HitTest', 'off');
 plot_vertical_lines([trial.start_time trial.us_time], p_lims, 'b:', 'HitTest', 'off');
 plot(trial.lick_times, 0.95*p_lims(2)*ones(size(trial.lick_times)), 'b.', 'HitTest', 'off');
 set(ax1, 'TickLength', [0 0]);
-title(sprintf('Trial %d', trial.ind));
+title(sprintf('Trial %d (%.1f s)', trial.ind, trial.duration));
 xlim(t_lims);
 
 % Plot front and hind limb angles
@@ -118,8 +118,7 @@ xlim(t_lims);
         
         % Find the DLC frame nearest to the selected point
         [~, k] = min(abs(t_dlc-t));
-        
-        
+                
         switch e.Button
             case 1 % Left click
                 render_frame(k);
@@ -151,16 +150,18 @@ xlim(t_lims);
 
     function scroll_frame(~, e)
         k = selected_frame;
+        
         if (e.VerticalScrollCount < 0) % Scroll up
             k = k - 1;
         else
             k = k + 1;
         end
+        
         set_t0(k);
         render_frame(k);
     end
 
-    function render_frame(k)
+    function render_frame(k)       
         k = max(1,k); k = min(k,num_frames); % Clamp
         
         t = t_dlc(k);
@@ -173,6 +174,8 @@ xlim(t_lims);
     end
 
     function set_t0(k)
+        k = max(1,k); k = min(k,num_frames); % Clamp
+        
         t = t_dlc(k);
         
         h.UserData.t0 = t;
