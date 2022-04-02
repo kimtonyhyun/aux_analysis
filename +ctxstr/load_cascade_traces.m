@@ -1,19 +1,41 @@
-function [traces, info] = load_cascade_traces(path_to_imdata, fps)
+function [traces, info] = load_cascade_traces(path_to_imdata, fps, varargin)
 % Note: 'traces' only contains cells that have been classified to be true
 % cells in the associated classification file.
 
 normalize_traces = true; % TODO: Allow for disabling via varargin
+load_traces_from_rec = false;
 
-data = load(get_most_recent_file(path_to_imdata, 'cascade_*.mat'), 'spike_probs');
+for k = 1:length(varargin)
+    if ischar(varargin{k})
+        switch lower(varargin{k})
+            case 'rec' % Load the fluorescence traces instead of CASCADE
+                load_traces_from_rec = true;
+        end
+    end
+end
+
 class = load_cell_class(path_to_imdata);
 num_all_sources = length(class);
 
-traces = fps * data.spike_probs';  % Convert to spike rates (Hz); [Cells x Time]
-traces = traces(class,:); % Return only sources classified to be cells
+if ~load_traces_from_rec
+    data = load(get_most_recent_file(path_to_imdata, 'cascade_*.mat'), 'spike_probs');
+
+    traces = fps * data.spike_probs';  % Convert to spike rates (Hz); [Cells x Time]
+    traces = traces(class,:); % Return only sources classified to be cells
+else
+    cprintf('blue', 'load_cascade_traces: Loaded fluorescence traces from rec file instead!\n');
+    data = load(get_most_recent_file(path_to_imdata, 'rec_*.mat'), 'traces');
+    traces = data.traces';
+    traces = traces(class,:);
+end
 
 if normalize_traces
     for k = 1:size(traces,1)
         tr = traces(k,:);
+        % Note: For CASCADE traces, minimum trace value can be reasonably
+        % assumed to be 0, hence normalization by just the max value. On
+        % the other hand, other types of traces, such as fluorescence
+        % traces, should probably subtract off the min value as well.
         traces(k,:) = tr / max(tr);
     end
 end
