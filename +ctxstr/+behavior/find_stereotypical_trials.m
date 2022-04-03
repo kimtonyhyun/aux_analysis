@@ -13,6 +13,7 @@ for k = 2:num_all_trials
     prev_trial = trials(k-1);
     
     if prev_trial.lick_response && trial.lick_response && ~isempty(trial.motion.onsets)
+%     if prev_trial.lick_response && trial.lick_response
         idx = idx + 1;
         st_trial_ids(idx) = k;
     end

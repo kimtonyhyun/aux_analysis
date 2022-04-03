@@ -33,7 +33,7 @@ if isempty(ctx_max)
     ctx_max = max(sum(ctx.traces, 1));
 end
 if isempty(str_max)
-    ctx_max = max(sum(str.traces, 1));
+    str_max = max(sum(str.traces, 1));
 end
 ctx_a_lims = [0 1.1*ctx_max];
 str_a_lims = [0 1.1*str_max];

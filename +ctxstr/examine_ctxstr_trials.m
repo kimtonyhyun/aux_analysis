@@ -36,7 +36,7 @@ end
 
 %% Omit trials for grooming, etc.
 
-omitted_trials = [175]; % e.g. grooming trials
+omitted_trials = [82 114]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
@@ -111,7 +111,7 @@ corr_scale = 0.5*[-1 1];
 histogram_bins = linspace(-1, 1, 200); % Number of elements should be even, to properly capture 0
 font_size = 18;
 
-sp = @(m,n,p) subtightplot(m, n, p, 0.04, 0.01, 0.04); % Gap, Margin-X, Margin-Y
+sp = @(m,n,p) subtightplot(m, n, p, 0.04, 0.03, 0.04); % Gap, Margin-X, Margin-Y
 
 % figure;
 sp(2,4,1);
@@ -198,9 +198,9 @@ linkaxes([ax4 ax5 ax6], 'x');
 %% Inspect pairs of single-trial ctxstr traces
 
 figure;
-type = 'str';
-% sort_dir = 'descend'; % Shows HIGHEST correlated pairs
-sort_dir = 'ascend'; % Shows LOWEST correlated pairs
+type = 'ctxstr';
+sort_dir = 'descend'; % Shows HIGHEST correlated pairs
+% sort_dir = 'ascend'; % Shows LOWEST correlated pairs
 
 switch (type)
     case 'ctxstr'
@@ -266,10 +266,10 @@ for i = 1:num_to_show
     if (i == 1)
         switch (sort_dir)
             case 'descend'
-                title(sprintf('%s - HIGHEST-correlated correlated %s pairs',...
+                title(sprintf('%s - HIGHEST-correlated %s pairs',...
                     dataset_name, upper(type)));
             case 'ascend'
-                title(sprintf('%s - LOWEST-correlated correlated %s pairs',...
+                title(sprintf('%s - LOWEST-correlated %s pairs',...
                     dataset_name, upper(type)));
         end
         
@@ -334,7 +334,11 @@ set(gca, 'TickLength', [0 0]);
 
 %% "Trial view" plot
 
-trials_to_show = st_trial_inds;
+trials_to_show = session.info.imaged_trials;
+ctx_max = [];
+str_max = [];
+
+% trials_to_show = st_trial_inds;
 
 num_trials_per_page = 8;
 num_trials_to_show = length(trials_to_show);
@@ -358,8 +362,8 @@ for k = 1:num_pages
     fprintf('Page %d/%d: Showing Trials %d to %d...\n', k, num_pages,...
         trials_to_show_k(1), trials_to_show_k(end));
     
-%     print('-dpng', sprintf('%s_st-trials_pg%02d.png', dataset_name, k));
-    pause;
+    print('-dpng', sprintf('%s_st-trials_pg%02d.png', dataset_name, k));
+%     pause;
 end
 
 %% Ctx single-cell raster
