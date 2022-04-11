@@ -130,8 +130,8 @@ linkaxes([ax4 ax5 ax6], 'x');
 
 figure;
 type = 'ctxstr';
-% sort_dir = 'descend'; % Shows HIGHEST correlated pairs
-sort_dir = 'ascend'; % Shows LOWEST correlated pairs
+sort_dir = 'descend'; % Shows HIGHEST correlated pairs
+% sort_dir = 'ascend'; % Shows LOWEST correlated pairs
 
 switch (type)
     case 'ctxstr'
@@ -219,7 +219,7 @@ for k = 1:num_str_cells
     best_corrlist(k,:) = [sort_inds(1), k, sorted_corr_vals(1)];
 end
 
-% best_match_inds = sortrows(best_match_inds, 3, 'descend');
+best_corrlist = sortrows(best_corrlist, 3, 'descend');
 
 num_rows_per_page = 8;
 row_chunks = make_frame_chunks(num_str_cells, num_rows_per_page);

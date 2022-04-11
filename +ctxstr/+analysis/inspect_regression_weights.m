@@ -2,10 +2,10 @@
 
 figure;
 
-str_idx_to_fit = 37;
+str_idx_to_fit = 12;
 y = cont_str_traces(str_idx_to_fit,:)'; % [Time x 1]
 
-type = 'from_ctx';
+type = 'from_str';
 switch (type)
     case 'from_ctx'
         X = cont_ctx_traces'; % Design matrix, [Time x Ctx-neurons]
