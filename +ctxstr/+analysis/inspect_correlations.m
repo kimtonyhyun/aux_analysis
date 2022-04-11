@@ -5,6 +5,7 @@ trials_to_use = st_trial_inds;
 resampled_ctx_traces = cell(1, num_all_trials);
 resampled_str_traces = cell(1, num_all_trials);
 common_time = cell(1, num_all_trials);
+
 for k = trials_to_use
     trial = trials(k);
     trial_time = [trial.start_time trial.us_time];
@@ -125,12 +126,12 @@ set([ax4 ax5 ax6], 'TickLength', 0.005*[1 1]);
 linkaxes([ax4 ax5 ax6], 'x');
 % xlim(corr_scale);
 
-%% Visualization #2: Show pairs of traces and their correlations
+%% Visualization #2: Show pairs of traces with outlier correlations
 
 figure;
 type = 'ctxstr';
-sort_dir = 'descend'; % Shows HIGHEST correlated pairs
-% sort_dir = 'ascend'; % Shows LOWEST correlated pairs
+% sort_dir = 'descend'; % Shows HIGHEST correlated pairs
+sort_dir = 'ascend'; % Shows LOWEST correlated pairs
 
 switch (type)
     case 'ctxstr'
@@ -184,7 +185,7 @@ for i = 1:num_to_show
         plot_vertical_lines([trial.start_time, trial.us_time], y_lims, 'b:');
         plot_vertical_lines(trial.motion.onsets, y_lims, 'r:');
     end
-    hold off;
+	hold off;
     ylim(y_lims);
     xlim(t_lims);      
     ylabel(get_ylabel(cell_idx1, cell_idx2, corr_val),...
@@ -204,8 +205,51 @@ for i = 1:num_to_show
                 title(sprintf('%s - LOWEST-correlated %s pairs',...
                     dataset_name, upper(type)));
         end
-        
     elseif (i == num_to_show)
         xlabel('Trial index');
     end
+end
+
+%% Visualization #3: Best match for each striatal trace
+
+best_corrlist = zeros(num_str_cells, 3); % Format: [ctx-ind str-ind corr-val]
+for k = 1:num_str_cells
+    corr_vals = C_ctxstr(:,k);
+    [sorted_corr_vals, sort_inds] = sort(corr_vals, 'descend');
+    best_corrlist(k,:) = [sort_inds(1), k, sorted_corr_vals(1)];
+end
+
+% best_match_inds = sortrows(best_match_inds, 3, 'descend');
+
+num_rows_per_page = 8;
+row_chunks = make_frame_chunks(num_str_cells, num_rows_per_page);
+num_pages = size(row_chunks, 1);
+
+for p = 1:num_pages
+    rows = row_chunks(p,1):row_chunks(p,2);
+    
+    clf;
+    for r = 1:length(rows)
+        row = rows(r);
+        cell_idx1 = best_corrlist(row,1);
+        cell_idx2 = best_corrlist(row,2);
+        corr_val = best_corrlist(row,3);
+        
+        sp(num_rows_per_page, 1, r);
+        hold on;
+        for k = trials_to_use
+            trial = trials(k);
+
+            plot(common_time{k}, resampled_ctx_traces{k}(cell_idx1,:), 'Color', 'k');
+            plot(common_time{k}, resampled_str_traces{k}(cell_idx2,:), 'Color', 'm');
+            plot_vertical_lines([trial.start_time, trial.us_time], y_lims, 'b:');
+            plot_vertical_lines(trial.motion.onsets, y_lims, 'r:');
+        end
+        hold off;
+        ylim(y_lims);
+        xlim(t_lims);      
+        ylabel(get_ylabel(cell_idx1, cell_idx2, corr_val),...
+               'Rotation', 0, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'right');
+    end
+    pause;
 end

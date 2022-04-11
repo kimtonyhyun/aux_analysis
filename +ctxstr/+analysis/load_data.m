@@ -22,11 +22,11 @@ fps = 15;
 path_to_ctx = 'ctx/union_15hz/dff';
 path_to_str = 'str/union_15hz/dff';
 
-[ctx.traces, ctx_info] = ctxstr.load_cascade_traces(path_to_ctx, fps, 'rec');
+[ctx.traces, ctx_info] = ctxstr.load_cascade_traces(path_to_ctx, fps);
 ctx.t = ctxstr.core.bin_frame_times(session.ctx.frame_times, 2); % Assume ctx data temporally binned by factor 2
 num_ctx_cells = size(ctx.traces, 1);
 
-[str.traces, str_info] = ctxstr.load_cascade_traces(path_to_str, fps, 'rec');
+[str.traces, str_info] = ctxstr.load_cascade_traces(path_to_str, fps);
 str.t = ctxstr.core.bin_frame_times(session.str.frame_times, 3);
 num_str_cells = size(str.traces, 1);
 

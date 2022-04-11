@@ -2,7 +2,7 @@
 
 figure;
 
-str_idx_to_fit = 22;
+str_idx_to_fit = 37;
 y = cont_str_traces(str_idx_to_fit,:)'; % [Time x 1]
 
 type = 'from_ctx';
