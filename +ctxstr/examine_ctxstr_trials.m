@@ -36,7 +36,7 @@ end
 
 %% Omit trials for grooming, etc.
 
-omitted_trials = [82 114]; % e.g. grooming trials
+omitted_trials = [175]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
@@ -98,7 +98,7 @@ end
 cont_ctx_traces = cell2mat(resampled_ctx_traces); % [cells x time]
 cont_str_traces = cell2mat(resampled_str_traces);
 
-%% Analysis #1: Pearson correlation between traces
+%% Analysis #1: Pairwise Pearson correlation between traces
 
 C_ctx = corr(cont_ctx_traces');
 C_str = corr(cont_str_traces');
@@ -207,7 +207,7 @@ switch (type)
         corrlist = sortrows(corr_to_corrlist(C_ctxstr), 3, sort_dir);
         get_trace1 = @(k,i) resampled_ctx_traces{k}(i,:); % i-th ctx cell on k-th trial
         get_trace2 = @(k,j) resampled_str_traces{k}(j,:); % i-th str cell on k-th trial
-        get_ylabel = @(i,j,c) sprintf('Ctx = %d\nStr = %d\nCorr = %.4f',...
+        get_ylabel = @(i,j,c) sprintf('Ctx = %d\nStr = %d\n\\rho = %.4f',...
             ctx_info.cell_ids_in_rec(i), str_info.cell_ids_in_rec(j), c); % Report cell #'s as in the rec file
         color1 = 'k';
         color2 = 'm';
@@ -216,7 +216,7 @@ switch (type)
         corrlist = sortrows(corr_to_corrlist(C_ctx, 'upper'), 3, sort_dir);
         get_trace1 = @(k,i) resampled_ctx_traces{k}(i,:);
         get_trace2 = @(k,j) resampled_ctx_traces{k}(j,:);
-        get_ylabel = @(i,j,c) sprintf('Ctx = %d\nCtx = %d\nCorr = %.4f',...
+        get_ylabel = @(i,j,c) sprintf('Ctx = %d\nCtx = %d\n\\rho = %.4f',...
             ctx_info.cell_ids_in_rec(i), ctx_info.cell_ids_in_rec(j), c);
         color1 = 'b';
         color2 = 'r';
@@ -225,7 +225,7 @@ switch (type)
         corrlist = sortrows(corr_to_corrlist(C_str, 'upper'), 3, sort_dir);
         get_trace1 = @(k,i) resampled_str_traces{k}(i,:);
         get_trace2 = @(k,j) resampled_str_traces{k}(j,:);
-        get_ylabel = @(i,j,c) sprintf('Str = %d\nStr = %d\nCorr = %.4f',...
+        get_ylabel = @(i,j,c) sprintf('Str = %d\nStr = %d\n\\rho = %.4f',...
             str_info.cell_ids_in_rec(i), str_info.cell_ids_in_rec(j), c);
         color1 = [0 0.447 0.741];
         color2 = [0.85 0.325 0.098];
@@ -233,6 +233,7 @@ switch (type)
 end
 
 num_to_show = 8;
+y_lims = [-0.1 1.1];
 sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, 0.03); % Gap, Margin-X, Margin-Y
 
 trial_start_times = [trials(trials_to_use).start_time];
@@ -251,18 +252,20 @@ for i = 1:num_to_show
 
         plot(common_time{k}, get_trace1(k, cell_idx1), 'Color', color1);
         plot(common_time{k}, get_trace2(k, cell_idx2), 'Color', color2);
-        plot_vertical_lines([trial.start_time, trial.us_time], [0 1], 'b:');
-        plot_vertical_lines(trial.motion.onsets, [0 1], 'r:');
+        plot_vertical_lines([trial.start_time, trial.us_time], y_lims, 'b:');
+        plot_vertical_lines(trial.motion.onsets, y_lims, 'r:');
     end
     hold off;
-    ylim([0 1]);
-    xlim(t_lims);
-       
-    ylabel(get_ylabel(cell_idx1, cell_idx2, corr_val));
+    ylim(y_lims);
+    xlim(t_lims);      
+    ylabel(get_ylabel(cell_idx1, cell_idx2, corr_val),...
+           'Rotation', 0, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'right');
+
     zoom xon;
-    set(gca, 'TickLength', [0 0]);
+    set(gca, 'TickLength', [0.001 0]);
     set(gca, 'XTick', trial_start_times);
     set(gca, 'XTickLabel', trials_to_use);
+    set(gca, 'YTick', [0 1]);
     if (i == 1)
         switch (sort_dir)
             case 'descend'
@@ -278,7 +281,91 @@ for i = 1:num_to_show
     end
 end
 
-%% Analysis #2: Dimensionality
+%% Analysis #2: Multiple linear regression.
+
+% Perform least squares regression
+%------------------------------------------------------------
+fit_cell_idx = 51;
+
+y = cont_str_traces(fit_cell_idx,:)'; % [Time x 1]
+X = cont_ctx_traces'; % Design matrix, [Time x Ctx-neurons]
+
+lambda = 0;
+num_predictors = size(X,2);
+theta = (X'*X+lambda*eye(num_predictors))\X'*y;
+y_hat = X*theta;
+
+% Show results
+%------------------------------------------------------------
+[~, sort_inds] = sort(C_ctxstr(:,fit_cell_idx), 'descend');
+individual_cells_to_show = [sort_inds(1:3); sort_inds(end-2:end)]';
+
+y_lims = [-0.15 1.15];
+sp = @(m,n,p) subtightplot(m, n, p, [0.01 0.05], 0.04, 0.04); % Gap, Margin-X, Margin-Y
+
+num_cells_to_show = length(individual_cells_to_show);
+num_rows = 1 + num_cells_to_show;
+h_axes = zeros(num_rows, 1);
+
+str_trace_fit = cell(1, num_all_trials);
+figure;
+h_axes(1) = sp(num_rows,1,1);
+hold on;
+for k = trials_to_use
+    trial = trials(k);
+
+    str_trace_fit{k} = theta' * resampled_ctx_traces{k};
+    
+    plot(common_time{k}, resampled_str_traces{k}(fit_cell_idx,:), 'm');
+    plot(common_time{k}, str_trace_fit{k}, 'k');
+    plot_vertical_lines([trial.start_time, trial.us_time], y_lims, 'b:');
+    plot_vertical_lines(trial.motion.onsets, y_lims, 'r:');
+end
+hold off;
+cont_str_trace_fit = cell2mat(str_trace_fit);
+R2_val = 1 - var(y' - cont_str_trace_fit)/var(y);
+ylabel({'All ctx neurons', sprintf('R^2 = %.4f', R2_val)}, ...
+       'Rotation', 0, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'right');
+title(sprintf('Multiple linear regression result for Str cell=%d', fit_cell_idx));
+
+for r = 2:num_rows
+    h_axes(r) = sp(num_rows,1,r);
+    hold on;
+    for k = trials_to_use
+        trial = trials(k);
+
+        j = individual_cells_to_show(r-1);
+        theta_j = theta(j);
+        str_trace_fit{k} = theta_j * resampled_ctx_traces{k}(j,:);
+
+        plot(common_time{k}, resampled_str_traces{k}(fit_cell_idx,:), 'm');
+        plot(common_time{k}, str_trace_fit{k}, 'Color', 0.3*[1 1 1]);
+        plot_vertical_lines([trial.start_time, trial.us_time], y_lims, 'b:');
+        plot_vertical_lines(trial.motion.onsets, y_lims, 'r:');
+    end
+    hold off;
+    cont_str_trace_fit = cell2mat(str_trace_fit);
+    R2_val = 1 - var(y' - cont_str_trace_fit)/var(y);
+    ylabel({sprintf('Ctx cell=%d', j),...
+            sprintf('R^2 = %.4f', R2_val),...
+            sprintf('\\rho = %.4f', C_ctxstr(j, fit_cell_idx)),...
+            sprintf('\\theta_{%d} = %.4f', j, theta_j)},...
+            'Rotation', 0, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'right');
+end
+
+set(h_axes, 'TickLength', [0.001 0]);
+set(h_axes, 'YTick', [0 1]);
+set(h_axes(1:end-1), 'XTick', []);
+set(h_axes(end), 'XTick', trial_start_times);
+set(h_axes(end), 'XTickLabel', trials_to_use);
+
+linkaxes(h_axes, 'xy');
+ylim(y_lims);
+xlim(t_lims);
+
+zoom xon;
+
+%% Analysis #3: Dimensionality
 
 K = 20;
 [ctx_traces_hat, ctx_hat_info] = compute_lowrank_traces(cont_ctx_traces, K);
