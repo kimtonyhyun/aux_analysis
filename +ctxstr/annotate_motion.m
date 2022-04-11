@@ -1,4 +1,4 @@
-function motion = analyze_motion(trials, Mb)
+function motion = annotate_motion(trials, Mb)
 
 num_trials = length(trials);
 
