@@ -1,10 +1,5 @@
 %% Display formatting
 
-sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, [0.04 0.01]); % Gap, Margin-X, Margin-Y
-
-num_rows_per_page = 8;
-y_lims = [-0.15 1.15];
-t_lims = [trials(trials_to_use(1)).start_time trials(trials_to_use(end)).us_time];
 color1 = 'k';
 color2 = 'm';
 get_ylabel = @(i,j,c) sprintf('Ctx = %d\nStr = %d\n\\rho = %.4f',...
@@ -42,6 +37,9 @@ corrlist = sortrows(corrlist, 3, 'descend');
 
 %% Display
 
+sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, [0.04 0.01]); % Gap, Margin-X, Margin-Y
+
+num_rows_per_page = 8;
 row_chunks = make_frame_chunks(size(corrlist,1), num_rows_per_page);
 num_pages = size(row_chunks, 1);
 
