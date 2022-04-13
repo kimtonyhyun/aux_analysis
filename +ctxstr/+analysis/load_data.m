@@ -38,7 +38,7 @@ end
 
 %% Omit trials for grooming, etc.
 
-omitted_trials = [12 35]; % e.g. grooming trials
+omitted_trials = [175]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
@@ -69,7 +69,7 @@ fprintf('  Maximum ctx activity occurs on Trial %d\n', ctx_max_trial_idx);
 fprintf('  Maximum str activity occurs on Trial %d\n', str_max_trial_idx);
 clear ctx_frames ctx_traces max_pop_ctx_trace str_frames str_traces max_pop_str_trace ctx_max_trial_idx str_max_trial_idx
 
-%% Basic visualization #1: "Trial view" plot
+%% Visualization #1: "Trial view"
 
 % trials_to_show = session.info.imaged_trials;
 % ctx_max = [];
@@ -103,22 +103,26 @@ for k = 1:num_pages
     pause;
 end
 
-%% Basic visualization #2: Ctx single-cell rasters
+%% Visualization #2: Ctx single-cell rasters
 
 for k = 1:num_ctx_cells
     ctxstr.vis.show_aligned_raster(k, st_trial_inds, trials, ctx);
     cell_id_in_rec = ctx_info.cell_ids_in_rec(k);
     title(sprintf('%s-ctx, cell #=%d (%s)', dataset_name, cell_id_in_rec, ctx_info.rec_name),...
           'Interpreter', 'None');
-    pause;
+      
+    print('-dpng', sprintf('%s-ctx_cell-%03d_raster.png', dataset_name, k));
+%     pause;
 end
 
-%% Basic visualization #3: Str single-cell rasters
+%% Visualization #3: Str single-cell rasters
 
 for k = 1:num_str_cells
     ctxstr.vis.show_aligned_raster(k, st_trial_inds, trials, str);
     cell_id_in_rec = str_info.cell_ids_in_rec(k);
     title(sprintf('%s-str, cell #=%d (%s)', dataset_name, cell_id_in_rec, str_info.rec_name),...
           'Interpreter', 'None');
-    pause;
+      
+    print('-dpng', sprintf('%s-str_cell-%03d_raster.png', dataset_name, k));
+%     pause;
 end

@@ -1,22 +1,27 @@
-%% Display formatting
-
-color1 = [0 0.447 0.741];
-color2 = [0.85 0.325 0.098];
-get_ylabel = @(i,j,c) sprintf('Str = %d\nStr = %d\n\\rho = %.4f',...
-            str_info.cell_ids_in_rec(i), str_info.cell_ids_in_rec(j), c);
-
-%% Order all possible pairs in decreasing order of Pearson correlations
+%% Order all STR-STR pairs in decreasing order of Pearson correlations
 
 corrlist = sortrows(corr_to_corrlist(C_str, 'upper'), 3, 'descend');
+
+%% All matches for one STR cell
+
+str_idx = 30;
+corrlist = [str_idx*ones(num_str_cells,1), (1:num_str_cells)', C_str(:,str_idx)];
+corrlist = sortrows(corrlist, 3, 'descend');
+corrlist = corrlist(2:end,:); % The top entry will be the cell itself
 
 %% Display
 
 sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, [0.04 0.01]); % Gap, Margin-X, Margin-Y
-
+color1 = [0 0.447 0.741];
+color2 = [0.85 0.325 0.098];
+get_ylabel = @(i,j,c) sprintf('Str = %d\nStr = %d\n\\rho = %.4f',...
+            str_info.cell_ids_in_rec(i), str_info.cell_ids_in_rec(j), c);
+        
 num_rows_per_page = 8;
 row_chunks = make_frame_chunks(size(corrlist,1), num_rows_per_page);
 num_pages = size(row_chunks, 1);
 
+figure;
 for p = 1:num_pages
     rows = row_chunks(p,1):row_chunks(p,2);
     

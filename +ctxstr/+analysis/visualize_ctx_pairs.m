@@ -1,22 +1,27 @@
-%% Display formatting
+%% Order all CTX-CTX pairs in decreasing order of Pearson correlations
 
+corrlist = sortrows(corr_to_corrlist(C_ctx, 'upper'), 3, 'descend');
+
+%% All matches for one CTX cell
+
+ctx_idx = 30;
+corrlist = [ctx_idx*ones(num_ctx_cells,1), (1:num_ctx_cells)', C_ctx(:,ctx_idx)];
+corrlist = sortrows(corrlist, 3, 'descend');
+corrlist = corrlist(2:end,:); % The top entry will be the cell itself
+
+%% Display
+
+sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, [0.04 0.01]); % Gap, Margin-X, Margin-Y
 color1 = 'b';
 color2 = 'r';
 get_ylabel = @(i,j,c) sprintf('Str = %d\nStr = %d\n\\rho = %.4f',...
             ctx_info.cell_ids_in_rec(i), ctx_info.cell_ids_in_rec(j), c);
 
-%% Order all possible pairs in decreasing order of Pearson correlations
-
-corrlist = sortrows(corr_to_corrlist(C_ctx, 'upper'), 3, 'descend');
-
-%% Display
-
-sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, [0.04 0.01]); % Gap, Margin-X, Margin-Y
-
 num_rows_per_page = 8;
 row_chunks = make_frame_chunks(size(corrlist,1), num_rows_per_page);
 num_pages = size(row_chunks, 1);
 
+figure;
 for p = 1:num_pages
     rows = row_chunks(p,1):row_chunks(p,2);
     

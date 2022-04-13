@@ -1,11 +1,4 @@
-%% Display formatting
-
-color1 = 'k';
-color2 = 'm';
-get_ylabel = @(i,j,c) sprintf('Ctx = %d\nStr = %d\n\\rho = %.4f',...
-            ctx_info.cell_ids_in_rec(i), str_info.cell_ids_in_rec(j), c); % Report cell #'s as in the rec file
-
-%% Order all possible pairs in decreasing order of Pearson correlations
+%% Order all CTX-STR pairs in decreasing order of Pearson correlations
 
 corrlist = sortrows(corr_to_corrlist(C_ctxstr), 3, 'descend');
 
@@ -28,21 +21,27 @@ for j = 1:num_str_cells
     corrlist(j,:) = [sort_ind(1), j, sorted_vals(1)];
 end
 clear corr_vals sorted_vals sort_ind;
+corrlist = sortrows(corrlist, 3, 'descend');
 
 %% All matches for one STR cell
 
-str_idx = 12;
+str_idx = 30;
 corrlist = [(1:num_ctx_cells)', str_idx*ones(num_ctx_cells,1), C_ctxstr(:,str_idx)];
 corrlist = sortrows(corrlist, 3, 'descend');
 
 %% Display
 
 sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, [0.04 0.01]); % Gap, Margin-X, Margin-Y
+color1 = 'k';
+color2 = 'm';
+get_ylabel = @(i,j,c) sprintf('Ctx = %d\nStr = %d\n\\rho = %.4f',...
+            ctx_info.cell_ids_in_rec(i), str_info.cell_ids_in_rec(j), c); % Report cell #'s as in the rec file
 
 num_rows_per_page = 8;
 row_chunks = make_frame_chunks(size(corrlist,1), num_rows_per_page);
 num_pages = size(row_chunks, 1);
 
+figure;
 for p = 1:num_pages
     rows = row_chunks(p,1):row_chunks(p,2);
     
