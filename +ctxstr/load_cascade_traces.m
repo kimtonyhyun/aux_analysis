@@ -56,8 +56,22 @@ if ~isempty(tdt)
 end
 
 [~, info.rec_name] = fileparts(get_most_recent_file(path_to_imdata, 'rec_*.mat'));
-info.cell_ids_in_rec = find(class);
 info.tdt = tdt;
+
+% This function returns only traces belonging to sources classified to be
+% cells, whereas the DaySummary may contain a mixture of true and rejected
+% cells. Thus, the following conversion functions are necessary to relate
+% cell indices in 'traces' and the original DaySummary.
+info.ind2rec = find(class); % 'traces' to Rec index
+rec2ind = zeros(size(class));
+ind = 0;
+for k = 1:length(rec2ind)
+    if class(k)
+        ind = ind + 1;
+        rec2ind(k) = ind;
+    end
+end
+info.rec2ind = rec2ind; % Rec index to 'traces'
 
 end
 

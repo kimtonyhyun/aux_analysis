@@ -15,7 +15,7 @@ sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, [0.04 0.01]); % Gap, Marg
 color1 = [0 0.447 0.741];
 color2 = [0.85 0.325 0.098];
 get_ylabel = @(i,j,c) sprintf('Str = %d\nStr = %d\n\\rho = %.4f',...
-            str_info.cell_ids_in_rec(i), str_info.cell_ids_in_rec(j), c);
+            str_info.ind2rec(i), str_info.ind2rec(j), c);
         
 num_rows_per_page = 8;
 row_chunks = make_frame_chunks(size(corrlist,1), num_rows_per_page);

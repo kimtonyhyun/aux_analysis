@@ -35,7 +35,7 @@ sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, [0.04 0.01]); % Gap, Marg
 color1 = 'k';
 color2 = 'm';
 get_ylabel = @(i,j,c) sprintf('Ctx = %d\nStr = %d\n\\rho = %.4f',...
-            ctx_info.cell_ids_in_rec(i), str_info.cell_ids_in_rec(j), c); % Report cell #'s as in the rec file
+            ctx_info.ind2rec(i), str_info.ind2rec(j), c); % Report cell #'s as in the rec file
 
 num_rows_per_page = 8;
 row_chunks = make_frame_chunks(size(corrlist,1), num_rows_per_page);
