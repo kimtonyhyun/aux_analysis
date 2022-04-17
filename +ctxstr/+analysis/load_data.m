@@ -38,7 +38,7 @@ end
 
 %% Omit trials for grooming, etc.
 
-omitted_trials = [175]; % e.g. grooming trials
+omitted_trials = [80]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
