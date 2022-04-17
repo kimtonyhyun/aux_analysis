@@ -2,16 +2,16 @@
 
 corrlist = sortrows(corr_to_corrlist(D_ctxstr), 3, 'ascend');
 
-% The cell indices in corrlist refer only to the cells that matched across
+% Below: Cell inds in corrlist refer only to the cells that matched across
 % days. Thus, need to convert indices in order to properly access trace
-% data on each day.
-
+% data on each day. We leave out the correlation value on days A and B to
+% be later retrieved explicitly.
 corrlist_A = [ctx_matched_inds(corrlist(:,1),1) str_matched_inds(corrlist(:,2),1)];
 corrlist_B = [ctx_matched_inds(corrlist(:,1),2) str_matched_inds(corrlist(:,2),2)];
 
 %% Display
 
-sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, [0.03 0.01]); % Gap, Margin-X, Margin-Y
+sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.03], 0.04, [0.03 0.01]); % Gap, Margin-X, Margin-Y
 color1 = 'k';
 color2 = 'm';
 get_ylabel_A = @(i,j,c) sprintf('Ctx = %d\nStr = %d\n{\\it r} = %.4f',...
