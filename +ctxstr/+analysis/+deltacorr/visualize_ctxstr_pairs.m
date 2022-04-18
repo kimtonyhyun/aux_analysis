@@ -2,6 +2,12 @@
 
 corrlist = sortrows(corr_to_corrlist(D_ctxstr), 3, 'ascend');
 
+%% Order CTX-STR pairs in order of correlations on one of the days
+
+corrlist = sortrows(corr_to_corrlist(C_ctxstr_B), 3, 'ascend');
+
+%%
+
 % Below: Cell inds in corrlist refer only to the cells that matched across
 % days. Thus, need to convert indices in order to properly access trace
 % data on each day. We leave out the correlation value on days A and B to

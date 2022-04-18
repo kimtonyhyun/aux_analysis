@@ -1,18 +1,20 @@
 clear all;
 
-day_name_A = 'oh28-0202';
-day_name_B = 'oh28-0209';
+mdata = load('all_matches.mat');
+
+A_idx = 1;
+B_idx = 8;
+
+day_name_A = mdata.session_names{A_idx};
+day_name_B = mdata.session_names{B_idx};
 
 day_A = load(fullfile(day_name_A, 'corrdata.mat'));
 day_B = load(fullfile(day_name_B, 'corrdata.mat'));
 
 %%
 
-ctx_matches = load('ctx_matches.mat');
-str_matches = load('str_matches.mat');
-
-ctx_match_AtoB = ctx_matches.m_1to8;
-str_match_AtoB = str_matches.m_1to8;
+ctx_match_AtoB = mdata.ctx_matches{A_idx, B_idx};
+str_match_AtoB = mdata.str_matches{A_idx, B_idx};
 
 % Indices below refer to cell #'s in the Rec files
 ctx_matched_inds = generate_matched_inds(ctx_match_AtoB);
