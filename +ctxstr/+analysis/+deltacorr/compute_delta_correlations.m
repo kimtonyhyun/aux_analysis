@@ -40,5 +40,12 @@ D_ctxstr = C_ctxstr_B - C_ctxstr_A;
 
 %%
 
+% figure;
+% ctxstr.vis.show_correlations(C_ctx_A, C_str_A, C_ctxstr_A, day_name_A);
+% 
+% figure;
+% ctxstr.vis.show_correlations(C_ctx_B, C_str_B, C_ctxstr_B, day_name_B);
+
+figure;
 ctxstr.vis.show_correlations(D_ctx, D_str, D_ctxstr,...
     sprintf('%s—%s', day_name_B, day_name_A), 'delta');

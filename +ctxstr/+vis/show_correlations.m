@@ -18,10 +18,10 @@ corr_scale = 0.5*[-1 1];
 histogram_bins = linspace(-1, 1, 200); % Number of elements should be even, to properly capture 0
 font_size = 18;
 
-sp = @(m,n,p) subtightplot(m, n, p, 0.04, 0.03, 0.04); % Gap, Margin-X, Margin-Y
+sp = @(m,n,p) subtightplot(m, n, p, 0.1, 0.03, 0.04); % Gap, Margin-X, Margin-Y
 
 % figure;
-sp(2,4,1);
+sp(2,3,1);
 imagesc(tril(C_ctx,-1), corr_scale);
 colormap redblue;
 axis image;
@@ -31,7 +31,7 @@ set(gca, 'FontSize', font_size);
 set(gca, 'TickLength', [0 0]);
 title(sprintf('%s: ctx-ctx %s', dataset_name, data_type));
 
-sp(2,4,2);
+sp(2,3,2);
 imagesc(tril(C_str,-1), corr_scale);
 axis image;
 xlabel('Str neurons');
@@ -40,7 +40,7 @@ set(gca, 'FontSize', font_size);
 set(gca, 'TickLength', [0 0]);
 title(sprintf('str-str %s', data_type));
 
-sp(2,2,2);
+sp(2,3,3);
 imagesc(C_ctxstr, corr_scale);
 axis image;
 xlabel('Str neurons');

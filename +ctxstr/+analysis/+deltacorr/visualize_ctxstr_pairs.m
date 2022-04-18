@@ -4,7 +4,7 @@ corrlist = sortrows(corr_to_corrlist(D_ctxstr), 3, 'ascend');
 
 %% Order CTX-STR pairs in order of correlations on one of the days
 
-corrlist = sortrows(corr_to_corrlist(C_ctxstr_B), 3, 'ascend');
+corrlist = sortrows(corr_to_corrlist(C_ctxstr_A), 3, 'descend');
 
 %%
 

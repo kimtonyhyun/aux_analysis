@@ -3,6 +3,7 @@ clear all;
 mouse_name = dirname;
 
 session_dirs = dir(sprintf('%s-*', mouse_name));
+session_dirs = session_dirs([session_dirs.isdir]);
 num_sessions = length(session_dirs);
 
 session_names = cell(num_sessions,1);
