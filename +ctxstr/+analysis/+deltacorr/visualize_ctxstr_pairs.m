@@ -2,11 +2,15 @@
 
 corrlist = sortrows(corr_to_corrlist(D_ctxstr), 3, 'ascend');
 
-%% Order CTX-STR pairs in order of correlations on one of the days
+%% Sort by: TOP correlations on Day A
 
 corrlist = sortrows(corr_to_corrlist(C_ctxstr_A), 3, 'descend');
 
-%%
+%% Sort by: TOP correlations on Day B
+
+corrlist = sortrows(corr_to_corrlist(C_ctxstr_B), 3, 'descend');
+
+%% Display traces
 
 % Below: Cell inds in corrlist refer only to the cells that matched across
 % days. Thus, need to convert indices in order to properly access trace
@@ -14,8 +18,6 @@ corrlist = sortrows(corr_to_corrlist(C_ctxstr_A), 3, 'descend');
 % be later retrieved explicitly.
 corrlist_A = [ctx_matched_inds(corrlist(:,1),1) str_matched_inds(corrlist(:,2),1)];
 corrlist_B = [ctx_matched_inds(corrlist(:,1),2) str_matched_inds(corrlist(:,2),2)];
-
-%% Display
 
 sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.03], 0.04, [0.03 0.01]); % Gap, Margin-X, Margin-Y
 color1 = 'k';

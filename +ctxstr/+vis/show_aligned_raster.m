@@ -72,6 +72,7 @@ end
 hold off;
 xlabel('Time relative to US (s)');
 ylabel('Activity');
+ylim([0 1]);
 set(ax2, 'TickLength', [0 0]);
 set(ax2, 'FontSize', font_size);
 
@@ -123,6 +124,7 @@ for trial_idx = info_mo.trial_inds
 end
 hold off;
 xlabel('Time relative to motion onset (s)');
+ylim([0 1]);
 set(ax4, 'TickLength', [0 0]);
 set(ax4, 'FontSize', font_size);
 

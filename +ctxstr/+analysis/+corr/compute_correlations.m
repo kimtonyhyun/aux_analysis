@@ -35,13 +35,13 @@ C_ctx = corr(cont_ctx_traces');
 C_str = corr(cont_str_traces');
 C_ctxstr = corr(cont_ctx_traces', cont_str_traces');
 
+%% Visualization #1: Correlation matrices and distribution of correlation values
+
+ctxstr.vis.show_correlations(C_ctx, C_str, C_ctxstr, dataset_name);
+
 %% Save correlation results
 
 save('corrdata.mat', 'dataset_name', 'trials', 'trials_for_corr',...
         'common_time', 'resampled_ctx_traces', 'resampled_str_traces',...
         'ctx_info', 'str_info',...
         'C_ctx', 'C_str', 'C_ctxstr');
-
-%% Visualization #1: Correlation matrices and distribution of correlation values
-
-ctxstr.vis.show_correlations(C_ctx, C_str, C_ctxstr, dataset_name);

@@ -2,7 +2,7 @@ clear all;
 
 mdata = load('all_matches.mat');
 
-A_idx = 1;
+A_idx = 7;
 B_idx = 8;
 
 day_name_A = mdata.session_names{A_idx};
@@ -13,12 +13,9 @@ day_B = load(fullfile(day_name_B, 'corrdata.mat'));
 
 %%
 
-ctx_match_AtoB = mdata.ctx_matches{A_idx, B_idx};
-str_match_AtoB = mdata.str_matches{A_idx, B_idx};
-
 % Indices below refer to cell #'s in the Rec files
-ctx_matched_inds = generate_matched_inds(ctx_match_AtoB);
-str_matched_inds = generate_matched_inds(str_match_AtoB);
+ctx_matched_inds = generate_matched_inds(mdata.ctx_matches{A_idx, B_idx});
+str_matched_inds = generate_matched_inds(mdata.str_matches{A_idx, B_idx});
 
 % Indices below refer to cell #'s in the correlation matrices
 ctx_matched_inds = [day_A.ctx_info.rec2ind(ctx_matched_inds(:,1)) day_B.ctx_info.rec2ind(ctx_matched_inds(:,2))];
@@ -46,6 +43,5 @@ D_ctxstr = C_ctxstr_B - C_ctxstr_A;
 % figure;
 % ctxstr.vis.show_correlations(C_ctx_B, C_str_B, C_ctxstr_B, day_name_B);
 
-figure;
 ctxstr.vis.show_correlations(D_ctx, D_str, D_ctxstr,...
     sprintf('%s—%s', day_name_B, day_name_A), 'delta');

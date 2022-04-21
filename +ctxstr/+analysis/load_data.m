@@ -38,7 +38,7 @@ end
 
 %% Omit trials for grooming, etc.
 
-omitted_trials = [28]; % e.g. grooming trials
+omitted_trials = [11]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
@@ -105,25 +105,31 @@ end
 
 %% Visualization #2: Ctx single-cell rasters
 
+ctx_dir = '_rasters-ctx';
+mkdir(ctx_dir);
+
 for k = 1:num_ctx_cells
     ctxstr.vis.show_aligned_raster(k, st_trial_inds, trials, ctx);
-    cell_id_in_rec = ctx_info.cell_ids_in_rec(k);
+    cell_id_in_rec = ctx_info.ind2rec(k);
     title(sprintf('%s-ctx, cell #=%d (%s)', dataset_name, cell_id_in_rec, ctx_info.rec_name),...
           'Interpreter', 'None');
       
-    print('-dpng', sprintf('%s-ctx_cell-%03d_raster.png', dataset_name, k));
+    print('-dpng', fullfile(ctx_dir, sprintf('%s-ctx_cell-%03d_raster.png', dataset_name, k)));
 %     pause;
 end
 
 %% Visualization #3: Str single-cell rasters
 
+str_dir = '_rasters-str';
+mkdir(str_dir);
+
 for k = 1:num_str_cells
     ctxstr.vis.show_aligned_raster(k, st_trial_inds, trials, str);
-    cell_id_in_rec = str_info.cell_ids_in_rec(k);
+    cell_id_in_rec = str_info.ind2rec(k);
     title(sprintf('%s-str, cell #=%d (%s)', dataset_name, cell_id_in_rec, str_info.rec_name),...
           'Interpreter', 'None');
       
-    print('-dpng', sprintf('%s-str_cell-%03d_raster.png', dataset_name, k));
+    print('-dpng', fullfile(str_dir, sprintf('%s-str_cell-%03d_raster.png', dataset_name, k)));
 %     pause;
 end
 
