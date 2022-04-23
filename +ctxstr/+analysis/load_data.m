@@ -114,7 +114,7 @@ for k = 1:num_ctx_cells
     title(sprintf('%s-ctx, cell #=%d (%s)', dataset_name, cell_id_in_rec, ctx_info.rec_name),...
           'Interpreter', 'None');
       
-    print('-dpng', fullfile(ctx_dir, sprintf('%s-ctx_cell-%03d_raster.png', dataset_name, k)));
+    print('-dpng', fullfile(ctx_dir, sprintf('%s-ctx_cell-%03d_raster.png', dataset_name, cell_id_in_rec)));
 %     pause;
 end
 
@@ -129,7 +129,7 @@ for k = 1:num_str_cells
     title(sprintf('%s-str, cell #=%d (%s)', dataset_name, cell_id_in_rec, str_info.rec_name),...
           'Interpreter', 'None');
       
-    print('-dpng', fullfile(str_dir, sprintf('%s-str_cell-%03d_raster.png', dataset_name, k)));
+    print('-dpng', fullfile(str_dir, sprintf('%s-str_cell-%03d_raster.png', dataset_name, cell_id_in_rec)));
 %     pause;
 end
 
