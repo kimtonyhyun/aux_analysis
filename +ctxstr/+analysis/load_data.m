@@ -206,8 +206,8 @@ for i = 1:num_ctx_to_show
         trial = trials(k);
         trial_time = [trial.start_time trial.us_time];
     
-        [ctx_traces_k, ctx_times_k] = ctxstr.core.get_traces_by_time(ctx, trial_time);
-        plot(ctx_times_k, ctx_traces_k(ctx_idx,:), 'k.-');
+        ctx_traces_k = ctx_traces_by_trial{k};
+        plot(common_time{k}, ctx_traces_k(ctx_idx,:), 'k.-');
     
         plot_vertical_lines([trial.start_time trial.us_time], y_lims, 'b:');
         plot_vertical_lines(trial.motion.onsets, y_lims, 'r:');
@@ -226,8 +226,8 @@ for j = 1:num_str_to_show
         trial = trials(k);
         trial_time = [trial.start_time trial.us_time];
     
-        [str_traces_k, str_times_k] = ctxstr.core.get_traces_by_time(str, trial_time);
-        plot(str_times_k, str_traces_k(str_idx,:), 'm.-');
+        str_traces_k = str_traces_by_trial{k};
+        plot(common_time{k}, str_traces_k(str_idx,:), 'm.-');
     
         plot_vertical_lines([trial.start_time trial.us_time], y_lims, 'b:');
         plot_vertical_lines(trial.motion.onsets, y_lims, 'r:');
