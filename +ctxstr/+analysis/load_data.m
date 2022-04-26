@@ -49,6 +49,20 @@ st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 fprintf('Found %d stereotyped trials out of %d imaged trials total\n',...
     length(st_trial_inds), num_imaged_trials);
 
+%% Generate behavioral regressors
+
+selected_reward_times = [];
+selected_motion_onset_times = [];
+for trial_idx = st_trial_inds
+    trial = trials(trial_idx);
+    
+    selected_reward_times = [selected_reward_times trial.us_time]; %#ok<*AGROW>
+    selected_motion_onset_times = [selected_motion_onset_times trial.motion.onsets];
+end
+
+reward_regressor = assign_edge_to_frames(selected_reward_times, ctx.t);
+motion_onset_regressor = assign_edge_to_frames(selected_motion_onset_times, ctx.t);
+
 %% Parse data into trials, filter out NaN's, and compute correlations
 
 ctx_traces_by_trial = cell(1, num_all_trials);
@@ -77,20 +91,6 @@ end
 
 [C_ctx, C_str, C_ctxstr] = ctxstr.analysis.corr.compute_correlations(...
     ctx_traces_by_trial, str_traces_by_trial);
-
-%% Generate behavioral regressors
-
-reward_times = [];
-motion_onset_times = [];
-for trial_idx = st_trial_inds
-    trial = trials(trial_idx);
-    
-    reward_times = [reward_times trial.us_time]; %#ok<*AGROW>
-    motion_onset_times = [motion_onset_times trial.motion.onsets];
-end
-
-reward_regressor = assign_edge_to_frames(reward_times, ctx.t);
-motion_onset_regressor = assign_edge_to_frames(motion_onset_times, ctx.t);
 
 %% Visualization #1: "Trial view"
 
@@ -201,17 +201,12 @@ for i = 1:num_ctx_to_show
     h_axes(1+i) = sp(num_rows, 1, 1+i);
     ctx_idx = ctx_inds_to_show(i);
     
+    ctx_trace = ctx.traces(ctx_idx,:);
+    plot(ctx.t, ctx_trace, 'k.-');
     hold on;
-    for k = trials_to_show
-        trial = trials(k);
-        trial_time = [trial.start_time trial.us_time];
-    
-        ctx_traces_k = ctx_traces_by_trial{k};
-        plot(common_time{k}, ctx_traces_k(ctx_idx,:), 'k.-');
-    
-        plot_vertical_lines([trial.start_time trial.us_time], y_lims, 'b:');
-        plot_vertical_lines(trial.motion.onsets, y_lims, 'r:');
-    end
+    plot_vertical_lines([trials.us_time], y_lims, 'b:');
+    plot(ctx.t(reward_regressor), ctx_trace(reward_regressor), 'bo');
+    plot(ctx.t(motion_onset_regressor), ctx_trace(motion_onset_regressor), 'ro');
     hold off;
     ylim(y_lims);
     ylabel(sprintf('Ctx cell #=%d', ctx_idx));
@@ -221,17 +216,12 @@ for j = 1:num_str_to_show
     h_axes(1+num_ctx_to_show+j) = sp(num_rows, 1, 1+num_ctx_to_show+j);
     str_idx = str_inds_to_show(j);
     
+    str_trace = str.traces(str_idx,:);
+    plot(str.t, str_trace, 'm.-');
     hold on;
-    for k = trials_to_show
-        trial = trials(k);
-        trial_time = [trial.start_time trial.us_time];
-    
-        str_traces_k = str_traces_by_trial{k};
-        plot(common_time{k}, str_traces_k(str_idx,:), 'm.-');
-    
-        plot_vertical_lines([trial.start_time trial.us_time], y_lims, 'b:');
-        plot_vertical_lines(trial.motion.onsets, y_lims, 'r:');
-    end
+    plot_vertical_lines([trials.us_time], y_lims, 'b:');
+    plot(str.t(reward_regressor), str_trace(reward_regressor), 'bo');
+    plot(str.t(motion_onset_regressor), str_trace(motion_onset_regressor), 'ro');
     hold off;
     ylim(y_lims);
     ylabel(sprintf('Str cell #=%d', str_idx));
