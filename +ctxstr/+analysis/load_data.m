@@ -26,8 +26,11 @@ path_to_str = 'str/union_15hz/dff';
 ctx.t = ctxstr.core.bin_frame_times(session.ctx.frame_times, 2); % Assume ctx data temporally binned by factor 2
 num_ctx_cells = size(ctx.traces, 1);
 
-[str.traces, str_info] = ctxstr.load_cascade_traces(path_to_str, fps);
-str.t = ctxstr.core.bin_frame_times(session.str.frame_times, 3);
+[str_orig.traces, str_info] = ctxstr.load_cascade_traces(path_to_str, fps);
+str_orig.t = ctxstr.core.bin_frame_times(session.str.frame_times, 3);
+
+% Resample the striatal traces to line up with cortex sampling times
+str = ctxstr.core.resample_traces(str_orig, ctx.t);
 num_str_cells = size(str.traces, 1);
 
 % Load the behavior video, if available
@@ -38,7 +41,7 @@ end
 
 %% Omit trials for grooming, etc.
 
-omitted_trials = [11]; % e.g. grooming trials
+omitted_trials = [60 207]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
