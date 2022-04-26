@@ -1,9 +1,10 @@
-%% Load behavioral and neural data
-
 clear all;
 
 dataset_name = dirname;
+cprintf('blue', '* * * %s * * *\n', dataset_name);
 
+% Load behavioral data
+%------------------------------------------------------------
 session = load('ctxstr.mat');
 trials = ctxstr.load_trials;
 
@@ -12,12 +13,13 @@ trials = ctxstr.load_trials;
 % imaging are in 'session.info.imaged_trials'
 num_all_trials = length(trials);
 num_imaged_trials = length(session.info.imaged_trials);
-cprintf('blue', '* * * %s: Contains %d imaged trials * * *\n', dataset_name, num_imaged_trials);
 
-% "Stereotypical" trials
+% Find "Stereotypical" trials, defined by mouse behavior
 st_trial_inds = ctxstr.behavior.find_stereotypical_trials(trials);
 st_trial_inds = intersect(st_trial_inds, session.info.imaged_trials);
 
+% Load imaging data
+%------------------------------------------------------------
 fps = 15;
 path_to_ctx = 'ctx/union_15hz/dff';
 path_to_str = 'str/union_15hz/dff';
@@ -34,18 +36,49 @@ str = ctxstr.core.resample_traces(str_orig, ctx.t);
 num_str_cells = size(str.traces, 1);
 
 % Load the behavior video, if available
-vid_filename = get_most_recent_file('.', '*.mp4');
-if ~isempty(vid_filename)
-    vid = VideoReader(vid_filename);
-end
+% vid_filename = get_most_recent_file('.', '*.mp4');
+% if ~isempty(vid_filename)
+%     vid = VideoReader(vid_filename);
+% end
 
 %% Omit trials for grooming, etc.
 
 omitted_trials = [60 207]; % e.g. grooming trials
 
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
-cprintf('blue', 'Found %d stereotyped trials out of %d imaged trials total\n',...
+fprintf('Found %d stereotyped trials out of %d imaged trials total\n',...
     length(st_trial_inds), num_imaged_trials);
+
+%% Parse data into trials, filter out NaN's, and compute correlations
+
+ctx_traces_by_trial = cell(1, num_all_trials);
+str_traces_by_trial = cell(1, num_all_trials);
+common_time = cell(1, num_all_trials);
+
+for k = st_trial_inds
+    trial = trials(k);
+    trial_time = [trial.start_time trial.us_time];
+    
+    [ctx_traces_k, ctx_times_k] = ctxstr.core.get_traces_by_time(ctx, trial_time);
+    [str_traces_k, str_times_k] = ctxstr.core.get_traces_by_time(str, trial_time);
+    
+    if any(isnan(ctx_traces_k(:))) || any(isnan(str_traces_k(:)))
+        st_trial_inds = setdiff(st_trial_inds, k);
+        fprintf('Omit Trial %d due to NaNs (arising from CASCADE)\n', k);
+    else
+        assert(all(ctx_times_k == str_times_k),...
+            'Mismatch in cortical and striatal sampling times!');
+        common_time{k} = ctx_times_k;
+        
+        ctx_traces_by_trial{k} = ctx_traces_k;
+        str_traces_by_trial{k} = str_traces_k;
+    end
+end
+
+[C_ctx, C_str, C_ctxstr] = ctxstr.analysis.corr.compute_correlations(...
+    ctx_traces_by_trial, str_traces_by_trial);
+
+%%
 
 % Compute appropriate ylims given this set of trials
 ctx_max = 0; ctx_max_trial_idx = 0;
@@ -71,6 +104,20 @@ end
 fprintf('  Maximum ctx activity occurs on Trial %d\n', ctx_max_trial_idx);
 fprintf('  Maximum str activity occurs on Trial %d\n', str_max_trial_idx);
 clear ctx_frames ctx_traces max_pop_ctx_trace str_frames str_traces max_pop_str_trace ctx_max_trial_idx str_max_trial_idx
+
+%% Generate behavioral regressors
+
+reward_times = [];
+motion_onset_times = [];
+for trial_idx = st_trial_inds
+    trial = trials(trial_idx);
+    
+    reward_times = [reward_times trial.us_time]; %#ok<*AGROW>
+    motion_onset_times = [motion_onset_times trial.motion.onsets];
+end
+
+reward_regressor = assign_edge_to_frames(reward_times, ctx.t);
+motion_onset_regressor = assign_edge_to_frames(motion_onset_times, ctx.t);
 
 %% Visualization #1: "Trial view"
 
@@ -189,7 +236,7 @@ for i = 1:num_ctx_to_show
         trial_time = [trial.start_time trial.us_time];
     
         [ctx_traces_k, ctx_times_k] = ctxstr.core.get_traces_by_time(ctx, trial_time);
-        plot(ctx_times_k, ctx_traces_k(ctx_idx,:), 'k-');
+        plot(ctx_times_k, ctx_traces_k(ctx_idx,:), 'k.-');
     
         plot_vertical_lines([trial.start_time trial.us_time], y_lims, 'b:');
         plot_vertical_lines(trial.motion.onsets, y_lims, 'r:');
@@ -209,7 +256,7 @@ for j = 1:num_str_to_show
         trial_time = [trial.start_time trial.us_time];
     
         [str_traces_k, str_times_k] = ctxstr.core.get_traces_by_time(str, trial_time);
-        plot(str_times_k, str_traces_k(str_idx,:), 'm-');
+        plot(str_times_k, str_traces_k(str_idx,:), 'm.-');
     
         plot_vertical_lines([trial.start_time trial.us_time], y_lims, 'b:');
         plot_vertical_lines(trial.motion.onsets, y_lims, 'r:');

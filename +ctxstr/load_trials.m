@@ -62,7 +62,11 @@ for k = 1:num_trials
     t_lims = trial_data(k).position([1 end],1) + trial_padding * [-1 1]';
     trial_data(k).times = t_lims; % Includes padding
     
-    trial_data(k).start_time = trial_data(k).position(1,1); % Defined by previous US
+    if k > 1
+        trial_data(k).start_time = trial_data(k-1).us_time;
+    else
+        trial_data(k).start_time = trial_data(k).position(1,1);
+    end
     trial_data(k).us_time = behavior.us_times(k);
     trial_data(k).duration = trial_data(k).us_time - trial_data(k).start_time;
     
