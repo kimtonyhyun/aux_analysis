@@ -78,33 +78,6 @@ end
 [C_ctx, C_str, C_ctxstr] = ctxstr.analysis.corr.compute_correlations(...
     ctx_traces_by_trial, str_traces_by_trial);
 
-%%
-
-% Compute appropriate ylims given this set of trials
-ctx_max = 0; ctx_max_trial_idx = 0;
-str_max = 0; str_max_trial_idx = 0;
-for trial_idx = st_trial_inds
-    trial = trials(trial_idx);
-    trial_times = [trial.start_time trial.us_time]; % No padding
-    
-    ctx_traces = ctxstr.core.get_traces_by_time(ctx, trial_times);
-    max_pop_ctx_trace = max(sum(ctx_traces, 1));
-    if max_pop_ctx_trace > ctx_max
-        ctx_max = max_pop_ctx_trace;
-        ctx_max_trial_idx = trial_idx;
-    end
-    
-    str_traces = ctxstr.core.get_traces_by_time(str, trial_times);
-    max_pop_str_trace = max(sum(str_traces, 1));
-    if max_pop_str_trace > str_max
-        str_max = max_pop_str_trace;
-        str_max_trial_idx = trial_idx;
-    end
-end
-fprintf('  Maximum ctx activity occurs on Trial %d\n', ctx_max_trial_idx);
-fprintf('  Maximum str activity occurs on Trial %d\n', str_max_trial_idx);
-clear ctx_frames ctx_traces max_pop_ctx_trace str_frames str_traces max_pop_str_trace ctx_max_trial_idx str_max_trial_idx
-
 %% Generate behavioral regressors
 
 reward_times = [];
@@ -121,20 +94,18 @@ motion_onset_regressor = assign_edge_to_frames(motion_onset_times, ctx.t);
 
 %% Visualization #1: "Trial view"
 
-% trials_to_show = session.info.imaged_trials;
-% ctx_max = [];
-% str_max = [];
-
-trials_to_show = st_trial_inds;
+% Compute appropriate ylims given this set of trials
+ctx_max = ctxstr.core.find_max_population_activity(ctx_traces_by_trial);
+str_max = ctxstr.core.find_max_population_activity(str_traces_by_trial);
 
 num_trials_per_page = 8;
-num_trials_to_show = length(trials_to_show);
+num_trials_to_show = length(st_trial_inds);
 
 trial_chunks = make_frame_chunks(num_trials_to_show, num_trials_per_page);
 num_pages = size(trial_chunks, 1);
 
 for k = 1:num_pages
-    trials_to_show_k = trials_to_show(trial_chunks(k,1):trial_chunks(k,2));
+    trials_to_show_k = st_trial_inds(trial_chunks(k,1):trial_chunks(k,2));
     
     clf;
     ctxstr.vis.show_trials(trials_to_show_k, session, trials, ctx, str,...
