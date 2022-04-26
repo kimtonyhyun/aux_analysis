@@ -17,13 +17,16 @@ for k = trials_for_corr
         trials_for_corr = setdiff(trials_for_corr, k);
         fprintf('Omitting Trial %d from correlation calculation due to NaNs\n', k);
     else
-        [resampled_ctx_traces{k}, resampled_str_traces{k}, common_time{k}] = ctxstr.core.resample_ctxstr_traces(...
-            ctx_traces_k, ctx_times_k, str_traces_k, str_times_k);
-        
-        % Needed for cell2mat concatenation (below), if working with Ca2+
-        % traces which are stored as single
-        resampled_ctx_traces{k} = double(resampled_ctx_traces{k});
-        resampled_str_traces{k} = double(resampled_str_traces{k});
+        % Striatum data has already been resampled to be consistent with
+        % the cortex data
+        assert(all(ctx_times_k == str_times_k),...
+            'Mismatch in cortical and striatal sampling times!');
+        common_time{k} = ctx_times_k;
+
+        % Conversion to double needed for cell2mat concatenation (below),
+        % if working with Ca2+ traces which are stored as single
+        resampled_ctx_traces{k} = double(ctx_traces_k);
+        resampled_str_traces{k} = double(str_traces_k);
     end
 end
 
