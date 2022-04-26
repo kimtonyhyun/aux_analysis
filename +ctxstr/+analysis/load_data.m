@@ -60,8 +60,8 @@ for trial_idx = st_trial_inds
     selected_motion_onset_times = [selected_motion_onset_times trial.motion.onsets];
 end
 
-reward_regressor = assign_edge_to_frames(selected_reward_times, ctx.t);
-motion_onset_regressor = assign_edge_to_frames(selected_motion_onset_times, ctx.t);
+reward_regressor = ctxstr.core.assign_events_to_frames(selected_reward_times, ctx.t);
+motion_onset_regressor = ctxstr.core.assign_events_to_frames(selected_motion_onset_times, ctx.t);
 
 %% Parse data into trials, filter out NaN's, and compute correlations
 
