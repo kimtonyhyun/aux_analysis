@@ -7,7 +7,7 @@ function has_event = assign_events_to_frames(event_times, frame_times)
 
 num_events = length(event_times);
 num_frames = length(frame_times);
-has_event = false(num_frames, 1);
+has_event = false(1, num_frames);
 
 % First edge that takes place after the time of the first frame
 first_assigned_event = find(event_times > frame_times(1), 1);

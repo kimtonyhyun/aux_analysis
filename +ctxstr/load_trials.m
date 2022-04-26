@@ -1,4 +1,4 @@
-function trial_data = load_trials(path_to_behavior, path_to_skeleton, path_to_motion)
+function trial_data = load_trials(trial_padding)
 % Load various behavioral data into a trial structure.
 %   Requires: 
 %     - Output of 'parse_saleae' (i.e. "ctxstr.mat")
@@ -7,18 +7,16 @@ function trial_data = load_trials(path_to_behavior, path_to_skeleton, path_to_mo
 %     - Output of 'analyze_motion' (i.e. "motion_*.mat")
 
 % Default params
-trial_padding = 1; % seconds. Visualize period before and after each trial
-
-if ~exist('path_to_behavior', 'var')
-    path_to_behavior = fullfile(pwd, 'ctxstr.mat');
+if ~exist('trial_padding', 'var')
+    trial_padding = 1; % seconds. Visualize period before and after each trial
 end
+
+path_to_behavior = fullfile(pwd, 'ctxstr.mat');
 bdata = load(path_to_behavior);
 behavior = bdata.behavior;
 fprintf('Loaded behavioral data from "%s"\n', path_to_behavior);
 
-if ~exist('path_to_skeleton', 'var')
-    path_to_skeleton = get_most_recent_file(pwd, 'skeleton.mat');
-end
+path_to_skeleton = get_most_recent_file(pwd, 'skeleton.mat');
 if ~isempty(path_to_skeleton)
     sdata = load(path_to_skeleton);
     fprintf('Loaded skeleton (DLC) data from "%s"\n', path_to_skeleton);
@@ -26,10 +24,7 @@ else
     sdata = [];
 end
 
-if ~exist('path_to_motion', 'var')
-    % If motion file not provided, try to find it
-    path_to_motion = get_most_recent_file(pwd, 'motion_*.mat');
-end
+path_to_motion = get_most_recent_file(pwd, 'motion_*.mat');
 if ~isempty(path_to_motion)
     mdata = load(path_to_motion);
     fprintf('Loaded motion analysis data from "%s"\n', path_to_motion);

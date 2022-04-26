@@ -6,7 +6,7 @@ cprintf('blue', '* * * %s * * *\n', dataset_name);
 % Load behavioral data
 %------------------------------------------------------------
 session = load('ctxstr.mat');
-trials = ctxstr.load_trials;
+trials = ctxstr.load_trials(0); % No trial padding
 
 % Note that 'trials' includes all behavioral trials in the Saleae record,
 % even those that are not captured by imaging. The subset of trials with
@@ -73,15 +73,13 @@ for k = st_trial_inds
     trial = trials(k);
     trial_time = [trial.start_time trial.us_time];
     
-    [ctx_traces_k, ctx_times_k] = ctxstr.core.get_traces_by_time(ctx, trial_time);
-    [str_traces_k, str_times_k] = ctxstr.core.get_traces_by_time(str, trial_time);
+    [ctx_traces_k, ctx_times_k, frame_inds] = ctxstr.core.get_traces_by_time(ctx, trial_time);
+    str_traces_k = str.traces(:,frame_inds);
     
     if any(isnan(ctx_traces_k(:))) || any(isnan(str_traces_k(:)))
         st_trial_inds = setdiff(st_trial_inds, k);
         fprintf('Omit Trial %d due to NaNs (arising from CASCADE)\n', k);
     else
-        assert(all(ctx_times_k == str_times_k),...
-            'Mismatch in cortical and striatal sampling times!');
         common_time{k} = ctx_times_k;
         
         ctx_traces_by_trial{k} = ctx_traces_k;
@@ -172,9 +170,13 @@ clf;
 h_axes(1) = sp(num_rows,1,1);
 yyaxis left;
 hold on;
-for k = trials_to_show
+for k = 1:num_all_trials
     vel = trials(k).velocity;
-    plot(vel(:,1), vel(:,2), '-');
+    if ismember(k, st_trial_inds)
+        plot(vel(:,1), vel(:,2), '-');
+    else
+        plot(vel(:,1), vel(:,2), ':');
+    end
 end
 hold off;
 ylim([-5 45]);
@@ -182,15 +184,21 @@ ylabel('Velocity (cm/s)');
 yyaxis right;
 y_lims = [0 session.behavior.position.us_threshold];
 hold on;
-for k = trials_to_show
+for k = 1:num_all_trials
     trial = trials(k);
     
-    plot(trial.position(:,1), trial.position(:,2), '-');
-    plot(trial.lick_times, 0.95*y_lims(2)*ones(size(trial.lick_times)), 'b.');
+    if ismember(k, st_trial_inds)
+        plot(trial.position(:,1), trial.position(:,2), '-');
+    else
+        plot(trial.position(:,1), trial.position(:,2), ':');
+    end
     
-    plot_vertical_lines([trial.start_time trial.us_time], y_lims, 'b:');
-    plot_vertical_lines(trial.motion.onsets, y_lims, 'r:');
+    plot(trial.lick_times, 0.95*y_lims(2)*ones(size(trial.lick_times)), 'b.');
+    if ~isempty(trial.motion.onsets)
+        plot_vertical_lines(trial.motion.onsets, y_lims, 'r:');
+    end
 end
+plot_vertical_lines([trials.us_time], y_lims, 'b:');
 ylim(y_lims);
 ylabel('Position');
 set(gca, 'TickLength', [0 0]);
