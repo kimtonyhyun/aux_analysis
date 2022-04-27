@@ -48,10 +48,10 @@ for k = 1:num_trials_to_show
     
     t_lims = trial.times; % Includes trial padding
     
-    [ctx_traces, ctx_t] = ctxstr.core.get_traces_by_time(ctx, t_lims);
+    [ctx_traces, ctx_t] = ctxstr.core.get_traces_by_time(ctx.traces, ctx.t, t_lims);
     pop_ctx_trace = sum(ctx_traces, 1);
        
-    [str_traces, str_t] = ctxstr.core.get_traces_by_time(str, t_lims);
+    [str_traces, str_t] = ctxstr.core.get_traces_by_time(str.traces, str.t, t_lims);
     pop_str_trace = sum(str_traces, 1);
 
     % Plots: 1) Velocity and position

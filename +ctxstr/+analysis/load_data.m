@@ -26,14 +26,12 @@ path_to_str = 'str/union_15hz/dff';
 
 [ctx.traces, ctx_info] = ctxstr.load_cascade_traces(path_to_ctx, fps);
 ctx.t = ctxstr.core.bin_frame_times(session.ctx.frame_times, 2); % Assume ctx data temporally binned by factor 2
-num_ctx_cells = size(ctx.traces, 1);
 
 [str_orig.traces, str_info] = ctxstr.load_cascade_traces(path_to_str, fps);
 str_orig.t = ctxstr.core.bin_frame_times(session.str.frame_times, 3);
 
 % Resample the striatal traces to line up with cortex sampling times
 str = ctxstr.core.resample_traces(str_orig, ctx.t);
-num_str_cells = size(str.traces, 1);
 
 % Load the behavior video, if available
 % vid_filename = get_most_recent_file('.', '*.mp4');
@@ -77,6 +75,14 @@ C_ctx = corr(cont_ctx_traces');
 C_str = corr(cont_str_traces');
 C_ctxstr = corr(cont_ctx_traces', cont_str_traces');
 
+%% Save data
+
+save('corrdata.mat', 'dataset_name', 'session',...
+        'trials', 'ctx', 'str', 'st_trial_inds',...
+        'common_time', 'ctx_traces_by_trial', 'str_traces_by_trial',...
+        'ctx_info', 'str_info',...
+        'C_ctx', 'C_str', 'C_ctxstr');
+
 %% Visualization #0: Correlations
 
 ctxstr.vis.show_correlations(C_ctx, C_str, C_ctxstr, dataset_name);
@@ -118,7 +124,7 @@ end
 ctx_dir = '_rasters-ctx';
 % mkdir(ctx_dir);
 
-for k = 1:num_ctx_cells
+for k = 1:size(ctx.traces,1)
     ctxstr.vis.show_aligned_raster(k, st_trial_inds, trials, ctx);
     cell_id_in_rec = ctx_info.ind2rec(k);
     title(sprintf('%s-ctx, cell #=%d (%s)', dataset_name, cell_id_in_rec, ctx_info.rec_name),...
@@ -133,7 +139,7 @@ end
 str_dir = '_rasters-str';
 % mkdir(str_dir);
 
-for k = 1:num_str_cells
+for k = 1:size(str.traces,1)
     ctxstr.vis.show_aligned_raster(k, st_trial_inds, trials, str);
     cell_id_in_rec = str_info.ind2rec(k);
     title(sprintf('%s-str, cell #=%d (%s)', dataset_name, cell_id_in_rec, str_info.rec_name),...
