@@ -11,4 +11,9 @@ for k = trials_to_parse
     
     [traces_by_trial{k}, trial_times{k}] = ...
         ctxstr.core.get_traces_by_time(traces, t, trial_time);
+    
+    % Conversion to double needed for cell2mat concatenation, as in:
+    %   cont_ctx_traces = cell2mat(ctx_traces_by_trial);
+    % when working with Ca2+ traces which are stored as single.
+    traces_by_trial{k} = double(traces_by_trial{k});
 end
