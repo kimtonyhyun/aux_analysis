@@ -70,8 +70,8 @@ save('resampled_data.mat', 'dataset_name', 'session',...
 %% Visualization #1: "Trial view"
 
 % Compute appropriate ylims given this set of trials
-ctx_max = ctxstr.core.find_max_population_activity(ctx_traces.trial);
-str_max = ctxstr.core.find_max_population_activity(str_traces.trial);
+ctx_max = ctxstr.core.find_max_population_activity(ctx_traces.trial, st_trial_inds);
+str_max = ctxstr.core.find_max_population_activity(str_traces.trial, st_trial_inds);
 
 num_trials_per_page = 8;
 num_trials_to_show = length(st_trial_inds);
