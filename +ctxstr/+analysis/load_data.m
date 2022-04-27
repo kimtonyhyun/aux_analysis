@@ -131,7 +131,7 @@ end
 %% Visualization #2: Ctx single-cell rasters
 
 ctx_dir = '_rasters-ctx';
-mkdir(ctx_dir);
+% mkdir(ctx_dir);
 
 for k = 1:num_ctx_cells
     ctxstr.vis.show_aligned_raster(k, st_trial_inds, trials, ctx);
@@ -139,14 +139,14 @@ for k = 1:num_ctx_cells
     title(sprintf('%s-ctx, cell #=%d (%s)', dataset_name, cell_id_in_rec, ctx_info.rec_name),...
           'Interpreter', 'None');
       
-    print('-dpng', fullfile(ctx_dir, sprintf('%s-ctx_cell-%03d_raster.png', dataset_name, cell_id_in_rec)));
-%     pause;
+%     print('-dpng', fullfile(ctx_dir, sprintf('%s-ctx_cell-%03d_raster.png', dataset_name, cell_id_in_rec)));
+    pause;
 end
 
 %% Visualization #3: Str single-cell rasters
 
 str_dir = '_rasters-str';
-mkdir(str_dir);
+% mkdir(str_dir);
 
 for k = 1:num_str_cells
     ctxstr.vis.show_aligned_raster(k, st_trial_inds, trials, str);
@@ -154,8 +154,8 @@ for k = 1:num_str_cells
     title(sprintf('%s-str, cell #=%d (%s)', dataset_name, cell_id_in_rec, str_info.rec_name),...
           'Interpreter', 'None');
       
-    print('-dpng', fullfile(str_dir, sprintf('%s-str_cell-%03d_raster.png', dataset_name, cell_id_in_rec)));
-%     pause;
+%     print('-dpng', fullfile(str_dir, sprintf('%s-str_cell-%03d_raster.png', dataset_name, cell_id_in_rec)));
+    pause;
 end
 
 %% Visualization #4: Show basic behavior + some neurons (WIP)

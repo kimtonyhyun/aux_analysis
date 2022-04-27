@@ -24,8 +24,8 @@ for k = 1:num_all_trials
         if ~isempty(trial.motion.onsets)
             mo_time = trial.motion.onsets(1); % FIXME: Handle multiple MOs in trial
 
-            [traces_k, times_k] = ctxstr.core.get_traces_by_time(imdata,...
-                [trial.start_time, trial.us_time+post_mo_padding]);
+            [traces_k, times_k] = ctxstr.core.get_traces_by_time(...
+                imdata.traces, imdata.t, [trial.start_time, trial.us_time+post_mo_padding]);
             traces{k} = traces_k(cell_idx,:);
             trial_times{k} = times_k - mo_time; % Time relative to MO
 
