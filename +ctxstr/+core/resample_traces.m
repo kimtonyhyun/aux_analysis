@@ -1,5 +1,4 @@
-function resampled_data = resample_traces(data, t)
+function resampled_traces = resample_traces(traces, t, new_t)
 
 % Note: interp1 works on columns
-resampled_data.traces = interp1(data.t, data.traces', t, 'linear')';
-resampled_data.t = t;
+resampled_traces = interp1(t, traces', new_t, 'linear')';

@@ -1,9 +1,10 @@
-function show_trials(trials_to_show, session, trials, ctx, str, varargin)
+function show_trials(trials_to_show, session, trials, time_cont, ctx_traces_cont, str_traces_cont, varargin)
 
 % Defaults
 dataset_name = '';
 ctx_max = []; % Determines ylim for displaying neural activity traces
 str_max = [];
+padding = 1; % s, before and after each trial
 
 for k = 1:length(varargin)
     if ischar(varargin{k})
@@ -20,8 +21,8 @@ end
 
 num_trials_to_show = length(trials_to_show);
 
-num_ctx_cells = size(ctx.traces,1);
-num_str_cells = size(str.traces,1);
+num_ctx_cells = size(ctx_traces_cont,1);
+num_str_cells = size(str_traces_cont,1);
 
 sp = @(m,n,p) subtightplot(m, n, p, 0.01, [0.04 0.025], 0.02); % Gap, Margin-X, Margin-Y
 
@@ -30,10 +31,10 @@ v_lims = [-5 max(session.behavior.velocity(:,2))];
 
 % If not externally provided, calculate appropriate ylim for mean pop. activity
 if isempty(ctx_max)
-    ctx_max = max(sum(ctx.traces, 1));
+    ctx_max = max(sum(ctx_traces_cont, 1));
 end
 if isempty(str_max)
-    str_max = max(sum(str.traces, 1));
+    str_max = max(sum(str_traces_cont, 1));
 end
 ctx_a_lims = [0 1.1*ctx_max];
 str_a_lims = [0 1.1*str_max];
@@ -46,12 +47,12 @@ for k = 1:num_trials_to_show
     trial_idx = trials_to_show(k);
     trial = trials(trial_idx);
     
-    t_lims = trial.times; % Includes trial padding
+    t_lims = [trial.start_time-padding trial.us_time+padding];
     
-    [ctx_traces, ctx_t] = ctxstr.core.get_traces_by_time(ctx.traces, ctx.t, t_lims);
+    [ctx_traces, trial_time] = ctxstr.core.get_traces_by_time(ctx_traces_cont, time_cont, t_lims);
     pop_ctx_trace = sum(ctx_traces, 1);
        
-    [str_traces, str_t] = ctxstr.core.get_traces_by_time(str.traces, str.t, t_lims);
+    str_traces = ctxstr.core.get_traces_by_time(str_traces_cont, time_cont, t_lims);
     pop_str_trace = sum(str_traces, 1);
 
     % Plots: 1) Velocity and position
@@ -94,7 +95,7 @@ for k = 1:num_trials_to_show
     %------------------------------------------------------------
     ax2 = sp(4, num_subplot_columns, num_subplot_columns+k);
     yyaxis left;
-    plot(ctx_t, pop_ctx_trace, 'k');
+    plot(trial_time, pop_ctx_trace, 'k');
     ylim(ctx_a_lims);
     if k == 1
         ylabel('Ctx pop. activity');
@@ -102,7 +103,7 @@ for k = 1:num_trials_to_show
         set(gca, 'YTick', []);
     end
     yyaxis right;
-    plot(str_t, pop_str_trace, 'm-');
+    plot(trial_time, pop_str_trace, 'm-');
     hold on;
     ylim(str_a_lims);
     plot_vertical_lines([trial.start_time, trial.us_time], str_a_lims, 'b:');
@@ -121,7 +122,7 @@ for k = 1:num_trials_to_show
     % 3) Ctx raster
     %------------------------------------------------------------
     ax3 = sp(4, num_subplot_columns, 2*num_subplot_columns + k);
-    imagesc(ctx_t, 1:num_ctx_cells, ctx_traces);
+    imagesc(trial_time, 1:num_ctx_cells, ctx_traces);
     hold on;
     plot_vertical_lines([trial.start_time, trial.us_time], [1 num_ctx_cells], 'w:');
     plot_vertical_lines(trial.motion.onsets, [1 num_ctx_cells], 'w:');
@@ -138,7 +139,7 @@ for k = 1:num_trials_to_show
     % 4) Str raster
     %------------------------------------------------------------
     ax4 = sp(4, num_subplot_columns, 3*num_subplot_columns+k);
-    imagesc(str_t, 1:num_str_cells, str_traces); hold on;
+    imagesc(trial_time, 1:num_str_cells, str_traces); hold on;
     hold on;
     plot_vertical_lines([trial.start_time, trial.us_time], [1 num_str_cells], 'w:');
     plot_vertical_lines(trial.motion.onsets, [1 num_str_cells], 'w:');
@@ -156,4 +157,4 @@ for k = 1:num_trials_to_show
     zoom xon;
 end
 
-end % show_ctxstr_trials
+end % show_trials

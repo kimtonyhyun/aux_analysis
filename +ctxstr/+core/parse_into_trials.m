@@ -1,11 +1,11 @@
-function [traces_by_trial, trial_times] = parse_by_trial(traces, t, trials, trials_to_parse)
+function [traces_by_trial, trial_times] = parse_into_trials(traces, t, trials)
 
 num_all_trials = length(trials);
 
 traces_by_trial = cell(1, num_all_trials);
 trial_times = cell(1, num_all_trials);
 
-for k = trials_to_parse
+for k = 1:num_all_trials
     trial = trials(k);
     trial_time = [trial.start_time, trial.us_time];
     

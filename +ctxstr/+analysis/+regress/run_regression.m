@@ -1,16 +1,57 @@
-%% Generate behavioral regressors (WIP)
+%% Regression parameters
+
+t = ctx.t; % Neural data have been aligned to cortical samples
+num_frames = length(t);
+
+reward_pre_samples = round(1.5 * fps); % frames
+reward_post_samples = round(1.5 * fps);
+
+mo_pre_samples = 15; % mo: motion onset
+mo_post_samples = 15;
+
+%% Align behavioral events to neural data sampling rate
 
 selected_reward_times = [];
-selected_motion_onset_times = [];
+selected_mo_times = [];
 for trial_idx = st_trial_inds
     trial = trials(trial_idx);
     
     selected_reward_times = [selected_reward_times trial.us_time]; %#ok<*AGROW>
-    selected_motion_onset_times = [selected_motion_onset_times trial.motion.onsets];
+    selected_mo_times = [selected_mo_times trial.motion.onsets];
 end
 
-reward_regressor = ctxstr.core.assign_events_to_frames(selected_reward_times, ctx.t);
-motion_onset_regressor = ctxstr.core.assign_events_to_frames(selected_motion_onset_times, ctx.t);
+reward_frames = ctxstr.core.assign_events_to_frames(selected_reward_times, t);
+mo_frames = ctxstr.core.assign_events_to_frames(selected_mo_times, t);
+
+%% Generate temporally offset regressors
+
+X_reward = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
+    reward_frames, reward_pre_samples, reward_post_samples); % [regressors x num_frames]
+
+X_mo = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
+    mo_frames, mo_pre_samples, mo_post_samples);
+
+% Indicator variables showing the finite support of each event
+reward_active = sum(X_reward,1) > 0;
+mo_active = sum(X_mo,1) > 0;
+
+%% Correlations between neural activity and the behavioral indicator variables
+
+cont_ctx_traces = cell2mat(ctx_traces_by_trial); % [cells x time]
+cont_str_traces = cell2mat(str_traces_by_trial);
+cont_reward_active = cell2mat(ctxstr.core.parse_by_trial(reward_active, t, trials, st_trial_inds));
+
+C_ctx_reward = corr(cont_ctx_traces', cont_reward_active');
+
+%% Try regression
+
+y = cont_ctx_traces(41,:)'; % [num_frames x 1]
+
+X_reward_by_trial = ctxstr.core.parse_by_trial(X_reward, t, trials, st_trial_inds);
+cont_X_reward = cell2mat(X_reward_by_trial);
+A = cont_X_reward'; % [num_frames x num_regressors]
+
+theta = (A'*A)\A'*y;
 
 %% Visualization #1: Sanity check plot of behavior + example neurons (WIP)
 
@@ -18,6 +59,7 @@ sp = @(m,n,p) subtightplot(m, n, p, [0.01 0.05], 0.04, 0.04); % Gap, Margin-X, M
 
 trials_to_show = st_trial_inds;
 ctx_inds_to_show = [41 15 21];
+% ctx_inds_to_show = [7 17 18];
 str_inds_to_show = [55 32 66];
 
 num_ctx_to_show = length(ctx_inds_to_show);
@@ -72,9 +114,11 @@ for i = 1:num_ctx_to_show
     ctx_trace = ctx.traces(ctx_idx,:);
     plot(ctx.t, ctx_trace, 'k.-');
     hold on;
+    plot(t, reward_active, 'b');
+%     plot(t, mo_indicator, 'r');
     plot_vertical_lines([trials.us_time], y_lims, 'b:');
-    plot(ctx.t(reward_regressor), ctx_trace(reward_regressor), 'bo');
-    plot(ctx.t(motion_onset_regressor), ctx_trace(motion_onset_regressor), 'ro');
+    plot(ctx.t(reward_frames), ctx_trace(reward_frames), 'bo');
+    plot(ctx.t(mo_frames), ctx_trace(mo_frames), 'ro');
     hold off;
     ylim(y_lims);
     ylabel(sprintf('Ctx cell #=%d', ctx_idx));
@@ -87,9 +131,11 @@ for j = 1:num_str_to_show
     str_trace = str.traces(str_idx,:);
     plot(str.t, str_trace, 'm.-');
     hold on;
+    plot(t, reward_active, 'b');
+%     plot(t, mo_indicator, 'r');
     plot_vertical_lines([trials.us_time], y_lims, 'b:');
-    plot(str.t(reward_regressor), str_trace(reward_regressor), 'bo');
-    plot(str.t(motion_onset_regressor), str_trace(motion_onset_regressor), 'ro');
+    plot(str.t(reward_frames), str_trace(reward_frames), 'bo');
+    plot(str.t(mo_frames), str_trace(mo_frames), 'ro');
     hold off;
     ylim(y_lims);
     ylabel(sprintf('Str cell #=%d', str_idx));
