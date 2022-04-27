@@ -15,7 +15,7 @@ sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, [0.04 0.01]); % Gap, Marg
 color1 = [0 0.447 0.741];
 color2 = [0.85 0.325 0.098];
 get_ylabel = @(i,j,c) sprintf('Str = %d\nStr = %d\n{\\it r} = %.4f',...
-            str_info.ind2rec(i), str_info.ind2rec(j), c);
+            str_traces.info.ind2rec(i), str_traces.info.ind2rec(j), c);
         
 num_rows_per_page = 8;
 row_chunks = make_frame_chunks(size(corrlist,1), num_rows_per_page);
@@ -30,16 +30,16 @@ for p = 1:num_pages
         row = rows(r);
         
         str1_idx = corrlist(row,1);
-        traces1 = ctxstr.core.get_traces_for_cell(str1_idx, resampled_str_traces);
+        traces1 = ctxstr.core.get_traces_for_cell(str1_idx, str_traces.trial);
         
         str2_idx = corrlist(row,2);
-        traces2 = ctxstr.core.get_traces_for_cell(str2_idx, resampled_str_traces);
+        traces2 = ctxstr.core.get_traces_for_cell(str2_idx, str_traces.trial);
         
         corr_val = corrlist(row,3);
         
         sp(num_rows_per_page, 1, r);
-        ctxstr.vis.draw_traces(trials_for_corr, trials,...
-            common_time, traces1, traces2,...
+        ctxstr.vis.draw_traces(st_trial_inds, trials,...
+            time.trial, traces1, traces2,...
             color1, color2);
         ylabel(get_ylabel(str1_idx, str2_idx, corr_val),...
                'Rotation', 0, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'right');

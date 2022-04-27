@@ -4,6 +4,8 @@ corrlist = sortrows(corr_to_corrlist(C_ctxstr), 3, 'descend');
 
 %% Best match for each CTX cell
 
+num_ctx_cells = size(ctx_traces_st,1);
+
 corrlist = zeros(num_ctx_cells, 3);
 for i = 1:num_ctx_cells
     corr_vals = C_ctxstr(i,:);
@@ -13,6 +15,8 @@ end
 clear corr_vals sorted_vals sort_ind;
 
 %% Best match for each STR cell
+
+num_str_cells = size(str_traces_st,1);
 
 corrlist = zeros(num_str_cells, 3);
 for j = 1:num_str_cells
@@ -35,7 +39,7 @@ sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, [0.04 0.01]); % Gap, Marg
 color1 = 'k';
 color2 = 'm';
 get_ylabel = @(i,j,c) sprintf('Ctx = %d\nStr = %d\n{\\it r} = %.4f',...
-            ctx_info.ind2rec(i), str_info.ind2rec(j), c); % Report cell #'s as in the rec file
+            ctx_traces.info.ind2rec(i), str_traces.info.ind2rec(j), c); % Report cell #'s as in the rec file
 
 num_rows_per_page = 8;
 row_chunks = make_frame_chunks(size(corrlist,1), num_rows_per_page);
@@ -50,16 +54,16 @@ for p = 1:num_pages
         row = rows(r);
         
         ctx_idx = corrlist(row,1);
-        traces1 = ctxstr.core.get_traces_for_cell(ctx_idx, resampled_ctx_traces);
+        traces1 = ctxstr.core.get_traces_for_cell(ctx_idx, ctx_traces.trial);
         
         str_idx = corrlist(row,2);
-        traces2 = ctxstr.core.get_traces_for_cell(str_idx, resampled_str_traces);
+        traces2 = ctxstr.core.get_traces_for_cell(str_idx, str_traces.trial);
         
         corr_val = corrlist(row,3);
         
         sp(num_rows_per_page, 1, r);
-        ctxstr.vis.draw_traces(trials_for_corr, trials,...
-            common_time, traces1, traces2,...
+        ctxstr.vis.draw_traces(st_trial_inds, trials,...
+            time.trial, traces1, traces2,...
             color1, color2);
         ylabel(get_ylabel(ctx_idx, str_idx, corr_val),...
                'Rotation', 0, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'right');
