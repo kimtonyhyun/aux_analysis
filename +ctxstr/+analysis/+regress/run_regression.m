@@ -30,7 +30,7 @@ clf;
 h_axes(1) = sp(num_rows,1,1);
 yyaxis left;
 hold on;
-for k = 1:num_all_trials
+for k = 1:length(trials)
     vel = trials(k).velocity;
     if ismember(k, st_trial_inds)
         plot(vel(:,1), vel(:,2), '-');
@@ -44,7 +44,7 @@ ylabel('Velocity (cm/s)');
 yyaxis right;
 y_lims = [0 session.behavior.position.us_threshold];
 hold on;
-for k = 1:num_all_trials
+for k = 1:length(trials)
     trial = trials(k);
     
     if ismember(k, st_trial_inds)
