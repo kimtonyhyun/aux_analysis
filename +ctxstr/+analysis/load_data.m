@@ -80,18 +80,8 @@ motion_onset_regressor = ctxstr.core.assign_events_to_frames(selected_motion_ons
 
 %% Parse data into trials, and compute correlations
 
-ctx_traces_by_trial = cell(1, num_all_trials);
-str_traces_by_trial = cell(1, num_all_trials);
-common_time = cell(1, num_all_trials);
-
-for k = st_trial_inds
-    trial = trials(k);
-    trial_time = [trial.start_time trial.us_time];
-    
-    [ctx_traces_by_trial{k}, common_time{k}, frame_inds] = ...
-        ctxstr.core.get_traces_by_time(ctx.traces, ctx.t, trial_time);
-    str_traces_by_trial{k} = str.traces(:,frame_inds);
-end
+[ctx_traces_by_trial, common_time] = ctxstr.core.parse_by_trial(ctx.traces, ctx.t, trials, st_trial_inds);
+str_traces_by_trial = ctxstr.core.parse_by_trial(str.traces, str.t, trials, st_trial_inds);
 
 [C_ctx, C_str, C_ctxstr] = ctxstr.analysis.corr.compute_correlations(...
     ctx_traces_by_trial, str_traces_by_trial);
