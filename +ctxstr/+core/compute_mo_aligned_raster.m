@@ -1,4 +1,4 @@
-function [R_mo, t_mo, info] = compute_mo_aligned_raster(cell_idx, trials_to_use, trials, traces_cont, time_cont)
+function [R_mo, t_mo, info] = compute_mo_aligned_raster(trials_to_use, trials, trace_cont, time_cont)
 % Compute cell activity raster with respect to motion onset (MO). Note that
 % some trials may _not_ have an identified motion onset time, whereas other
 % trials may have multiple identified motion onsets.
@@ -24,9 +24,8 @@ for k = 1:num_all_trials
         if ~isempty(trial.motion.onsets)
             mo_time = trial.motion.onsets(1); % FIXME: Handle multiple MOs in trial
 
-            [traces_k, times_k] = ctxstr.core.get_traces_by_time(...
-                traces_cont, time_cont, [trial.start_time, trial.us_time+post_mo_padding]);
-            traces{k} = traces_k(cell_idx,:);
+            [traces{k}, times_k] = ctxstr.core.get_traces_by_time(...
+                trace_cont, time_cont, [trial.start_time, trial.us_time+post_mo_padding]);
             trial_times{k} = times_k - mo_time; % Time relative to MO
 
             if trial_times{k}(1) < t_mo_lims(1)

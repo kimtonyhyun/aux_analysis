@@ -1,4 +1,4 @@
-function show_aligned_raster(cell_idx, trials_to_show, trials, traces_cont, time_cont)
+function show_aligned_raster(trials_to_show, trials, trace_cont, time_cont)
 
 % Defaults
 font_size = 18;
@@ -9,8 +9,8 @@ resp_ind_width = 0.25; % Size, in seconds, of the response indicator
 % Custom "subplot" command that leaves less unusued space between panels
 sp = @(m,n,p) subtightplot(m, n, p, 0.05, 0.05, 0.05); % Gap, Margin-X, Margin-Y
 
-[R_us, t_us, info_us] = ctxstr.core.compute_us_aligned_raster(cell_idx, trials_to_show, trials, traces_cont, time_cont);
-[R_mo, t_mo, info_mo] = ctxstr.core.compute_mo_aligned_raster(cell_idx, trials_to_show, trials, traces_cont, time_cont);
+[R_us, t_us, info_us] = ctxstr.core.compute_us_aligned_raster(trials_to_show, trials, trace_cont, time_cont);
+[R_mo, t_mo, info_mo] = ctxstr.core.compute_mo_aligned_raster(trials_to_show, trials, trace_cont, time_cont);
 
 % US-aligned raster
 %------------------------------------------------------------
