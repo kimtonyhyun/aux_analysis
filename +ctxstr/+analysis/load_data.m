@@ -41,15 +41,30 @@ num_str_cells = size(str.traces, 1);
 %     vid = VideoReader(vid_filename);
 % end
 
-%% Omit trials for grooming, etc.
+%% Omit trials for grooming, etc., and filter out NaN's
 
 omitted_trials = [60 207]; % e.g. grooming trials
-
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
-fprintf('Found %d stereotyped trials out of %d imaged trials total\n',...
+
+% Filter for NaN values, arising from CASCADE
+for k = st_trial_inds
+    trial = trials(k);
+    trial_time = [trial.start_time trial.us_time];
+    
+    [ctx_traces_k, ~, frame_inds] = ctxstr.core.get_traces_by_time(...
+        ctx.traces, ctx.t, trial_time);
+    str_traces_k = str.traces(:,frame_inds);
+    
+    if any(isnan(ctx_traces_k(:))) || any(isnan(str_traces_k(:)))
+        st_trial_inds = setdiff(st_trial_inds, k);
+        fprintf('Omitted Trial %d due to NaNs\n', k);
+    end
+end
+
+fprintf('Found %d usable stereotyped trials out of %d imaged trials total\n',...
     length(st_trial_inds), num_imaged_trials);
 
-%% Generate behavioral regressors
+%% Generate behavioral regressors (WIP)
 
 selected_reward_times = [];
 selected_motion_onset_times = [];
@@ -63,7 +78,7 @@ end
 reward_regressor = ctxstr.core.assign_events_to_frames(selected_reward_times, ctx.t);
 motion_onset_regressor = ctxstr.core.assign_events_to_frames(selected_motion_onset_times, ctx.t);
 
-%% Parse data into trials, filter out NaN's, and compute correlations
+%% Parse data into trials, and compute correlations
 
 ctx_traces_by_trial = cell(1, num_all_trials);
 str_traces_by_trial = cell(1, num_all_trials);
@@ -73,18 +88,9 @@ for k = st_trial_inds
     trial = trials(k);
     trial_time = [trial.start_time trial.us_time];
     
-    [ctx_traces_k, ctx_times_k, frame_inds] = ctxstr.core.get_traces_by_time(ctx, trial_time);
-    str_traces_k = str.traces(:,frame_inds);
-    
-    if any(isnan(ctx_traces_k(:))) || any(isnan(str_traces_k(:)))
-        st_trial_inds = setdiff(st_trial_inds, k);
-        fprintf('Omit Trial %d due to NaNs (arising from CASCADE)\n', k);
-    else
-        common_time{k} = ctx_times_k;
-        
-        ctx_traces_by_trial{k} = ctx_traces_k;
-        str_traces_by_trial{k} = str_traces_k;
-    end
+    [ctx_traces_by_trial{k}, common_time{k}, frame_inds] = ...
+        ctxstr.core.get_traces_by_time(ctx.traces, ctx.t, trial_time);
+    str_traces_by_trial{k} = str.traces(:,frame_inds);
 end
 
 [C_ctx, C_str, C_ctxstr] = ctxstr.analysis.corr.compute_correlations(...
@@ -157,8 +163,8 @@ end
 sp = @(m,n,p) subtightplot(m, n, p, [0.01 0.05], 0.04, 0.04); % Gap, Margin-X, Margin-Y
 
 trials_to_show = st_trial_inds;
-ctx_inds_to_show = [11 15 18];
-str_inds_to_show = [12 22 28];
+ctx_inds_to_show = [41 15 21];
+str_inds_to_show = [55 32 66];
 
 num_ctx_to_show = length(ctx_inds_to_show);
 num_str_to_show = length(str_inds_to_show);
