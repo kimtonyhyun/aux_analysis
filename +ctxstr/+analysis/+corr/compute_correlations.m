@@ -1,6 +1,6 @@
 % Compute Pearson correlations over stereotypical trials
-ctx_traces_st = ctxstr.core.concatenate_trials(ctx_traces.trial, st_trial_inds); % [cells x time]
-str_traces_st = ctxstr.core.concatenate_trials(str_traces.trial, st_trial_inds);
+ctx_traces_st = ctxstr.core.concatenate_trials(ctx_traces_by_trial, st_trial_inds); % [cells x time]
+str_traces_st = ctxstr.core.concatenate_trials(str_traces_by_trial, st_trial_inds);
 
 C_ctx = corr(ctx_traces_st'); % corr works column-wise
 C_str = corr(str_traces_st');
