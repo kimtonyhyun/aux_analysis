@@ -1,4 +1,7 @@
-function show_trials(trials_to_show, session, trials, time_cont, ctx_traces_cont, str_traces_cont, varargin)
+function show_trials(trials_to_show, session, trials, t, ctx_traces, str_traces, varargin)
+% Note: This function uses continuous 't' and '*_traces', rather than
+% the parsed-by-trial variants, in order to add temporal padding beyond the
+% start and end of each trial.
 
 % Defaults
 dataset_name = '';
@@ -21,8 +24,8 @@ end
 
 num_trials_to_show = length(trials_to_show);
 
-num_ctx_cells = size(ctx_traces_cont,1);
-num_str_cells = size(str_traces_cont,1);
+num_ctx_cells = size(ctx_traces,1);
+num_str_cells = size(str_traces,1);
 
 sp = @(m,n,p) subtightplot(m, n, p, 0.01, [0.04 0.025], 0.02); % Gap, Margin-X, Margin-Y
 
@@ -31,10 +34,10 @@ v_lims = [-5 max(session.behavior.velocity(:,2))];
 
 % If not externally provided, calculate appropriate ylim for mean pop. activity
 if isempty(ctx_max)
-    ctx_max = max(sum(ctx_traces_cont, 1));
+    ctx_max = max(sum(ctx_traces, 1));
 end
 if isempty(str_max)
-    str_max = max(sum(str_traces_cont, 1));
+    str_max = max(sum(str_traces, 1));
 end
 ctx_a_lims = [0 1.1*ctx_max];
 str_a_lims = [0 1.1*str_max];
@@ -49,11 +52,11 @@ for k = 1:num_trials_to_show
     
     t_lims = [trial.start_time-padding trial.us_time+padding];
     
-    [ctx_traces, trial_time] = ctxstr.core.get_traces_by_time(ctx_traces_cont, time_cont, t_lims);
-    pop_ctx_trace = sum(ctx_traces, 1);
+    [ctx_traces_k, trial_time] = ctxstr.core.get_traces_by_time(ctx_traces, t, t_lims);
+    pop_ctx_trace = sum(ctx_traces_k, 1);
        
-    str_traces = ctxstr.core.get_traces_by_time(str_traces_cont, time_cont, t_lims);
-    pop_str_trace = sum(str_traces, 1);
+    str_traces_k = ctxstr.core.get_traces_by_time(str_traces, t, t_lims);
+    pop_str_trace = sum(str_traces_k, 1);
 
     % Plots: 1) Velocity and position
     %------------------------------------------------------------
@@ -122,7 +125,7 @@ for k = 1:num_trials_to_show
     % 3) Ctx raster
     %------------------------------------------------------------
     ax3 = sp(4, num_subplot_columns, 2*num_subplot_columns + k);
-    imagesc(trial_time, 1:num_ctx_cells, ctx_traces);
+    imagesc(trial_time, 1:num_ctx_cells, ctx_traces_k);
     hold on;
     plot_vertical_lines([trial.start_time, trial.us_time], [1 num_ctx_cells], 'w:');
     plot_vertical_lines(trial.motion.onsets, [1 num_ctx_cells], 'w:');
@@ -139,7 +142,7 @@ for k = 1:num_trials_to_show
     % 4) Str raster
     %------------------------------------------------------------
     ax4 = sp(4, num_subplot_columns, 3*num_subplot_columns+k);
-    imagesc(trial_time, 1:num_str_cells, str_traces); hold on;
+    imagesc(trial_time, 1:num_str_cells, str_traces_k); hold on;
     hold on;
     plot_vertical_lines([trial.start_time, trial.us_time], [1 num_str_cells], 'w:');
     plot_vertical_lines(trial.motion.onsets, [1 num_str_cells], 'w:');

@@ -24,20 +24,20 @@ fps = 15;
 path_to_ctx = 'ctx/union_15hz/dff';
 path_to_str = 'str/union_15hz/dff';
 
-[ctx_traces.cont, ctx_traces.info] = ctxstr.load_cascade_traces(path_to_ctx, fps);
+[ctx_traces, ctx_info] = ctxstr.load_cascade_traces(path_to_ctx, fps);
 
 % All data will be aligned to cortical imaging samples
-time.cont = ctxstr.core.bin_frame_times(session.ctx.frame_times, 2);
+t = ctxstr.core.bin_frame_times(session.ctx.frame_times, 2);
 
-[str_traces_orig, str_traces.info] = ctxstr.load_cascade_traces(path_to_str, fps);
+[str_traces_orig, str_info] = ctxstr.load_cascade_traces(path_to_str, fps);
 str_times_orig = ctxstr.core.bin_frame_times(session.str.frame_times, 3);
 
 % Resample the striatal traces to line up with cortex sampling times
-str_traces.cont = ctxstr.core.resample_traces(str_traces_orig, str_times_orig, time.cont);
+str_traces = ctxstr.core.resample_traces(str_traces_orig, str_times_orig, t);
 
 % Parse data into trials, and compute correlations
-[ctx_traces.trial, time.trial] = ctxstr.core.parse_into_trials(ctx_traces.cont, time.cont, trials);
-str_traces.trial = ctxstr.core.parse_into_trials(str_traces.cont, time.cont, trials);
+[ctx_traces_by_trial, time_by_trial] = ctxstr.core.parse_into_trials(ctx_traces, t, trials);
+str_traces_by_trial = ctxstr.core.parse_into_trials(str_traces, t, trials);
 
 % Load the behavior video, if available
 % vid_filename = get_most_recent_file('.', '*.mp4');
@@ -52,7 +52,7 @@ st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 
 % Filter for NaN values, arising from CASCADE
 for k = st_trial_inds
-    if any(isnan(ctx_traces.trial{k}(:))) || any(isnan(str_traces.trial{k}(:)))
+    if any(isnan(ctx_traces_by_trial{k}(:))) || any(isnan(str_traces_by_trial{k}(:)))
         st_trial_inds = setdiff(st_trial_inds, k);
         fprintf('Omitted Trial %d due to NaNs\n', k);
     end
@@ -65,13 +65,14 @@ fprintf('Found %d usable stereotyped trials out of %d imaged trials total\n',...
 
 save('resampled_data.mat', 'dataset_name', 'session',...
         'trials', 'st_trial_inds', ...
-        'fps', 'time', 'ctx_traces', 'str_traces');
+        't', 'fps', 'ctx_traces', 'ctx_info', 'str_traces', 'str_info',...
+        'ctx_traces_by_trial', 'str_traces_by_trial');
 
 %% Visualization #1: "Trial view"
 
 % Compute appropriate ylims given this set of trials
-ctx_max = ctxstr.core.find_max_population_activity(ctx_traces.trial, st_trial_inds);
-str_max = ctxstr.core.find_max_population_activity(str_traces.trial, st_trial_inds);
+ctx_max = ctxstr.core.find_max_population_activity(ctx_traces_by_trial, st_trial_inds);
+str_max = ctxstr.core.find_max_population_activity(str_traces_by_trial, st_trial_inds);
 
 num_trials_per_page = 8;
 num_trials_to_show = length(st_trial_inds);
@@ -84,7 +85,7 @@ for k = 1:num_pages
     
     clf;
     ctxstr.vis.show_trials(trials_to_show_k, session, trials,...
-        time.cont, ctx_traces.cont, str_traces.cont,...
+        t, ctx_traces, str_traces,...
         'name', dataset_name, 'ctx_max', ctx_max, 'str_max', str_max);
     
 %     if ~isempty(str_info.tdt)
@@ -105,10 +106,10 @@ end
 ctx_dir = '_rasters-ctx';
 % mkdir(ctx_dir);
 
-for k = 1:size(ctx_traces.cont,1)
-    ctxstr.vis.show_aligned_raster(st_trial_inds, trials, ctx_traces.cont(k,:), time.cont);
-    cell_id_in_rec = ctx_traces.info.ind2rec(k);
-    title(sprintf('%s-ctx, cell #=%d (%s)', dataset_name, cell_id_in_rec, ctx_traces.info.rec_name),...
+for k = 1:size(ctx_traces,1)
+    ctxstr.vis.show_aligned_raster(st_trial_inds, trials, ctx_traces(k,:), t);
+    cell_id_in_rec = ctx_info.ind2rec(k);
+    title(sprintf('%s-ctx, cell #=%d (%s)', dataset_name, cell_id_in_rec, ctx_info.rec_name),...
           'Interpreter', 'None');
       
 %     print('-dpng', fullfile(ctx_dir, sprintf('%s-ctx_cell-%03d_raster.png', dataset_name, cell_id_in_rec)));
@@ -120,10 +121,10 @@ end
 str_dir = '_rasters-str';
 % mkdir(str_dir);
 
-for k = 1:size(str_traces.cont,1)
-    ctxstr.vis.show_aligned_raster(st_trial_inds, trials, str_traces.cont(k,:), time.cont);
-    cell_id_in_rec = str_traces.info.ind2rec(k);
-    title(sprintf('%s-str, cell #=%d (%s)', dataset_name, cell_id_in_rec, str_traces.info.rec_name),...
+for k = 1:size(str_traces,1)
+    ctxstr.vis.show_aligned_raster(st_trial_inds, trials, str_traces(k,:), t);
+    cell_id_in_rec = str_info.ind2rec(k);
+    title(sprintf('%s-str, cell #=%d (%s)', dataset_name, cell_id_in_rec, str_info.rec_name),...
           'Interpreter', 'None');
       
 %     print('-dpng', fullfile(str_dir, sprintf('%s-str_cell-%03d_raster.png', dataset_name, cell_id_in_rec)));

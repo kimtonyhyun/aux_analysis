@@ -1,4 +1,4 @@
-function [R_us, t_us, info] = compute_us_aligned_raster(trials_to_use, trials, trace_cont, time_cont)
+function [R_us, t_us, info] = compute_us_aligned_raster(trials_to_use, trials, trace, t)
 % Raster contains all trials from the behavioral session. Thus, the trial
 % index in the raster directly matches trial numbers in the behavioral record.
 
@@ -16,7 +16,7 @@ for k = 1:num_all_trials
         trial = trials(k);
 
         [traces{k}, times_k] = ctxstr.core.get_traces_by_time(...
-            trace_cont, time_cont, [trial.start_time, trial.us_time+post_us_padding]);
+            trace, t, [trial.start_time, trial.us_time+post_us_padding]);
         trial_times{k} = times_k - trial.us_time; % Time relative to US
 
         if trial_times{k}(1) < t_us_lims(1)

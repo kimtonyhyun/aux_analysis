@@ -118,7 +118,7 @@ switch dirname
     otherwise % Assume 2P
         config.num_partitions_x = 1;
         config.num_partitions_y = 1;
-        config.avg_cell_radius = 8;
+        config.avg_cell_radius = 10;
 end
 
 output = extractor(sprintf('%s:/Data/Images', movie_filename), config);

@@ -1,12 +1,11 @@
 %% Regression parameters
 
-t = time.cont;
 num_frames = length(t);
 
 reward_pre_samples = round(1.5 * fps); % frames
 reward_post_samples = round(1.5 * fps);
 
-mo_pre_samples = 15; % mo: motion onset
+motion_pre_samples = 15; % mo: motion onset
 mo_post_samples = 15;
 
 %% Align behavioral events to neural data sampling rate
@@ -21,39 +20,39 @@ for trial_idx = st_trial_inds
 end
 
 reward_frames = ctxstr.core.assign_events_to_frames(selected_reward_times, t);
-mo_frames = ctxstr.core.assign_events_to_frames(selected_mo_times, t);
+motion_frames = ctxstr.core.assign_events_to_frames(selected_mo_times, t);
 
 %% Generate temporally offset regressors
 
-X_reward.cont = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
+X_reward = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
     reward_frames, reward_pre_samples, reward_post_samples); % [regressors x num_frames]
-X_reward.trial = ctxstr.core.parse_into_trials(X_reward.cont, t, trials);
+X_reward_by_trial = ctxstr.core.parse_into_trials(X_reward, t, trials);
 
-X_mo.cont = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
-    mo_frames, mo_pre_samples, mo_post_samples);
-X_mo.trial = ctxstr.core.parse_into_trials(X_mo.cont, t, trials);
+X_motion = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
+    motion_frames, motion_pre_samples, mo_post_samples);
+X_motion_by_trial = ctxstr.core.parse_into_trials(X_motion, t, trials);
 
 % Indicator variables showing the finite support of each event
-reward_active.cont = sum(X_reward.cont,1) > 0;
-reward_active.trial = ctxstr.core.parse_into_trials(reward_active.cont, t, trials);
+reward_support = sum(X_reward,1) > 0;
+reward_support_by_trial = ctxstr.core.parse_into_trials(reward_support, t, trials);
 
-mo_active.cont = sum(X_mo.cont,1) > 0;
-mo_active.trial = ctxstr.core.parse_into_trials(mo_active.cont, t, trials);
+motion_support = sum(X_motion,1) > 0;
+motion_support_by_trial = ctxstr.core.parse_into_trials(motion_support, t, trials);
 
 %% Correlations between neural activity and the behavioral indicator variables
 
-ctx_traces_st = ctxstr.core.concatenate_trials(ctx_traces.trial, st_trial_inds);
-str_traces_st = ctxstr.core.concatenate_trials(str_traces.trial, st_trial_inds);
+ctx_traces_st = ctxstr.core.concatenate_trials(ctx_traces_by_trial, st_trial_inds);
+str_traces_st = ctxstr.core.concatenate_trials(str_traces_by_trial, st_trial_inds);
 
-reward_active_st = ctxstr.core.concatenate_trials(reward_active.trial, st_trial_inds);
+reward_support_st = ctxstr.core.concatenate_trials(reward_support_by_trial, st_trial_inds);
 
-C_ctx_reward = corr(ctx_traces_st', reward_active_st');
+C_ctx_reward = corr(ctx_traces_st', reward_support_st');
 
 %% Try regression
 
 y = ctx_traces_st(41,:)'; % [num_frames x 1]
 
-X_reward_st = ctxstr.core.concatenate_trials(X_reward.trial, st_trial_inds);
+X_reward_st = ctxstr.core.concatenate_trials(X_reward_by_trial, st_trial_inds);
 A = X_reward_st'; % [num_frames x num_regressors]
 
 theta = (A'*A)\A'*y;
@@ -116,14 +115,14 @@ for i = 1:num_ctx_to_show
     h_axes(1+i) = sp(num_rows, 1, 1+i);
     ctx_idx = ctx_inds_to_show(i);
     
-    ctx_trace = ctx_traces.cont(ctx_idx,:);
+    ctx_trace = ctx_traces(ctx_idx,:);
     plot(t, ctx_trace, 'k.-');
     hold on;
-    plot(t, reward_active.cont, 'b');
+    plot(t, reward_support, 'b');
 %     plot(t, mo_indicator, 'r');
     plot_vertical_lines([trials.us_time], y_lims, 'b:');
     plot(t(reward_frames), ctx_trace(reward_frames), 'bo');
-    plot(t(mo_frames), ctx_trace(mo_frames), 'ro');
+    plot(t(motion_frames), ctx_trace(motion_frames), 'ro');
     hold off;
     ylim(y_lims);
     ylabel(sprintf('Ctx cell #=%d', ctx_idx));
@@ -133,14 +132,14 @@ for j = 1:num_str_to_show
     h_axes(1+num_ctx_to_show+j) = sp(num_rows, 1, 1+num_ctx_to_show+j);
     str_idx = str_inds_to_show(j);
     
-    str_trace = str_traces.cont(str_idx,:);
+    str_trace = str_traces(str_idx,:);
     plot(t, str_trace, 'm.-');
     hold on;
-    plot(t, reward_active.cont, 'b');
+    plot(t, reward_support, 'b');
 %     plot(t, mo_indicator, 'r');
     plot_vertical_lines([trials.us_time], y_lims, 'b:');
     plot(t(reward_frames), str_trace(reward_frames), 'bo');
-    plot(t(mo_frames), str_trace(mo_frames), 'ro');
+    plot(t(motion_frames), str_trace(motion_frames), 'ro');
     hold off;
     ylim(y_lims);
     ylabel(sprintf('Str cell #=%d', str_idx));
