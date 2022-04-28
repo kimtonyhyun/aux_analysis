@@ -5,22 +5,22 @@ num_frames = length(t);
 reward_pre_samples = round(1.5 * fps); % frames
 reward_post_samples = round(1.5 * fps);
 
-motion_pre_samples = 15; % mo: motion onset
-mo_post_samples = 15;
+motion_pre_samples = round(1 * fps); % mo: motion onset
+motion_post_samples = round(4 * fps);
 
 %% Align behavioral events to neural data sampling rate
 
 selected_reward_times = [];
-selected_mo_times = [];
+selected_motion_times = [];
 for trial_idx = st_trial_inds
     trial = trials(trial_idx);
     
     selected_reward_times = [selected_reward_times trial.us_time]; %#ok<*AGROW>
-    selected_mo_times = [selected_mo_times trial.motion.onsets];
+    selected_motion_times = [selected_motion_times trial.motion.onsets];
 end
 
 reward_frames = ctxstr.core.assign_events_to_frames(selected_reward_times, t);
-motion_frames = ctxstr.core.assign_events_to_frames(selected_mo_times, t);
+motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 
 %% Generate temporally offset regressors
 
@@ -29,7 +29,7 @@ X_reward = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
 X_reward_by_trial = ctxstr.core.parse_into_trials(X_reward, t, trials);
 
 X_motion = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
-    motion_frames, motion_pre_samples, mo_post_samples);
+    motion_frames, motion_pre_samples, motion_post_samples);
 X_motion_by_trial = ctxstr.core.parse_into_trials(X_motion, t, trials);
 
 % Indicator variables showing the finite support of each event
@@ -45,26 +45,34 @@ ctx_traces_st = ctxstr.core.concatenate_trials(ctx_traces_by_trial, st_trial_ind
 str_traces_st = ctxstr.core.concatenate_trials(str_traces_by_trial, st_trial_inds);
 
 reward_support_st = ctxstr.core.concatenate_trials(reward_support_by_trial, st_trial_inds);
+motion_support_st = ctxstr.core.concatenate_trials(motion_support_by_trial, st_trial_inds);
 
 C_ctx_reward = corr(ctx_traces_st', reward_support_st');
+C_str_reward = corr(str_traces_st', reward_support_st');
 
 %% Try regression
 
-y = ctx_traces_st(41,:)'; % [num_frames x 1]
+t_st = ctxstr.core.concatenate_trials(time_by_trial, st_trial_inds);
+y = ctx_traces_st(47,:)'; % [num_frames x 1]
 
-X_reward_st = ctxstr.core.concatenate_trials(X_reward_by_trial, st_trial_inds);
-A = X_reward_st'; % [num_frames x num_regressors]
+% X_reward_st = ctxstr.core.concatenate_trials(X_reward_by_trial, st_trial_inds);
+% A = X_reward_st'; % [num_frames x num_regressors]
+
+X_motion_st = ctxstr.core.concatenate_trials(X_motion_by_trial, st_trial_inds);
+A = X_motion_st'; % [num_frames x num_regressors]
 
 theta = (A'*A)\A'*y;
+
+y_fit = A*theta;
 
 %% Visualization #1: Sanity check plot of behavior + example neurons (WIP)
 
 sp = @(m,n,p) subtightplot(m, n, p, [0.01 0.05], 0.04, 0.04); % Gap, Margin-X, Margin-Y
 
 trials_to_show = st_trial_inds;
-ctx_inds_to_show = [41 15 21];
-% ctx_inds_to_show = [7 17 18];
-str_inds_to_show = [55 32 66];
+% ctx_inds_to_show = [41 15 21];
+ctx_inds_to_show = [47 18 72 41 7 15];
+str_inds_to_show = [55 137 67 160 169];
 
 num_ctx_to_show = length(ctx_inds_to_show);
 num_str_to_show = length(str_inds_to_show);
@@ -119,7 +127,7 @@ for i = 1:num_ctx_to_show
     plot(t, ctx_trace, 'k.-');
     hold on;
     plot(t, reward_support, 'b');
-%     plot(t, mo_indicator, 'r');
+    plot(t, motion_support, 'r');
     plot_vertical_lines([trials.us_time], y_lims, 'b:');
     plot(t(reward_frames), ctx_trace(reward_frames), 'bo');
     plot(t(motion_frames), ctx_trace(motion_frames), 'ro');
@@ -136,7 +144,7 @@ for j = 1:num_str_to_show
     plot(t, str_trace, 'm.-');
     hold on;
     plot(t, reward_support, 'b');
-%     plot(t, mo_indicator, 'r');
+    plot(t, motion_support, 'r');
     plot_vertical_lines([trials.us_time], y_lims, 'b:');
     plot(t(reward_frames), str_trace(reward_frames), 'bo');
     plot(t(motion_frames), str_trace(motion_frames), 'ro');
