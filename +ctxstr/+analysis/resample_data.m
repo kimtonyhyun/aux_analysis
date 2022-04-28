@@ -106,7 +106,7 @@ end
 ctx_dir = '_rasters-ctx';
 % mkdir(ctx_dir);
 
-for k = 1:size(ctx_traces,1)
+for k = 1:ctx_info.num_cells
     ctxstr.vis.show_aligned_raster(st_trial_inds, trials, ctx_traces(k,:), t);
     cell_id_in_rec = ctx_info.ind2rec(k);
     title(sprintf('%s-ctx, cell #=%d (%s)', dataset_name, cell_id_in_rec, ctx_info.rec_name),...
@@ -121,7 +121,7 @@ end
 str_dir = '_rasters-str';
 % mkdir(str_dir);
 
-for k = 1:size(str_traces,1)
+for k = 1:str_info.num_cells
     ctxstr.vis.show_aligned_raster(st_trial_inds, trials, str_traces(k,:), t);
     cell_id_in_rec = str_info.ind2rec(k);
     title(sprintf('%s-str, cell #=%d (%s)', dataset_name, cell_id_in_rec, str_info.rec_name),...
