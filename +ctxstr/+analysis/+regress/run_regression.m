@@ -5,7 +5,7 @@ num_frames = length(t);
 reward_pre_samples = round(1.5 * fps); % frames
 reward_post_samples = round(1.5 * fps);
 
-motion_pre_samples = round(1 * fps); % mo: motion onset
+motion_pre_samples = round(1 * fps);
 motion_post_samples = round(4 * fps);
 
 %% Align behavioral events to neural data sampling rate
@@ -15,9 +15,12 @@ selected_motion_times = [];
 for trial_idx = st_trial_inds
     trial = trials(trial_idx);
     
-    selected_reward_times = [selected_reward_times trial.us_time]; %#ok<*AGROW>
+    % For each stereotyped trial, we include the two US'es that define the
+    % start and end of the trial. Duplicate entries are removed below.
+    selected_reward_times = [selected_reward_times trial.start_time trial.us_time]; %#ok<*AGROW>
     selected_motion_times = [selected_motion_times trial.motion.onsets];
 end
+selected_reward_times = unique(selected_reward_times);
 
 reward_frames = ctxstr.core.assign_events_to_frames(selected_reward_times, t);
 motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
@@ -53,7 +56,7 @@ C_str_reward = corr(str_traces_st', reward_support_st');
 %% Try regression
 
 t_st = ctxstr.core.concatenate_trials(time_by_trial, st_trial_inds);
-y = ctx_traces_st(47,:)'; % [num_frames x 1]
+y = ctx_traces_st(72,:)'; % [num_frames x 1]
 
 X_reward_st = ctxstr.core.concatenate_trials(X_reward_by_trial, st_trial_inds);
 X_motion_st = ctxstr.core.concatenate_trials(X_motion_by_trial, st_trial_inds);
@@ -70,7 +73,7 @@ sp = @(m,n,p) subtightplot(m, n, p, [0.01 0.05], 0.04, 0.04); % Gap, Margin-X, M
 
 trials_to_show = st_trial_inds;
 % ctx_inds_to_show = [41 15 21];
-ctx_inds_to_show = [47 18 72 41 7 15];
+ctx_inds_to_show = [41 18 72 41 7 15];
 str_inds_to_show = [55 137 67 160 169];
 
 num_ctx_to_show = length(ctx_inds_to_show);
@@ -126,7 +129,7 @@ for i = 1:num_ctx_to_show
     plot(t, ctx_trace, 'k.-');
     hold on;
     plot(t, reward_support, 'b');
-    plot(t, motion_support, 'r');
+%     plot(t, motion_support, 'r');
     plot_vertical_lines([trials.us_time], y_lims, 'b:');
     plot(t(reward_frames), ctx_trace(reward_frames), 'bo');
     plot(t(motion_frames), ctx_trace(motion_frames), 'ro');
@@ -143,7 +146,7 @@ for j = 1:num_str_to_show
     plot(t, str_trace, 'm.-');
     hold on;
     plot(t, reward_support, 'b');
-    plot(t, motion_support, 'r');
+%     plot(t, motion_support, 'r');
     plot_vertical_lines([trials.us_time], y_lims, 'b:');
     plot(t(reward_frames), str_trace(reward_frames), 'bo');
     plot(t(motion_frames), str_trace(motion_frames), 'ro');
