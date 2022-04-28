@@ -55,11 +55,10 @@ C_str_reward = corr(str_traces_st', reward_support_st');
 t_st = ctxstr.core.concatenate_trials(time_by_trial, st_trial_inds);
 y = ctx_traces_st(47,:)'; % [num_frames x 1]
 
-% X_reward_st = ctxstr.core.concatenate_trials(X_reward_by_trial, st_trial_inds);
-% A = X_reward_st'; % [num_frames x num_regressors]
-
+X_reward_st = ctxstr.core.concatenate_trials(X_reward_by_trial, st_trial_inds);
 X_motion_st = ctxstr.core.concatenate_trials(X_motion_by_trial, st_trial_inds);
-A = X_motion_st'; % [num_frames x num_regressors]
+
+A = cat(1, X_reward_st, X_motion_st)'; % [num_frames x num_regressors]
 
 theta = (A'*A)\A'*y;
 
