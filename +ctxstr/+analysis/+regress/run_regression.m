@@ -82,8 +82,10 @@ title(sprintf('%s: Example motion-correlated neurons', dataset_name));
 
 %% Try regression
 
+ctx_traces_st = ctxstr.core.concatenate_trials(ctx_traces_by_trial, st_trial_inds);
+
 t_st = ctxstr.core.concatenate_trials(time_by_trial, st_trial_inds);
-y = ctx_traces_st(6,:)'; % [num_frames x 1]
+y = ctx_traces_st(32,:)'; % [num_frames x 1]
 
 X_reward_st = ctxstr.core.concatenate_trials(X_reward_by_trial, st_trial_inds);
 X_motion_st = ctxstr.core.concatenate_trials(X_motion_by_trial, st_trial_inds);
@@ -93,4 +95,3 @@ A = cat(1, X_reward_st, X_motion_st)'; % [num_frames x num_regressors]
 theta = (A'*A)\A'*y;
 
 y_fit = A*theta;
-
