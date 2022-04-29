@@ -33,30 +33,51 @@ X_motion = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
     motion_frames, motion_pre_samples, motion_post_samples);
 X_motion_by_trial = ctxstr.core.parse_into_trials(X_motion, t, trials);
 
-% Indicator variables showing the finite support of each event
+% Indicator variables showing the finite support of each event. These
+% variables can also be used for computing crude correlations between
+% neural activity and behavior.
 reward_support = sum(X_reward,1) > 0;
 reward_support_by_trial = ctxstr.core.parse_into_trials(reward_support, t, trials);
 
 motion_support = sum(X_motion,1) > 0;
 motion_support_by_trial = ctxstr.core.parse_into_trials(motion_support, t, trials);
 
-%% Visualization #1: Sanity check plot of behavioral regressors + example neurons
+%% Correlations between neural activity and the indicator variables
 
-ctx_inds_to_show = [6 14 29];
-str_inds_to_show = [46 53 76];
+% Note that correlation to motion onset indicator will not be very useful
+% later in training, because the motion onset pre/post windows will cover
+% most of a trial duration.
+[~, corrlist_ctx_reward] = ctxstr.analysis.corr.compute_corr_over_trials(...
+    ctx_traces_by_trial, reward_support_by_trial, st_trial_inds, 'descend');
+[~, corrlist_ctx_motion] = ctxstr.analysis.corr.compute_corr_over_trials(...
+    ctx_traces_by_trial, motion_support_by_trial, st_trial_inds, 'descend');
+
+[~, corrlist_str_reward] = ctxstr.analysis.corr.compute_corr_over_trials(...
+    str_traces_by_trial, reward_support_by_trial, st_trial_inds, 'descend');
+[~, corrlist_str_motion] = ctxstr.analysis.corr.compute_corr_over_trials(...
+    str_traces_by_trial, motion_support_by_trial, st_trial_inds, 'descend');
+
+%% Visualization #1A: Sanity check plot of behavioral regressors + example neurons
+
+ctx_inds_to_show = corrlist_ctx_reward(1:3,1);
+str_inds_to_show = corrlist_str_reward(1:3,1);
 ctxstr.analysis.regress.visualize_regressors(session, trials, st_trial_inds,...
     t, ctx_traces, ctx_inds_to_show, str_traces, str_inds_to_show,...
     reward_frames, motion_frames,...
     'reward_support', reward_support,...
     'motion_support', []);
-title(dataset_name);
+title(sprintf('%s: Example reward-correlated neurons', dataset_name));
 
-%% Correlations between neural activity and the behavioral indicator variables
+%% Visualization #1B
 
-[~, corrlist_ctx_reward] = ctxstr.analysis.corr.compute_corr_over_trials(...
-    ctx_traces_by_trial, reward_support_by_trial, st_trial_inds, 'descend');
-[~, corrlist_str_reward] = ctxstr.analysis.corr.compute_corr_over_trials(...
-    ctx_traces_by_trial, reward_support_by_trial, st_trial_inds, 'descend');
+ctx_inds_to_show = corrlist_ctx_motion(1:3,1);
+str_inds_to_show = corrlist_str_motion(1:3,1);
+ctxstr.analysis.regress.visualize_regressors(session, trials, st_trial_inds,...
+    t, ctx_traces, ctx_inds_to_show, str_traces, str_inds_to_show,...
+    reward_frames, motion_frames,...
+    'reward_support', [],...
+    'motion_support', motion_support);
+title(sprintf('%s: Example motion-correlated neurons', dataset_name));
 
 %% Try regression
 
