@@ -18,6 +18,7 @@ for k = 1:length(varargin)
     end
 end
 
+num_trials = length(trials);
 num_ctx_to_show = length(ctx_inds_to_show);
 num_str_to_show = length(str_inds_to_show);
 
@@ -71,12 +72,21 @@ set(gca, 'TickLength', [0 0]);
 %------------------------------------------------------------
 y_lims = [-0.15 1.15];
 for i = 1:num_ctx_to_show
-    h_axes(1+i) = sp(num_rows, 1, 1+i);
     ctx_idx = ctx_inds_to_show(i);
-    
     tr = ctx_traces(ctx_idx,:);
-    plot(t, tr, 'k.-');
+    
+    h_axes(1+i) = sp(num_rows, 1, 1+i);
     hold on;
+    for k = 1:num_trials
+        trial = trials(k);
+        t_lims = [trial.start_time trial.us_time];
+        [tr_k, t_k] = ctxstr.core.get_traces_by_time(tr, t, t_lims);
+        if ismember(k, st_trial_inds)
+            plot(t_k, tr_k, 'k.-');
+        else
+            plot(t_k, tr_k, 'k:');
+        end
+    end
     if ~isempty(reward_support)
         plot(t, reward_support, 'b');
     end
@@ -91,15 +101,24 @@ for i = 1:num_ctx_to_show
     ylabel(sprintf('Ctx cell #=%d', ctx_idx));
 end
 
-% Then the same for striatal traces.
+% Then the same for striatal traces. TODO: Factor out common code.
 %------------------------------------------------------------
 for j = 1:num_str_to_show
-    h_axes(1+num_ctx_to_show+j) = sp(num_rows, 1, 1+num_ctx_to_show+j);
     str_idx = str_inds_to_show(j);
+    tr = str_traces(str_idx,:);
     
-    str_trace = str_traces(str_idx,:);
-    plot(t, str_trace, 'm.-');
+    h_axes(1+num_ctx_to_show+j) = sp(num_rows, 1, 1+num_ctx_to_show+j);
     hold on;
+    for k = 1:num_trials
+        trial = trials(k);
+        t_lims = [trial.start_time trial.us_time];
+        [tr_k, t_k] = ctxstr.core.get_traces_by_time(tr, t, t_lims);
+        if ismember(k, st_trial_inds)
+            plot(t_k, tr_k, 'm.-');
+        else
+            plot(t_k, tr_k, 'm:');
+        end
+    end
     if ~isempty(reward_support)
         plot(t, reward_support, 'b');
     end
@@ -107,8 +126,8 @@ for j = 1:num_str_to_show
         plot(t, motion_support, 'r');
     end
     plot_vertical_lines([trials.us_time], y_lims, 'b:');
-    plot(t(reward_frames), str_trace(reward_frames), 'bo');
-    plot(t(motion_frames), str_trace(motion_frames), 'ro');
+    plot(t(reward_frames), tr(reward_frames), 'bo');
+    plot(t(motion_frames), tr(motion_frames), 'ro');
     hold off;
     ylim(y_lims);
     ylabel(sprintf('Str cell #=%d', str_idx));

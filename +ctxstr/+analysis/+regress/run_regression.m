@@ -46,7 +46,8 @@ motion_support_by_trial = ctxstr.core.parse_into_trials(motion_support, t, trial
 
 % Note that correlation to motion onset indicator will not be very useful
 % later in training, because the motion onset pre/post windows will cover
-% most of a trial duration.
+% most of a trial duration. For this purpose, may be more useful to use
+% short pre/post windows for motion onset.
 [~, corrlist_ctx_reward] = ctxstr.analysis.corr.compute_corr_over_trials(...
     ctx_traces_by_trial, reward_support_by_trial, st_trial_inds, 'descend');
 [~, corrlist_ctx_motion] = ctxstr.analysis.corr.compute_corr_over_trials(...
