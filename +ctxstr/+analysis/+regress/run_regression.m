@@ -23,24 +23,26 @@ selected_reward_times = unique(selected_reward_times);
 reward_frames = ctxstr.core.assign_events_to_frames(selected_reward_times, t);
 motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 
-%% Generate temporally offset regressors
+%% Fit neural activity from behavioral signals
 
-X_reward = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
-    reward_frames, reward_pre_samples, reward_post_samples); % [regressors x num_frames]
-X_reward_by_trial = ctxstr.core.parse_into_trials(X_reward, t, trials);
+% Used for displaying regression results
+t_st = ctxstr.core.concatenate_trials(time_by_trial, st_trial_inds);
+ctx_traces_st = ctxstr.core.concatenate_trials(ctx_traces_by_trial, st_trial_inds);
+str_traces_st = ctxstr.core.concatenate_trials(str_traces_by_trial, st_trial_inds);
 
-X_motion = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
+% Perform regressions
+[ctx_traces_fit_st, ctx_fit_info] = ctxstr.analysis.regress.regress_from_behavior(...
+    ctx_traces_by_trial, t, trials, st_trial_inds,...
+    reward_frames, reward_pre_samples, reward_post_samples,...
     motion_frames, motion_pre_samples, motion_post_samples);
-X_motion_by_trial = ctxstr.core.parse_into_trials(X_motion, t, trials);
 
-% Indicator variables showing the finite support of each event. These
-% variables can also be used for computing crude correlations between
-% neural activity and behavior.
-reward_support = sum(X_reward,1) > 0;
-reward_support_by_trial = ctxstr.core.parse_into_trials(reward_support, t, trials);
+[str_traces_fit_st, str_fit_info] = ctxstr.analysis.regress.regress_from_behavior(...
+    str_traces_by_trial, t, trials, st_trial_inds,...
+    reward_frames, reward_pre_samples, reward_post_samples,...
+    motion_frames, motion_pre_samples, motion_post_samples);
 
-motion_support = sum(X_motion,1) > 0;
-motion_support_by_trial = ctxstr.core.parse_into_trials(motion_support, t, trials);
+reward_support_by_trial = ctxstr.core.parse_into_trials(ctx_fit_info.reward.support, t, trials);
+motion_support_by_trial = ctxstr.core.parse_into_trials(ctx_fit_info.motion.support, t, trials);
 
 %% Correlations between neural activity and the indicator variables
 
@@ -65,8 +67,7 @@ str_inds_to_show = corrlist_str_reward(1:3,1);
 ctxstr.analysis.regress.visualize_regressors(session, trials, st_trial_inds,...
     t, ctx_traces, ctx_inds_to_show, str_traces, str_inds_to_show,...
     reward_frames, motion_frames,...
-    'reward_support', reward_support,...
-    'motion_support', []);
+    'reward_support_by_trial', reward_support_by_trial);
 title(sprintf('%s: Example reward-correlated neurons', dataset_name));
 
 %% Visualization #1B
@@ -76,22 +77,49 @@ str_inds_to_show = corrlist_str_motion(1:3,1);
 ctxstr.analysis.regress.visualize_regressors(session, trials, st_trial_inds,...
     t, ctx_traces, ctx_inds_to_show, str_traces, str_inds_to_show,...
     reward_frames, motion_frames,...
-    'reward_support', [],...
-    'motion_support', motion_support);
+    'motion_support_by_trial', motion_support_by_trial);
 title(sprintf('%s: Example motion-correlated neurons', dataset_name));
 
-%% Try regression
+%% Visualization 2
 
-ctx_traces_st = ctxstr.core.concatenate_trials(ctx_traces_by_trial, st_trial_inds);
+for k = 1:ctx_info.num_cells
+    subplot(1,7,1:5);
+    plot(t_st, ctx_traces_st(k,:), 'k-');
+    hold on;
+    plot(t_st, ctx_traces_fit_st(k,:), 'r');
+    hold off;
+    title(sprintf('%s: Ctx cell #=r%d', dataset_name, ctx_info.ind2rec(k)));
+    zoom xon;
+    
+    subplot(1,7,6);
+    plot(ctx_fit_info.reward.t, ctx_fit_info.reward.kernel(:,k), 'b');
+    axis tight;
+    ylim([-0.1 1]);
+    
+    subplot(1,7,7);
+    plot(ctx_fit_info.motion.t, ctx_fit_info.motion.kernel(:,k), 'r');
+    axis tight;
+    ylim([-0.1 1]);
+    pause;
+end
 
-t_st = ctxstr.core.concatenate_trials(time_by_trial, st_trial_inds);
-y = ctx_traces_st(32,:)'; % [num_frames x 1]
+%%
 
-X_reward_st = ctxstr.core.concatenate_trials(X_reward_by_trial, st_trial_inds);
-X_motion_st = ctxstr.core.concatenate_trials(X_motion_by_trial, st_trial_inds);
-
-A = cat(1, X_reward_st, X_motion_st)'; % [num_frames x num_regressors]
-
-theta = (A'*A)\A'*y;
-
-y_fit = A*theta;
+for k = 1:str_info.num_cells
+    subplot(1,7,1:5);
+    plot(t_st, str_traces_st(k,:), 'k-');
+    hold on;
+    plot(t_st, str_traces_fit_st(k,:), 'r');
+    hold off;
+    title(sprintf('%s: Str cell #=r%d', dataset_name, str_info.ind2rec(k)));
+    zoom xon;
+    
+    subplot(1,7,6);
+    plot(t_reward, theta_str(reward_inds, k), 'b');
+    ylim([-0.1 1]);
+    
+    subplot(1,7,7);
+    plot(t_motion, theta_str(motion_ind_start:end, k), 'r');
+    ylim([-0.1 1]);
+    pause;
+end

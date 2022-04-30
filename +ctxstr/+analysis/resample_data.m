@@ -47,7 +47,7 @@ str_traces_by_trial = ctxstr.core.parse_into_trials(str_traces, t, trials);
 
 %% Omit trials for grooming, etc., and filter out NaN's
 
-omitted_trials = [28]; % e.g. grooming trials
+omitted_trials = [12 35]; % e.g. grooming trials
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 
 % Filter for NaN values, arising from CASCADE

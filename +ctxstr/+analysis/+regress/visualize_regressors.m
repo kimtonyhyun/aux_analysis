@@ -5,15 +5,15 @@ function visualize_regressors(session, trials, st_trial_inds,...
 sp = @(m,n,p) subtightplot(m, n, p, [0.01 0.05], 0.04, 0.04); % Gap, Margin-X, Margin-Y
 
 % Defaults
-reward_support = [];
-motion_support = [];
+reward_support_by_trial = [];
+motion_support_by_trial = [];
 for k = 1:length(varargin)
     if ischar(varargin{k})
         switch lower(varargin{k})
-            case 'reward_support'
-                reward_support = varargin{k+1};
-            case 'motion_support'
-                motion_support = varargin{k+1};
+            case 'reward_support_by_trial'
+                reward_support_by_trial = varargin{k+1};
+            case 'motion_support_by_trial'
+                motion_support_by_trial = varargin{k+1};
         end
     end
 end
@@ -82,16 +82,17 @@ for i = 1:num_ctx_to_show
         t_lims = [trial.start_time trial.us_time];
         [tr_k, t_k] = ctxstr.core.get_traces_by_time(tr, t, t_lims);
         if ismember(k, st_trial_inds)
-            plot(t_k, tr_k, 'k.-');
+            line_style = '-'; % Solid
         else
-            plot(t_k, tr_k, 'k:');
+            line_style = ':'; % Faint dots
         end
-    end
-    if ~isempty(reward_support)
-        plot(t, reward_support, 'b');
-    end
-    if ~isempty(motion_support)
-        plot(t, motion_support, 'r');
+        plot(t_k, tr_k, line_style, 'Color', 'k');
+        if ~isempty(reward_support_by_trial)
+            plot(t_k, reward_support_by_trial{k}, line_style, 'Color', 'b');
+        end
+        if ~isempty(motion_support_by_trial)
+            plot(t_k, motion_support_by_trial{k}, line_style, 'Color', 'r');
+        end
     end
     plot_vertical_lines([trials.us_time], y_lims, 'b:');
     plot(t(reward_frames), tr(reward_frames), 'bo');
@@ -114,16 +115,17 @@ for j = 1:num_str_to_show
         t_lims = [trial.start_time trial.us_time];
         [tr_k, t_k] = ctxstr.core.get_traces_by_time(tr, t, t_lims);
         if ismember(k, st_trial_inds)
-            plot(t_k, tr_k, 'm.-');
+            line_style = '-'; % Solid
         else
-            plot(t_k, tr_k, 'm:');
+            line_style = ':'; % Faint dots
         end
-    end
-    if ~isempty(reward_support)
-        plot(t, reward_support, 'b');
-    end
-    if ~isempty(motion_support)
-        plot(t, motion_support, 'r');
+        plot(t_k, tr_k, line_style, 'Color', 'm');
+        if ~isempty(reward_support_by_trial)
+            plot(t_k, reward_support_by_trial{k}, line_style, 'Color', 'b');
+        end
+        if ~isempty(motion_support_by_trial)
+            plot(t_k, motion_support_by_trial{k}, line_style, 'Color', 'r');
+        end
     end
     plot_vertical_lines([trials.us_time], y_lims, 'b:');
     plot(t(reward_frames), tr(reward_frames), 'bo');
