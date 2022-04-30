@@ -84,7 +84,7 @@ title(sprintf('%s: Example motion-correlated neurons', dataset_name));
 
 for k = 1:ctx_info.num_cells
     subplot(1,7,1:5);
-    plot(t_st, ctx_traces_st(k,:), 'k-');
+    plot(t_st, ctx_traces_st(k,:), 'k');
     hold on;
     plot(t_st, ctx_traces_fit_st(k,:), 'r');
     hold off;
@@ -107,7 +107,7 @@ end
 
 for k = 1:str_info.num_cells
     subplot(1,7,1:5);
-    plot(t_st, str_traces_st(k,:), 'k-');
+    plot(t_st, str_traces_st(k,:), 'm');
     hold on;
     plot(t_st, str_traces_fit_st(k,:), 'r');
     hold off;
@@ -115,11 +115,13 @@ for k = 1:str_info.num_cells
     zoom xon;
     
     subplot(1,7,6);
-    plot(t_reward, theta_str(reward_inds, k), 'b');
+    plot(str_fit_info.reward.t, str_fit_info.reward.kernel(:,k), 'b');
+    axis tight;
     ylim([-0.1 1]);
     
     subplot(1,7,7);
-    plot(t_motion, theta_str(motion_ind_start:end, k), 'r');
+    plot(str_fit_info.motion.t, str_fit_info.motion.kernel(:, k), 'r');
+    axis tight;
     ylim([-0.1 1]);
     pause;
 end
