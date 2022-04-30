@@ -1,6 +1,6 @@
 function visualize_regressors(session, trials, st_trial_inds,...
     t, ctx_traces, ctx_inds_to_show, str_traces, str_inds_to_show,...
-    reward_frames, motion_frames, varargin)
+    reward_frames, motion_frames, velocity, varargin)
 
 sp = @(m,n,p) subtightplot(m, n, p, [0.01 0.05], 0.04, 0.04); % Gap, Margin-X, Margin-Y
 
@@ -33,11 +33,13 @@ h_axes(1) = sp(num_rows,1,1);
 yyaxis left;
 hold on;
 for k = 1:length(trials)
-    vel = trials(k).velocity;
+    trial = trials(k);
+    t_lims = [trial.start_time trial.us_time];
+    [vel_k, t_k] = ctxstr.core.get_traces_by_time(velocity, t, t_lims);
     if ismember(k, st_trial_inds)
-        plot(vel(:,1), vel(:,2), '-');
+        plot(t_k, vel_k, '.-');
     else
-        plot(vel(:,1), vel(:,2), ':');
+        plot(t_k, vel_k, ':');
     end
 end
 hold off;
@@ -86,7 +88,7 @@ for i = 1:num_ctx_to_show
         else
             line_style = ':'; % Faint dots
         end
-        plot(t_k, tr_k, line_style, 'Color', 'k');
+        plot(t_k, tr_k, ['.', line_style], 'Color', 'k');
         if ~isempty(reward_support_by_trial)
             plot(t_k, reward_support_by_trial{k}, line_style, 'Color', 'b');
         end
@@ -119,7 +121,7 @@ for j = 1:num_str_to_show
         else
             line_style = ':'; % Faint dots
         end
-        plot(t_k, tr_k, line_style, 'Color', 'm');
+        plot(t_k, tr_k, ['.', line_style], 'Color', 'm');
         if ~isempty(reward_support_by_trial)
             plot(t_k, reward_support_by_trial{k}, line_style, 'Color', 'b');
         end
