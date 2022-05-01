@@ -2,17 +2,13 @@ clear;
 
 load('resampled_data.mat');
 
-% Regression parameters
-reward_pre_samples = round(1.5 * fps); % frames
-reward_post_samples = round(1.5 * fps);
+reward_pre = 1.5; % s
+reward_post = 1.5;
 
-motion_pre_samples = round(1 * fps);
-motion_post_samples = round(4 * fps);
+motion_pre = 1;
+motion_post = 4;
 
-velocity_pre_samples = round(0.5 * fps);
-velocity_post_samples = round(0.5 * fps);
-
-%% Subselect and align behavioral events to neural data sampling rate
+%% Align behavioral regressors to neural data sampling rate
 
 % Reward and motion onset times
 selected_reward_times = [];
@@ -32,6 +28,56 @@ motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 
 % Resample velocity trace to align with neural data
 velocity = interp1(session.behavior.velocity(:,1), session.behavior.velocity(:,2), t);
+velocity = velocity / max(velocity);
+
+%% Low-pass filter velocity trace
+
+cutoff_freq = 1.5;
+[b, a] = butter(2, cutoff_freq/(fps/2));
+v_filt = filtfilt(b,a,velocity);
+accel = (v_filt(2:end)-v_filt(1:end-1))/(1/fps);
+
+figure;
+ax1 = subplot(211);
+plot(t, velocity, '.-');
+hold on;
+plot(t, v_filt', 'r');
+hold off;
+
+ax2 = subplot(212);
+plot(t(1:end-1), accel);
+grid on;
+
+linkaxes([ax1 ax2], 'x');
+zoom xon;
+
+%% Visualization #1: Sanity check plot of behavioral regressors + example neurons
+
+ctx_inds_to_show = [1 2 3];
+str_inds_to_show = [1 2 3];
+ctxstr.analysis.regress.visualize_regressors(trials, st_trial_inds,...
+    t, ctx_traces, ctx_inds_to_show, str_traces, str_inds_to_show,...
+    reward_frames, motion_frames, velocity);
+title(sprintf('%s: Example neurons', dataset_name));
+
+%% Define regressors
+
+clear regressors;
+
+regressors(1).name = 'reward';
+regressors(1).trace = reward_frames;
+regressors(1).pre_samples = round(reward_pre * fps); % frames
+regressors(1).post_samples = round(reward_post * fps);
+
+regressors(2).name = 'motion';
+regressors(2).trace = motion_frames;
+regressors(2).pre_samples = round(motion_pre * fps);
+regressors(2).post_samples = round(motion_post * fps);
+
+regressors(3).name = 'velocity';
+regressors(3).trace = velocity;
+regressors(3).pre_samples = round(0.5 * fps);
+regressors(3).post_samples = round(0.5 * fps);
 
 %% Fit neural activity from behavioral signals
 
@@ -39,58 +85,14 @@ velocity = interp1(session.behavior.velocity(:,1), session.behavior.velocity(:,2
 t_st = ctxstr.core.concatenate_trials(time_by_trial, st_trial_inds);
 ctx_traces_st = ctxstr.core.concatenate_trials(ctx_traces_by_trial, st_trial_inds);
 str_traces_st = ctxstr.core.concatenate_trials(str_traces_by_trial, st_trial_inds);
+num_regressors = length(regressors);
 
 % Perform regressions
 [ctx_traces_fit_st, ctx_fit_info] = ctxstr.analysis.regress.regress_from_behavior(...
-    ctx_traces_by_trial, t, trials, st_trial_inds,...
-    reward_frames, reward_pre_samples, reward_post_samples,...
-    motion_frames, motion_pre_samples, motion_post_samples,...
-    velocity, velocity_pre_samples, velocity_post_samples);
+    ctx_traces_by_trial, t, trials, st_trial_inds, regressors);
 
 [str_traces_fit_st, str_fit_info] = ctxstr.analysis.regress.regress_from_behavior(...
-    str_traces_by_trial, t, trials, st_trial_inds,...
-    reward_frames, reward_pre_samples, reward_post_samples,...
-    motion_frames, motion_pre_samples, motion_post_samples,...
-    velocity, velocity_pre_samples, velocity_post_samples);
-
-reward_support_by_trial = ctxstr.core.parse_into_trials(ctx_fit_info.reward.support, t, trials);
-motion_support_by_trial = ctxstr.core.parse_into_trials(ctx_fit_info.motion.support, t, trials);
-
-%% Correlations between neural activity and the indicator variables
-
-% Note that correlation to motion onset indicator will not be very useful
-% later in training, because the motion onset pre/post windows will cover
-% most of a trial duration. For this purpose, may be more useful to use
-% short pre/post windows for motion onset.
-[~, corrlist_ctx_reward] = ctxstr.analysis.corr.compute_corr_over_trials(...
-    ctx_traces_by_trial, reward_support_by_trial, st_trial_inds, 'descend');
-[~, corrlist_ctx_motion] = ctxstr.analysis.corr.compute_corr_over_trials(...
-    ctx_traces_by_trial, motion_support_by_trial, st_trial_inds, 'descend');
-
-[~, corrlist_str_reward] = ctxstr.analysis.corr.compute_corr_over_trials(...
-    str_traces_by_trial, reward_support_by_trial, st_trial_inds, 'descend');
-[~, corrlist_str_motion] = ctxstr.analysis.corr.compute_corr_over_trials(...
-    str_traces_by_trial, motion_support_by_trial, st_trial_inds, 'descend');
-
-%% Visualization #1A: Sanity check plot of behavioral regressors + example neurons
-
-ctx_inds_to_show = corrlist_ctx_reward(1:3,1);
-str_inds_to_show = corrlist_str_reward(1:3,1);
-ctxstr.analysis.regress.visualize_regressors(session, trials, st_trial_inds,...
-    t, ctx_traces, ctx_inds_to_show, str_traces, str_inds_to_show,...
-    reward_frames, motion_frames, velocity,...
-    'reward_support_by_trial', reward_support_by_trial);
-title(sprintf('%s: Example reward-correlated neurons', dataset_name));
-
-%% Visualization #1B
-
-ctx_inds_to_show = corrlist_ctx_motion(1:3,1);
-str_inds_to_show = corrlist_str_motion(1:3,1);
-ctxstr.analysis.regress.visualize_regressors(session, trials, st_trial_inds,...
-    t, ctx_traces, ctx_inds_to_show, str_traces, str_inds_to_show,...
-    reward_frames, motion_frames, velocity,...
-    'motion_support_by_trial', motion_support_by_trial);
-title(sprintf('%s: Example motion-correlated neurons', dataset_name));
+    str_traces_by_trial, t, trials, st_trial_inds, regressors);
 
 %% Visualization 2
 
@@ -104,19 +106,23 @@ for k = 1:ctx_info.num_cells
     zoom xon;
     
     subplot(1,8,6);
-    plot(ctx_fit_info.reward.t, ctx_fit_info.reward.kernel(k,:), 'b');
+    plot(ctx_fit_info(1).t, ctx_fit_info(1).kernel(k,:), 'b');
+    title(ctx_fit_info(1).name);
     axis tight;
     ylim([-0.1 1]);
     
     subplot(1,8,7);
-    plot(ctx_fit_info.motion.t, ctx_fit_info.motion.kernel(k,:), 'r');
+    plot(ctx_fit_info(2).t, ctx_fit_info(2).kernel(k,:), 'r');
+    title(ctx_fit_info(2).name);
     axis tight;
     ylim([-0.1 1]);
     
     subplot(1,8,8);
-    plot(ctx_fit_info.velocity.t, ctx_fit_info.velocity.kernel(k,:), 'r');
+    plot(ctx_fit_info(3).t, ctx_fit_info(3).kernel(k,:), 'r');
+    title(ctx_fit_info(3).name);
     axis tight;
     ylim([-0.1 1]);
+    
     pause;
 end
 

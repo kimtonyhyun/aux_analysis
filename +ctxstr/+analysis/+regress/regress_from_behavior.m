@@ -1,36 +1,35 @@
-function [traces_fit, fit_info] = regress_from_behavior(traces_by_trial, t, trials, st_trial_inds,...
-    reward_frames, reward_pre_samples, reward_post_samples,...
-    motion_frames, motion_pre_samples, motion_post_samples,...
-    velocity, velocity_pre_samples, velocity_post_samples)
+function [traces_fit, fit_info] = regress_from_behavior(traces_by_trial, t, trials, st_trial_inds, regressors)
+% 'regressors' is a struct array with the following fields:
+%   - regressors(k).name: Name of the regressor, e.g. "reward",;
+%   - regressors(k).trace: Regressor trace, e.g. reward_frames, velocity;
+%   - regressors(k).pre_samples: Num past samples to consider when
+%       computing each output frame;
+%   - regressors(k).post_samples: Num future samples to consider when
+%       computing each output frame;
 
-T = t(2) - t(1); % Deduce frame period from provided time
+num_regressors = length(regressors);
 
-% Generate temporally offset regressors
+% Generate temporally offset versions of each regressor
 %------------------------------------------------------------
-X_reward = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
-    reward_frames, reward_pre_samples, reward_post_samples); % [regressors x num_frames]
-num_reward_regressors = size(X_reward, 1);
-
-X_motion = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
-    motion_frames, motion_pre_samples, motion_post_samples);
-num_motion_regressors = size(X_motion, 1);
-
-X_velocity = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
-    velocity, velocity_pre_samples, velocity_post_samples);
-num_velocity_regressors = size(X_velocity, 1);
+X = cell(num_regressors, 1);
+num_dof_per_regressor = zeros(num_regressors, 1);
+for k = 1:num_regressors
+    r = regressors(k);
+    X{k} = ctxstr.analysis.regress.generate_temporally_offset_regressors(...
+        r.trace, r.pre_samples, r.post_samples);
+    num_dof_per_regressor(k) = size(X{k}, 1);
+end
 
 % Regression will be performed over ST trials. Prepare the design matrix X
 % accordingly.
 %------------------------------------------------------------
-X_reward_by_trial = ctxstr.core.parse_into_trials(X_reward, t, trials);
-X_motion_by_trial = ctxstr.core.parse_into_trials(X_motion, t, trials);
-X_velocity_by_trial = ctxstr.core.parse_into_trials(X_velocity, t, trials);
+X_st = cell(num_regressors, 1);
+for k = 1:num_regressors
+    Xk_by_trial = ctxstr.core.parse_into_trials(X{k}, t, trials);
+    X_st{k} = ctxstr.core.concatenate_trials(Xk_by_trial, st_trial_inds);
+end
 
-X_reward_st = ctxstr.core.concatenate_trials(X_reward_by_trial, st_trial_inds);
-X_motion_st = ctxstr.core.concatenate_trials(X_motion_by_trial, st_trial_inds);
-X_velocity_st = ctxstr.core.concatenate_trials(X_velocity_by_trial, st_trial_inds);
-
-X = cat(1, X_reward_st, X_motion_st, X_velocity_st)'; % [num_frames x num_regressors]
+X = cell2mat(X_st)'; % [num_frames x num_regressors]
 y = ctxstr.core.concatenate_trials(traces_by_trial, st_trial_inds)'; % [num_frames x num_cells]
 
 theta = (X'*X)\X'*y; % [num_regressors x num_cells]
@@ -39,29 +38,24 @@ traces_fit = (X*theta)'; % [num_cells x num_frames]
 
 % Package auxiliary information.
 %------------------------------------------------------------
+T = t(2) - t(1); % Deduce frame period from provided time
 
-k_idx = 1; % For parsing out theta into individual kernels
-fit_info.reward.pre_samples = reward_pre_samples;
-fit_info.reward.post_samples = reward_post_samples;
-fit_info.reward.t = T*(-reward_pre_samples:reward_post_samples);
-fit_info.reward.kernel = theta(k_idx:(k_idx+num_reward_regressors-1),:)'; % kernel(k,:) is the kernel for the k-th cell
-fit_info.reward.num_regressors = num_reward_regressors;
-% Indicator variables showing the finite support of each event. These
-% variables can also be used for computing crude correlations between
-% neural activity and behavior.
-fit_info.reward.support = sum(X_reward,1) > 0;
+fit_info = repmat(struct('name', [],...
+                         'pre_samples', [],...
+                         'post_samples', [],...
+                         't', [],...
+                         'kernel', [],...
+                         'num_dofs', []), num_regressors, 1);
 
-k_idx = num_reward_regressors + 1;
-fit_info.motion.pre_samples = motion_pre_samples;
-fit_info.motion.post_samples = motion_post_samples;
-fit_info.motion.t = T*(-motion_pre_samples:motion_post_samples);
-fit_info.motion.kernel = theta(k_idx:(k_idx+num_motion_regressors-1),:)';
-fit_info.motion.num_regressors = num_motion_regressors;
-fit_info.motion.support = sum(X_motion,1) > 0;
-
-k_idx = num_reward_regressors + num_motion_regressors + 1;
-fit_info.velocity.pre_samples = velocity_pre_samples;
-fit_info.velocity.post_samples = velocity_post_samples;
-fit_info.velocity.t = T*(-velocity_pre_samples:velocity_post_samples);
-fit_info.velocity.kernel = theta(k_idx:(k_idx+num_velocity_regressors-1),:)';
-fit_info.velocity.num_regressors = num_velocity_regressors;
+idx = 1; % To parse theta into individual kernels
+for k = 1:num_regressors
+    r = regressors(k);
+    fit_info(k).name = r.name;
+    fit_info(k).pre_samples = r.pre_samples;
+    fit_info(k).post_samples = r.post_samples;
+    fit_info(k).t = T*(-r.pre_samples:r.post_samples);
+    fit_info(k).num_dofs = num_dof_per_regressor(k);
+    
+    fit_info(k).kernel = theta(idx:idx+num_dof_per_regressor(k)-1,:)'; % [num_cells x pre:post]
+    idx = idx + num_dof_per_regressor(k);
+end
