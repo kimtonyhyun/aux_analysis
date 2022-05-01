@@ -28,28 +28,28 @@ motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 
 % Resample velocity trace to align with neural data
 velocity = interp1(session.behavior.velocity(:,1), session.behavior.velocity(:,2), t);
-velocity = velocity / max(velocity);
+accel = ctxstr.analysis.compute_derivative(t, velocity);
+
+lick_times = session.behavior.lick_times;
+lick_rate = ctxstr.behavior.compute_lick_rate(lick_times, t, 0.25);
+
+% Normalize
+velocity = velocity / max(abs(velocity));
+accel = accel / max(abs(accel));
+lick_rate = lick_rate / max(lick_rate);
 
 %% Low-pass filter velocity trace
 
-cutoff_freq = 1.5;
-[b, a] = butter(2, cutoff_freq/(fps/2));
-v_filt = filtfilt(b,a,velocity);
-accel = (v_filt(2:end)-v_filt(1:end-1))/(1/fps);
+cutoff_freq = 1.5; % Hz
+v_filt = ctxstr.analysis.filter_trace(velocity, cutoff_freq, fps);
+a_filt = ctxstr.analysis.filter_trace(accel, cutoff_freq, fps);
+lr_filt = ctxstr.analysis.filter_trace(lick_rate, cutoff_freq, fps);
 
-figure;
-ax1 = subplot(211);
-plot(t, velocity, '.-');
-hold on;
-plot(t, v_filt', 'r');
-hold off;
-
-ax2 = subplot(212);
-plot(t(1:end-1), accel);
-grid on;
-
-linkaxes([ax1 ax2], 'x');
-zoom xon;
+ctxstr.analysis.regress.visualize_filtered_regressors(trials, st_trial_inds, t,...
+    velocity, v_filt,...
+    accel, a_filt,...
+    lick_times, lick_rate, lr_filt);
+title(sprintf('%s: Temporally-filtered behavioral regressors', dataset_name));
 
 %% Visualization #1: Sanity check plot of behavioral regressors + example neurons
 

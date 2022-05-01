@@ -18,7 +18,7 @@ clf;
 h_axes(1) = sp(num_rows,1,1);
 hold on;
 v_color = [0 0.447 0.741];
-v_lims = [-0.1 1.15];
+v_lims = [-0.15 1.15];
 for k = 1:length(trials)
     trial = trials(k);
     t_lims = [trial.start_time trial.us_time];
