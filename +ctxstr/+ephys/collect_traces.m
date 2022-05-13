@@ -48,6 +48,8 @@ for j = 1:num_files
     if isfile(spike_file)
         sdata = load(spike_file);
         spike_samples{j} = sdata.spike_samples;
+    else
+        cprintf('blue', 'Warning: Did not find spikes file for Recording #%d\n', idx);
     end
 end
 
