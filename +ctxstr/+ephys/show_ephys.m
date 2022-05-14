@@ -1,6 +1,6 @@
 clear;
 
-idx = 46;
+idx = 21;
 
 ephys_filename = sprintf('AD0_%d', idx);
 fprintf('* * * Displaying "%s" * * *\n', ephys_filename);
