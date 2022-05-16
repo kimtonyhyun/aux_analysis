@@ -1,4 +1,4 @@
-function [traces_fit, fit_info] = regress_from_behavior(traces_by_trial, t, trials, st_trial_inds, regressors)
+function [fitted_traces, fit_info] = regress_from_behavior(traces_by_trial, t, trials, st_trial_inds, regressors)
 % 'regressors' is a struct array with the following fields:
 %   - regressors(k).name: Name of the regressor, e.g. "reward",;
 %   - regressors(k).trace: Regressor trace, e.g. reward_frames, velocity;
@@ -34,7 +34,7 @@ y = ctxstr.core.concatenate_trials(traces_by_trial, st_trial_inds)'; % [num_fram
 
 theta = (X'*X)\X'*y; % [num_regressors x num_cells]
 
-traces_fit = (X*theta)'; % [num_cells x num_frames]
+fitted_traces = (X*theta)'; % [num_cells x num_frames]
 
 % Package auxiliary information.
 %------------------------------------------------------------

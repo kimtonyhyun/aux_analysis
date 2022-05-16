@@ -53,8 +53,8 @@ title(sprintf('%s: Temporally-filtered behavioral regressors', dataset_name));
 
 %% Visualization #1: Sanity check plot of behavioral regressors + example neurons
 
-ctx_inds_to_show = [1 2 3];
-str_inds_to_show = [1 2 3];
+ctx_inds_to_show = [18 41 15 21];
+str_inds_to_show = [32 66];
 ctxstr.analysis.regress.visualize_regressors(trials, st_trial_inds,...
     t, ctx_traces, ctx_inds_to_show, str_traces, str_inds_to_show,...
     reward_frames, motion_frames, velocity);
@@ -81,75 +81,34 @@ regressors(3).post_samples = round(0.5 * fps);
 
 %% Fit neural activity from behavioral signals
 
-% Used for displaying regression results later
-t_st = ctxstr.core.concatenate_trials(time_by_trial, st_trial_inds);
-ctx_traces_st = ctxstr.core.concatenate_trials(ctx_traces_by_trial, st_trial_inds);
-str_traces_st = ctxstr.core.concatenate_trials(str_traces_by_trial, st_trial_inds);
-num_regressors = length(regressors);
-
 % Perform regressions
-[ctx_traces_fit_st, ctx_fit_info] = ctxstr.analysis.regress.regress_from_behavior(...
+[fitted_ctx_traces_st, ctx_fit_info] = ctxstr.analysis.regress.regress_from_behavior(...
     ctx_traces_by_trial, t, trials, st_trial_inds, regressors);
 
-[str_traces_fit_st, str_fit_info] = ctxstr.analysis.regress.regress_from_behavior(...
+[fitted_str_traces_st, str_fit_info] = ctxstr.analysis.regress.regress_from_behavior(...
     str_traces_by_trial, t, trials, st_trial_inds, regressors);
+
+% Parse results into trials
+t_st = ctxstr.core.concatenate_trials(time_by_trial, st_trial_inds);
+fitted_ctx_traces_by_trial = ctxstr.core.parse_into_trials(fitted_ctx_traces_st, t_st, trials);
+fitted_str_traces_by_trial = ctxstr.core.parse_into_trials(fitted_str_traces_st, t_st, trials);
+
+num_trials = length(trials);
+ctx_residuals_by_trial = cell(1, num_trials);
+str_residuals_by_trial = cell(1, num_trials);
+for k = st_trial_inds
+    ctx_residuals_by_trial{k} = ctx_traces_by_trial{k} - fitted_ctx_traces_by_trial{k};
+    str_residuals_by_trial{k} = str_traces_by_trial{k} - fitted_str_traces_by_trial{k};
+end
 
 %% Visualization 2
 
-for k = 1:ctx_info.num_cells
-    subplot(1,8,1:5);
-    plot(t_st, ctx_traces_st(k,:), 'k');
-    hold on;
-    plot(t_st, ctx_traces_fit_st(k,:), 'r');
-    hold off;
+for k = 41:ctx_info.num_cells
+    show_fit(k, st_trial_inds, trials,...
+        time_by_trial, ctx_traces_by_trial, fitted_ctx_traces_by_trial, ctx_residuals_by_trial,...
+        ctx_fit_info);
     title(sprintf('%s: Ctx cell #=r%d', dataset_name, ctx_info.ind2rec(k)));
     zoom xon;
     
-    subplot(1,8,6);
-    plot(ctx_fit_info(1).t, ctx_fit_info(1).kernel(k,:), 'b');
-    title(ctx_fit_info(1).name);
-    axis tight;
-    ylim([-0.1 1]);
-    
-    subplot(1,8,7);
-    plot(ctx_fit_info(2).t, ctx_fit_info(2).kernel(k,:), 'r');
-    title(ctx_fit_info(2).name);
-    axis tight;
-    ylim([-0.1 1]);
-    
-    subplot(1,8,8);
-    plot(ctx_fit_info(3).t, ctx_fit_info(3).kernel(k,:), 'r');
-    title(ctx_fit_info(3).name);
-    axis tight;
-    ylim([-0.1 1]);
-    
-    pause;
-end
-
-%%
-
-for k = 1:str_info.num_cells
-    subplot(1,8,1:5);
-    plot(t_st, str_traces_st(k,:), 'm');
-    hold on;
-    plot(t_st, str_traces_fit_st(k,:), 'r');
-    hold off;
-    title(sprintf('%s: Str cell #=r%d', dataset_name, str_info.ind2rec(k)));
-    zoom xon;
-    
-    subplot(1,8,6);
-    plot(str_fit_info.reward.t, str_fit_info.reward.kernel(k,:), 'b');
-    axis tight;
-    ylim([-0.1 1]);
-    
-    subplot(1,8,7);
-    plot(str_fit_info.motion.t, str_fit_info.motion.kernel(k,:), 'r');
-    axis tight;
-    ylim([-0.1 1]);
-    
-    subplot(1,8,8);
-    plot(str_fit_info.velocity.t, str_fit_info.velocity.kernel(k,:), 'r');
-    axis tight;
-    ylim([-0.1 1]);
     pause;
 end

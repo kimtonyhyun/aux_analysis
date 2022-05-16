@@ -50,11 +50,13 @@ set(gcf, 'Renderer', 'painters');
 
 %%
 
-contour(N,F,log10(Ds),log10([0.125/2 0.125 0.25 0.5 1.0]),'k');
+cvals = log10([0.0625/2 0.0625 0.125 0.25 0.5 1 2]);
+contour(N,F,log10(Ds),cvals,'k');
 hold on;
 contour(N,F,log10(Ds),log10([0.0846 1.7]),'k');
 view(2);
-colorbar;
+h_cb = colorbar;
+set(h_cb, 'YTick', cvals);
 set(gca, 'Xscale', 'log');
 xlabel('Frame rate');
 ylabel('FOV (\mum)');
