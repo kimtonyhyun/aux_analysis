@@ -8,12 +8,13 @@ path_to_dataset2 = '2P';
 ds = DaySummary([], fullfile(path_to_dataset1, 'merge/ls'));
 ds2 = DaySummary([], fullfile(path_to_dataset2, 'merge/ls'));
 
+fps = 25.4;
+
 %% Match 1P/2P
 
 close all;
 
 load('match_pre.mat', 'info');
-fps = 25.4;
 
 [matched, non_matched] = match_1p2p(ds, ds2, info.tform, fps);
 
@@ -56,21 +57,33 @@ for k = 1:num_matches
     match = corrlist.matched(k,:);
     tr1 = ds.get_trace(match(1), 'zsc')';
     tr2 = ds2.get_trace(match(2), 'zsc')';
-    fit = fit_1p2p(tr1, tr2, 25.4);
+    fit = fit_1p2p(tr1, tr2, fps);
     snr_slopes(k) = fit.slope;
 end
 
-log_snrs = log10(snr_slopes);
-% save('matched_snr', 'snr_slopes');
+save('matched_snr', 'snr_slopes');
 
 %% Display SNR distribution
 
 load('matched_snr');
 log10_snr_slopes = log10(snr_slopes);
+median_log10_snr = median(log10_snr_slopes);
 
-x = -1.2:0.05:1.2;
-histogram(log10_snr_slopes, x);
-xlabel({'log_{10}(1P:2P SNR ratio)', 'Negative means 2P better; Positive means 1P better'});
-ylabel('Distribution (num cells)');
-title(dirname);
+x = -1.2:0.1:1.2;
+h = histogram(log10_snr_slopes, x);
+y_lims = [0 max(h.Values)+1];
+
+hold on;
+plot(log10([1 1]), y_lims, 'r--');
+plot(median_log10_snr * [1 1], y_lims, 'r', 'LineWidth', 2);
+hold off;
+set(gca, 'XTick', log10([1/8 1/4 1/2 1 2 4 8]));
+set(gca, 'XTickLabel', {'1:8', '1:4', '1:2', '1:1', '2:1', '4:1', '8:1'});
+set(gca, 'XDir', 'reverse');
+set(gca, 'TickLength', [0 0]);
+ylim(y_lims);
+
+% xlabel('1P:2P SNR ratio');
+ylabel({'# matched cells', sprintf('(%d total)', length(snr_slopes))});
+title(sprintf('%s (median=%.3f; red)', dirname, 10^median_log10_snr));
 grid on;
