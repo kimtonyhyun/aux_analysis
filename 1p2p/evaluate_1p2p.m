@@ -68,15 +68,21 @@ save('matched_snr', 'snr_slopes');
 load('matched_snr');
 log10_snr_slopes = log10(snr_slopes);
 median_log10_snr = median(log10_snr_slopes);
+mean_log10_snr = mean(log10_snr_slopes);
 
 x = -1.2:0.1:1.2;
 h = histogram(log10_snr_slopes, x);
 y_lims = [0 max(h.Values)+1];
 
 hold on;
-plot(log10([1 1]), y_lims, 'r--');
 plot(median_log10_snr * [1 1], y_lims, 'r', 'LineWidth', 2);
+plot(mean_log10_snr * [1 1], y_lims, 'b', 'LineWidth', 2);
+plot(log10([1 1]), y_lims, 'k--');
 hold off;
+legend(sprintf('Data (%d cells total)', length(snr_slopes)),...
+       sprintf('Median=%.3f', 10^median_log10_snr),...
+       sprintf('Mean=%.3f', 10^mean_log10_snr),...
+       'Location', 'NorthWest');
 set(gca, 'XTick', log10([1/8 1/4 1/2 1 2 4 8]));
 set(gca, 'XTickLabel', {'1:8', '1:4', '1:2', '1:1', '2:1', '4:1', '8:1'});
 set(gca, 'XDir', 'reverse');
@@ -84,6 +90,5 @@ set(gca, 'TickLength', [0 0]);
 ylim(y_lims);
 
 % xlabel('1P:2P SNR ratio');
-ylabel({'# matched cells', sprintf('(%d total)', length(snr_slopes))});
-title(sprintf('%s (median=%.3f; red)', dirname, 10^median_log10_snr));
+title(dirname);
 grid on;
