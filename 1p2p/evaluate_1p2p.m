@@ -66,8 +66,19 @@ save('matched_snr', 'snr_slopes');
 %% Display SNR distribution
 
 load('matched_snr');
+num_neg_snr_slopes = sum(snr_slopes < 0);
+if num_neg_snr_slopes > 0
+    cprintf('red', 'Warning: Found %d matched cells with negative 1P:2P SNR slopes\n', num_neg_snr_slopes);
+    snr_slopes = snr_slopes(snr_slopes>0);
+end
 log10_snr_slopes = log10(snr_slopes);
+
 median_log10_snr = median(log10_snr_slopes);
+bootstrp_medians = bootstrp(200, @median, log10_snr_slopes);
+se_median_log10_snr = std(bootstrp_medians);
+fprintf('%s: log10(SNR) = %.3f+/-%.3f (median+/-s.e.)\n',...
+    dirname, median_log10_snr, se_median_log10_snr);
+
 mean_log10_snr = mean(log10_snr_slopes);
 
 x = -1.2:0.1:1.2;
