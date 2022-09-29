@@ -59,12 +59,12 @@ ax3 = subplot(3,1,3);
 yyaxis left;
 plot(t_im + best_offset, cascade_trace, 'k.-');
 xlabel('CORRECTED Time (s)');
-ax1.YAxis(1).Color = 'k';
+ax3.YAxis(1).Color = 'k';
 ylabel('CASCADE');
 yyaxis right;
 plot(t_im, ground_truth_spike_prob, 'm.-');
-ax1.YAxis(2).Color = 'm';
+ax3.YAxis(2).Color = 'm';
 ylabel('Ground truth');
 
 linkaxes([ax1 ax3], 'x');
-xlim([7 13]);
+% xlim([7 13]);

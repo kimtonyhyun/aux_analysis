@@ -5,9 +5,14 @@ smoothing = 100; % ms
 load(get_most_recent_file('.', 'rec_*.mat'));
 load(get_most_recent_file('.', sprintf('cascade_*_smoothing%dms.mat', smoothing)));
 
+% Use "corrected" time axis for DFF and CASCADE traces?
+% Set to 0 to avoid correction
+% t_offset = 0.120; % s
+t_offset = 0;
+
 %%
 
-idx = 1;
+idx = 7;
 
 ephys_trace = info.ephys_traces{idx};
 num_ephys_samples = length(ephys_trace);
@@ -44,7 +49,7 @@ ephys_color = [0.85 0.325 0.098];
 
 ax1 = subplot(411);
 yyaxis left;
-tight_plot(t_im, im_trace, '.-');
+tight_plot(t_im + t_offset, im_trace, '.-');
 hold on;
 ylabel('Imaging (\DeltaF/F)');
 yyaxis right;
@@ -63,10 +68,10 @@ grid on;
 
 ax2 = subplot(412);
 yyaxis left;
-tight_plot(t_im, im_trace, '.-');
+tight_plot(t_im + t_offset, im_trace, '.-');
 ylabel('Imaging (\DeltaF/F)');
 yyaxis right;
-tight_plot(t_im, cascade_trace, 'k.-');
+tight_plot(t_im + t_offset, cascade_trace, 'k.-');
 ylabel({'Inferred spike prob.', model_name}, 'Interpreter', 'none');
 ax2.YAxis(2).Color = 'k';
 xlabel('Time (s)');
@@ -74,7 +79,7 @@ grid on;
 
 ax3 = subplot(413);
 yyaxis left;
-y_lim1 = tight_plot(t_im, cascade_trace, 'k.-');
+y_lim1 = tight_plot(t_im + t_offset, cascade_trace, 'k.-');
 ylabel({'Inferred spike prob.', model_name}, 'Interpreter', 'none');
 ax3.YAxis(1).Color = 'k';
 yyaxis right;
@@ -95,7 +100,7 @@ grid on;
 
 ax4 = subplot(414);
 yyaxis left;
-tight_plot(t_im, cascade_trace, 'k.-');
+tight_plot(t_im + t_offset, cascade_trace, 'k.-');
 ylabel({'Same as above', '(Rescaled)'});
 ax4.YAxis(1).Color = 'k';
 yyaxis right;
@@ -123,20 +128,22 @@ xlim([8 24]);
 %     dataset_name, recording_idx, smoothing);
 % print('-dpng', savename);
 
-%%
+% ctxstr.ephys.estimate_time_offset;
 
-no_spike_samples = (t_im < 3); % First 3 s of recording
-
-spike_time = 10;
-samples_for_dff = (spike_time < t_im) & (t_im < spike_time + 3);
-samples_for_sr  = (spike_time - 0.5 < t_im) & (t_im < spike_time + 3);
-
-x1 = [max(im_trace(no_spike_samples)) max(im_trace(samples_for_dff)) max(cascade_trace(samples_for_sr)) max(ground_truth_spike_prob(samples_for_sr))];
-
-spike_time = 15;
-samples_for_dff = (spike_time < t_im) & (t_im < spike_time + 3);
-samples_for_sr  = (spike_time - 0.5 < t_im) & (t_im < spike_time + 3);
-
-x2 = [NaN max(im_trace(samples_for_dff)) max(cascade_trace(samples_for_sr)) max(ground_truth_spike_prob(samples_for_sr))];
-
-[x1; x2]
+% %%
+% 
+% no_spike_samples = (t_im < 3); % First 3 s of recording
+% 
+% spike_time = 10;
+% samples_for_dff = (spike_time < t_im) & (t_im < spike_time + 3);
+% samples_for_sr  = (spike_time - 0.5 < t_im) & (t_im < spike_time + 3);
+% 
+% x1 = [max(im_trace(no_spike_samples)) max(im_trace(samples_for_dff)) max(cascade_trace(samples_for_sr)) max(ground_truth_spike_prob(samples_for_sr))];
+% 
+% spike_time = 15;
+% samples_for_dff = (spike_time < t_im) & (t_im < spike_time + 3);
+% samples_for_sr  = (spike_time - 0.5 < t_im) & (t_im < spike_time + 3);
+% 
+% x2 = [NaN max(im_trace(samples_for_dff)) max(cascade_trace(samples_for_sr)) max(ground_truth_spike_prob(samples_for_sr))];
+% 
+% [x1; x2]
