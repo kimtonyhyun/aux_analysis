@@ -1,6 +1,6 @@
 clear;
 
-idx = 21;
+idx = 51;
 
 ephys_filename = sprintf('AD0_%d', idx);
 fprintf('* * * Displaying "%s" * * *\n', ephys_filename);
@@ -25,7 +25,7 @@ h_spike_times = [];
 
 %% Spike detection parameters
 
-min_height = 0;
+min_height = 65;
 min_prominence = 5;
 min_distance = 30; % # samples at 0.1 ms sampling
 [~, spike_samples] = findpeaks(etrace, 'MinPeakHeight', min_height,...

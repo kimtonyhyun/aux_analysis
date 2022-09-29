@@ -1,13 +1,13 @@
 clear;
 
 dataset_name = dirname(2); % Two directories up
-smoothing = 200; % ms
+smoothing = 100; % ms
 load(get_most_recent_file('.', 'rec_*.mat'));
 load(get_most_recent_file('.', sprintf('cascade_*_smoothing%dms.mat', smoothing)));
 
 %%
 
-idx = 7;
+idx = 1;
 
 ephys_trace = info.ephys_traces{idx};
 num_ephys_samples = length(ephys_trace);
@@ -56,9 +56,9 @@ plot(spike_times, y_spikes*ones(num_spikes,1), '.',...
 hold off;
 ylabel('Ephys (mV)');
 xlabel('Time (s)');
-title(sprintf('%s: %s / %s', dataset_name,...
-    info.im_filenames{idx}, info.ephys_filenames{idx}),...
-    'Interpreter', 'none');
+title_str = sprintf('%s: %s / %s', dataset_name,...
+    info.im_filenames{idx}, info.ephys_filenames{idx});
+title(title_str, 'Interpreter', 'none');
 grid on;
 
 ax2 = subplot(412);
@@ -116,9 +116,27 @@ set(all_axes, 'XLim', t_lims);
 zoom xon;
 
 % Prepare for output
-xlim([8 16]);
+xlim([8 24]);
 
-recording_idx = sscanf(info.ephys_filenames{idx}, 'AD0_%d.mat');
-savename = sprintf('%s_rec%03d_smoothing%d.png',...
-    dataset_name, recording_idx, smoothing);
-print('-dpng', savename);
+% recording_idx = sscanf(info.ephys_filenames{idx}, 'AD0_%d.mat');
+% savename = sprintf('%s_rec%03d_smoothing%d.png',...
+%     dataset_name, recording_idx, smoothing);
+% print('-dpng', savename);
+
+%%
+
+no_spike_samples = (t_im < 3); % First 3 s of recording
+
+spike_time = 10;
+samples_for_dff = (spike_time < t_im) & (t_im < spike_time + 3);
+samples_for_sr  = (spike_time - 0.5 < t_im) & (t_im < spike_time + 3);
+
+x1 = [max(im_trace(no_spike_samples)) max(im_trace(samples_for_dff)) max(cascade_trace(samples_for_sr)) max(ground_truth_spike_prob(samples_for_sr))];
+
+spike_time = 15;
+samples_for_dff = (spike_time < t_im) & (t_im < spike_time + 3);
+samples_for_sr  = (spike_time - 0.5 < t_im) & (t_im < spike_time + 3);
+
+x2 = [NaN max(im_trace(samples_for_dff)) max(cascade_trace(samples_for_sr)) max(ground_truth_spike_prob(samples_for_sr))];
+
+[x1; x2]
