@@ -3,7 +3,7 @@ function plot_raster_from_ds(ds, cell_idx, align_to)
 % within the ds should be:
 %   [Trial-start Motion-onset US-time Trial-end].
 %
-% Furthermore, visualization assumes that imaging frame rate is 15 Hz.
+% Furthermore, assumes that imaging frame rate is 15 Hz.
 %
 % Raster generation from DaySummary, which operates at the imaging _frame_
 % level is less temporally accurate than methods that operate directly from
@@ -16,43 +16,61 @@ function plot_raster_from_ds(ds, cell_idx, align_to)
 % `DaySummary.plot_cell_raster` which shows the portion of data that is
 % common to all trials.
 
-% By default, 
+fps = 15;
+
+% By default, align to motion onset (i.e. 2nd column of ds.trial_indices)
 if ~exist('align_to', 'var')
     align_to = 2;
 end
 
 num_trials = ds.num_trials;
-aligned_frames = zeros(num_trials, 4);
+aligned_frame_indices = zeros(num_trials, 4);
 
 for k = 1:num_trials
     trial_frames = ds.trial_indices(k,:);
-    aligned_frames(k,:) = trial_frames - trial_frames(align_to);
+    aligned_frame_indices(k,:) = trial_frames - trial_frames(align_to);
 end
-frame_lims = [min(aligned_frames(:,1)) max(aligned_frames(:,end))];
+frames = min(aligned_frame_indices(:,1)):max(aligned_frame_indices(:,end));
 
-num_total_frames = frame_lims(2) - frame_lims(1) + 1;
-R = nan(num_trials, num_total_frames);
+R = nan(num_trials, length(frames));
 for k = 1:num_trials
     trace = ds.trials(k).traces(cell_idx,:);
-    offset = aligned_frames(k,1) - frame_lims(1) + 1;
+    offset = aligned_frame_indices(k,1) - frames(1) + 1;
     R(k,offset:offset+length(trace)-1) = trace;
 end
 
 % Plot raster with transparency
 alpha = ones(size(R));
+
+% The following prevents neural activity being "duplicated" on multiple
+% lines (i.e. trials) of the raster visualization
+for k = 1:num_trials
+    switch align_to
+        case 2
+            % Hide frames beyond the US
+            mask = frames > aligned_frame_indices(k,3);            
+        case 3
+            % Hide the first 1 s of each trial. This is because for each
+            % trial we plot up to 1 s AFTER each US.
+            mask = frames < aligned_frame_indices(k,1) + fps;
+    end
+    alpha(k, mask) = 0;
+end
 alpha(isnan(R)) = 0;
-t = 1/15 * (frame_lims(1):frame_lims(2)); % Assumes 15 Hz data
-imagesc(t, 1:num_trials, R, 'AlphaData', alpha)
+t = 1/fps * frames;
+imagesc(t, 1:num_trials, R, 'AlphaData', alpha, [0 1])
 
 % Additional annotation and graphical formatting
 hold on;
 plot([0 0], [0.5 num_trials+0.5], 'w:');
 hold off;
-ylabel('ST trial index');
+ylabel(sprintf('ST trial index (%d total)', num_trials));
 switch align_to
     case 2
         xlabel('Time relative to motion onset (s)');
+        xlim([-2 5]);
     case 3
         xlabel('Time relative to US (s)');
+        xlim([-6 1]);
 end
 set(gca, 'TickLength', [0 0]);
