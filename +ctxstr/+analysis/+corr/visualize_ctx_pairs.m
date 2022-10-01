@@ -14,7 +14,7 @@ corrlist = corrlist(2:end,:); % The top entry will be the cell itself
 sp = @(m,n,p) subtightplot(m, n, p, [0.02 0.05], 0.04, [0.04 0.01]); % Gap, Margin-X, Margin-Y
 color1 = 'b';
 color2 = 'r';
-get_ylabel = @(i,j,c) sprintf('Str = %d\nStr = %d\n{\\it r} = %.4f',...
+get_ylabel = @(i,j,c) sprintf('Ctx = %d\nCtx = %d\n{\\it r} = %.4f',...
             ctx_info.ind2rec(i), ctx_info.ind2rec(j), c);
 
 num_rows_per_page = 8;
