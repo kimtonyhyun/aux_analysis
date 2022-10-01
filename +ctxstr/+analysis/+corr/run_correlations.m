@@ -1,4 +1,8 @@
-% Compute correlations
+clear all;
+
+load('resampled_data.mat');
+
+%% Compute correlations
 
 C_ctx = ctxstr.analysis.corr.compute_corr_over_trials(ctx_traces_by_trial, ctx_traces_by_trial, st_trial_inds);
 C_str = ctxstr.analysis.corr.compute_corr_over_trials(str_traces_by_trial, str_traces_by_trial, st_trial_inds);

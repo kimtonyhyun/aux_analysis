@@ -1,7 +1,7 @@
 % This script will generate PlusMaze-style text files for ST trials in a
 % CtxStr session
 
-clear all;
+% clear all;
 
 session = load('ctxstr.mat');
 t_ctx = ctxstr.core.bin_frame_times(session.ctx.frame_times, 2); % 30 Hz --> 15 Hz

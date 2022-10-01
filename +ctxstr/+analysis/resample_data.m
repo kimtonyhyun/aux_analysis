@@ -47,7 +47,7 @@ str_traces_by_trial = ctxstr.core.parse_into_trials(str_traces, t, trials);
 
 %% Omit trials for grooming, etc., and filter out NaN's
 
-omitted_trials = []; % e.g. grooming trials
+omitted_trials = [30 87]; % e.g. grooming trials
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 
 % Filter for NaN values, arising from CASCADE
@@ -104,7 +104,7 @@ end
 %% Visualization #2: Ctx single-cell rasters
 
 ctx_dir = '_rasters-ctx';
-% mkdir(ctx_dir);
+mkdir(ctx_dir);
 
 for k = 1:ctx_info.num_cells
     ctxstr.vis.show_aligned_raster(st_trial_inds, trials, ctx_traces(k,:), t);
@@ -112,14 +112,15 @@ for k = 1:ctx_info.num_cells
     title(sprintf('%s-ctx, cell #=r%d (%s)', dataset_name, cell_id_in_rec, ctx_info.rec_name),...
           'Interpreter', 'None');
       
-%     print('-dpng', fullfile(ctx_dir, sprintf('%s-ctx_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
-    pause;
+    drawnow;
+    print('-dpng', fullfile(ctx_dir, sprintf('%s-ctx_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
+%     pause;
 end
 
 %% Visualization #3: Str single-cell rasters
 
 str_dir = '_rasters-str';
-% mkdir(str_dir);
+mkdir(str_dir);
 
 for k = 1:str_info.num_cells
     ctxstr.vis.show_aligned_raster(st_trial_inds, trials, str_traces(k,:), t);
@@ -127,6 +128,7 @@ for k = 1:str_info.num_cells
     title(sprintf('%s-str, cell #=r%d (%s)', dataset_name, cell_id_in_rec, str_info.rec_name),...
           'Interpreter', 'None');
       
-%     print('-dpng', fullfile(str_dir, sprintf('%s-str_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
-    pause;
+    drawnow;
+    print('-dpng', fullfile(str_dir, sprintf('%s-str_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
+%     pause;
 end
