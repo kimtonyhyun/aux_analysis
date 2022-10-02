@@ -29,7 +29,7 @@ idx_str = 1;
 
 ds_ctx = cell(num_sessions,1);
 for k = 1:num_sessions
-    ds_ctx{k} = DaySummary('', fullfile(session_names{k}, 'ctx/union_15hz/dff'));
+    ds_ctx{k} = DaySummary('', fullfile(session_names{k}, 'ctx/union_15hz/dff'));    
 end
 
 %% Match Ctx sessions
