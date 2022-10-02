@@ -62,7 +62,8 @@ imagesc(t, 1:num_trials, R, 'AlphaData', alpha, [0 1])
 
 % Additional annotation and graphical formatting
 hold on;
-plot([0 0], [0.5 num_trials+0.5], 'w:');
+plot(t(aligned_frame_indices(:,2)-frames(1)+1), 1:num_trials, 'r.'); % Motion onsets
+plot(t(aligned_frame_indices(:,3)-frames(1)+1), 1:num_trials, 'cx'); % US
 hold off;
 ylabel(sprintf('ST trial index (%d total)', num_trials));
 switch align_to

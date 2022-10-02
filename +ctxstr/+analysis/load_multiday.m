@@ -45,16 +45,13 @@ md = ctxstr.core.generate_md(ds_str, str_matches, sessions_to_track);
 
 %% Visualization #1: Plot tracked cell rasters across days
 
-align_to = 3;
-raster_fn = @(ds,k) ctxstr.vis.plot_raster_from_ds(ds, k, align_to);
+raster_fns = {@(ds,k) ctxstr.vis.plot_raster_from_ds(ds, k, 2),...
+              @(ds,k) ctxstr.vis.plot_raster_from_ds(ds, k, 3)};
+         
 for k = 1:md.num_cells
-    draw_md_cell(md, k, raster_fn);
+    draw_md_cell(md, k, raster_fns);
     drawnow;
-    switch align_to
-        case 2
-            filename = sprintf('%s-%s_md%03d_mo.png', mouse_name, region, k);
-        case 3
-            filename = sprintf('%s-%s_md%03d_us.png', mouse_name, region, k);
-    end
+    
+    filename = sprintf('%s-%s_md%03d.png', mouse_name, region, k);
     print('-dpng', filename);
 end
