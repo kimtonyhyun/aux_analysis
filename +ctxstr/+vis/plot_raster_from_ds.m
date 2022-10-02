@@ -68,9 +68,9 @@ ylabel(sprintf('ST trial index (%d total)', num_trials));
 switch align_to
     case 2
         xlabel('Time relative to motion onset (s)');
-        xlim([-2 4]);
+        xlim([-2 5]);
     case 3
         xlabel('Time relative to US (s)');
-        xlim([-5 1]);
+        xlim([-6 1]);
 end
 set(gca, 'TickLength', [0 0]);
