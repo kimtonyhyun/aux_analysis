@@ -3,7 +3,7 @@ clear all;
 load('all_matches.mat');
 num_sessions = length(session_names);
 
-sessions_to_track = [1 2 3 5 7 8];
+sessions_to_track = [1 2 3 4 5 6 7 8];
 
 %%
 
@@ -52,6 +52,6 @@ for k = 1:md.num_cells
     draw_md_cell(md, k, raster_fns);
     drawnow;
     
-    filename = sprintf('%s-%s_md%03d.png', mouse_name, region, k);
+    filename = sprintf('%s-%s_md%03d_bin0-2.png', mouse_name, region, k);
     print('-dpng', filename);
 end
