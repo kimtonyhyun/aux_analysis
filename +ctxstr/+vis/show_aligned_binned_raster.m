@@ -1,9 +1,7 @@
-function show_aligned_raster(trials_to_show, trials, trace, t)
+function show_aligned_binned_raster(trials_to_show, trials, trace, t)
 
 % Defaults
 font_size = 18;
-pre_us_tr_color = 0.5 * [1 1 1];
-post_us_tr_color = 0.9 * [1 1 1];
 resp_ind_width = 0.25; % Size, in seconds, of the response indicator
 
 % Custom "subplot" command that leaves less unusued space between panels
@@ -14,7 +12,7 @@ sp = @(m,n,p) subtightplot(m, n, p, 0.05, 0.05, 0.05); % Gap, Margin-X, Margin-Y
 
 % US-aligned raster
 %------------------------------------------------------------
-ax1 = sp(3,2,[1 3]);
+ax1 = sp(4,2,[1 3]);
 plot_transparent_raster(t_us, R_us);
 hold on;
 mo_color = 'w';
@@ -52,33 +50,44 @@ for trial_idx = info_us.trial_inds
         'FaceColor', resp_color, 'EdgeColor', 'none');
 end
 hold off;
-set(ax1, 'TickLength', [0 0]);
-set(ax1, 'FontSize', font_size);
 ylabel('Trial index');
 
 % US-aligned traces
 %------------------------------------------------------------
-ax2 = sp(3,2,5);
-cla;
-hold on;
-for trial_idx = info_us.trial_inds
-    t = info_us.trial_times{trial_idx};
-    tr = info_us.traces{trial_idx};
+num_trials = length(trials_to_show);
+min_trial_frac = 0.1;
+threshold_num_trials = min_trial_frac * num_trials;
+faint_color = 0.6*[1 1 1];
 
-    pre_us = t < 0;
-    plot(t(pre_us), tr(pre_us), '-', 'Color', pre_us_tr_color);
-    plot(t(~pre_us), tr(~pre_us), '-', 'Color', post_us_tr_color);
-end
+S_us = sum(R_us, 1, 'omitnan');
+N_us = sum(~isnan(R_us),1);
+F_us = S_us./N_us;
+
+valid_samples = N_us > threshold_num_trials;
+ax2 = sp(4,2,5);
+plot(t_us([1 end]), threshold_num_trials*[1 1], 'r--');
+hold on;
+plot(t_us(valid_samples), N_us(valid_samples), 'k.-');
+plot(t_us(~valid_samples), N_us(~valid_samples), '.', 'Color', faint_color);
 hold off;
+grid on;
+ylabel('# valid trials');
+legend(sprintf('%.0f%% threshold', 100*min_trial_frac), 'Location', 'NorthWest');
+ylim([0 1.1*num_trials]);
+
+ax3 = sp(4,2,7);
+plot(t_us(valid_samples), 100*F_us(valid_samples), 'k.-');
+hold on;
+plot(t_us(~valid_samples), 100*F_us(~valid_samples), '.', 'Color', faint_color);
+hold off;
+grid on;
 xlabel('Time relative to US (s)');
-ylabel('Activity');
-ylim([0 1]);
-set(ax2, 'TickLength', [0 0]);
-set(ax2, 'FontSize', font_size);
+ylabel('% of trials with activity');
+ylim([0 100]);
 
 % MO-aligned raster
 %------------------------------------------------------------
-ax3 = sp(3,2,[2 4]);
+ax4 = sp(4,2,[2 4]);
 plot_transparent_raster(t_mo, R_mo);
 hold on;
 mo_color = 'w';
@@ -100,40 +109,46 @@ for trial_idx = info_mo.trial_inds
     end
 end
 hold off;
-set(ax3, 'TickLength', [0 0]);
-set(ax3, 'FontSize', font_size);
 title('Aligned to first MO of each trial');
 
 % MO-aligned traces
 %------------------------------------------------------------
-ax4 = sp(3,2,6);
-cla;
-hold on;
-for trial_idx = info_mo.trial_inds
-    if ~isempty(info_mo.trial_times{trial_idx})
-        trial = trials(trial_idx);
-        us_time = trial.us_time - trial.motion.onsets(1);
-        
-        t = info_mo.trial_times{trial_idx};
-        tr = info_mo.traces{trial_idx};
-        
-        pre_us = t < us_time;
-        plot(t(pre_us), tr(pre_us), '-', 'Color', pre_us_tr_color);
-        plot(t(~pre_us), tr(~pre_us), '-', 'Color', post_us_tr_color);
-    end
-end
-hold off;
-xlabel('Time relative to motion onset (s)');
-ylim([0 1]);
-set(ax4, 'TickLength', [0 0]);
-set(ax4, 'FontSize', font_size);
+S_mo = sum(R_mo, 1, 'omitnan');
+N_mo = sum(~isnan(R_mo),1);
+F_mo = S_mo ./ N_mo;
 
-linkaxes([ax1 ax2], 'x');
-linkaxes([ax3 ax4], 'x');
+valid_samples = N_mo > threshold_num_trials;
+
+ax5 = sp(4,2,6);
+plot(t_mo(valid_samples), N_mo(valid_samples), 'k.-');
+hold on;
+plot(t_mo([1 end]), threshold_num_trials*[1 1], 'r--');
+plot(t_mo(~valid_samples), N_mo(~valid_samples), '.', 'Color', faint_color);
+hold off;
+grid on;
+ylim([0 1.1*num_trials]);
+
+ax6 = sp(4,2,8);
+plot(t_mo(valid_samples), 100*F_mo(valid_samples), 'k.-');
+hold on;
+plot(t_mo(~valid_samples), 100*F_mo(~valid_samples), '.', 'Color', faint_color);
+hold off;
+grid on;
+xlabel('Time relative to motion onset (s)');
+ylim([0 100]);
+
+% Formatting
+set([ax3 ax6], 'YTick', 0:20:100);
+
+set([ax1 ax2 ax3 ax4 ax5 ax6], 'TickLength', [0 0]);
+set([ax1 ax2 ax3 ax4 ax5 ax6], 'FontSize', font_size);
+
+linkaxes([ax1 ax2 ax3], 'x');
+linkaxes([ax4 ax5 ax6], 'x');
 % Important that the two columns share the same range of displayed time, in
 % order to allow for qualitative visual comparisons
 xlim(ax1, [-8 1+resp_ind_width]);
-xlim(ax3, [-3 6+resp_ind_width]);
+xlim(ax4, [-3 6+resp_ind_width]);
 subplot(ax1);
 
 end

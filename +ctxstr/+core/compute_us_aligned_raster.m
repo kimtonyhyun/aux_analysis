@@ -31,7 +31,7 @@ t_us = linspace(t_us_lims(1), t_us_lims(2), num_samples);
 R_us = zeros(num_all_trials, num_samples);
 for k = 1:num_all_trials
     if ismember(k, trials_to_use)
-        R_us(k,:) = interp1(trial_times{k}, traces{k}, t_us, 'linear', NaN);
+        R_us(k,:) = interp1(trial_times{k}, traces{k}, t_us, 'nearest', NaN);
     else
         R_us(k,:) = NaN(1, num_samples);
     end

@@ -101,10 +101,10 @@ for k = 1:num_pages
     pause;
 end
 
-%% Visualization #2: Ctx single-cell rasters
+%% Visualization #2A: Ctx single-cell rasters
 
-ctx_dir = '_rasters-ctx';
-mkdir(ctx_dir);
+% ctx_dir = '_rasters-ctx';
+% mkdir(ctx_dir);
 
 for k = 1:ctx_info.num_cells
     ctxstr.vis.show_aligned_raster(st_trial_inds, trials, ctx_traces(k,:), t);
@@ -112,12 +112,30 @@ for k = 1:ctx_info.num_cells
     title(sprintf('%s-ctx, cell #=r%d (%s)', dataset_name, cell_id_in_rec, ctx_info.rec_name),...
           'Interpreter', 'None');
       
-    drawnow;
-    print('-dpng', fullfile(ctx_dir, sprintf('%s-ctx_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
-%     pause;
+%     drawnow;
+%     print('-dpng', fullfile(ctx_dir, sprintf('%s-ctx_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
+    pause;
 end
 
-%% Visualization #3: Str single-cell rasters
+%% Visualization 2B: Ctx single-cell rasters, for binzarized data
+
+bin_threshold = 0.2;
+[binned_ctx_traces, binned_ctx_traces_by_trial] = ctxstr.core.binarize_traces(ctx_traces, ctx_traces_by_trial, bin_threshold);
+
+output_dir = sprintf('_rasters-ctx/bin0-%d', 100*bin_threshold);
+mkdir(output_dir);
+
+for k = 1:ctx_info.num_cells
+    ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, binned_ctx_traces(k,:), t);
+    cell_id_in_rec = ctx_info.ind2rec(k);
+    title(sprintf('%s-ctx, cell #=r%d (%s)', dataset_name, cell_id_in_rec, ctx_info.rec_name),...
+          'Interpreter', 'None');
+
+    drawnow;
+    print('-dpng', fullfile(output_dir, sprintf('%s-ctx_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
+end
+
+%% Visualization #3A: Str single-cell rasters
 
 str_dir = '_rasters-str';
 mkdir(str_dir);
@@ -131,4 +149,23 @@ for k = 1:str_info.num_cells
     drawnow;
     print('-dpng', fullfile(str_dir, sprintf('%s-str_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
 %     pause;
+end
+
+
+%% Visualization 3B: Str single-cell rasters, for binzarized data
+
+bin_threshold = 0.2;
+[binned_str_traces, binned_str_traces_by_trial] = ctxstr.core.binarize_traces(str_traces, str_traces_by_trial, bin_threshold);
+
+output_dir = sprintf('_rasters-str/bin0-%d', 100*bin_threshold);
+mkdir(output_dir);
+
+for k = 1:str_info.num_cells
+    ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, binned_str_traces(k,:), t);
+    cell_id_in_rec = str_info.ind2rec(k);
+    title(sprintf('%s-str, cell #=r%d (%s)', dataset_name, cell_id_in_rec, str_info.rec_name),...
+          'Interpreter', 'None');
+
+    drawnow;
+    print('-dpng', fullfile(output_dir, sprintf('%s-str_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
 end

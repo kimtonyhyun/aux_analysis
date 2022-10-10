@@ -44,7 +44,7 @@ t_mo = linspace(t_mo_lims(1), t_mo_lims(2), num_samples);
 R_mo = zeros(num_all_trials, num_samples);
 for k = 1:num_all_trials
     if ismember(k, trials_to_use) && ~isempty(trial_times{k})
-        R_mo(k,:) = interp1(trial_times{k}, traces{k}, t_mo, 'linear', NaN);
+        R_mo(k,:) = interp1(trial_times{k}, traces{k}, t_mo, 'nearest', NaN);
     else
         R_mo(k,:) = NaN(size(t_mo));
     end
