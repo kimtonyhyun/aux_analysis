@@ -17,7 +17,7 @@ nll_fun = @(w) ctxstr.analysis.regress.bernoulli_nll(w, X_train, y_train);
 
 % Squared diffs
 D = build_squared_diff_matrix(regressors);
-Cinv = 1e6*D;
+Cinv = 1e2*D;
 
 % Smoothing penalty
 

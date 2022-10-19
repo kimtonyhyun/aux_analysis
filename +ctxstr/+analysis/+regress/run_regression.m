@@ -72,14 +72,16 @@ fprintf('%s: %d ST trials split into %d training trials and %d test trials\n',..
 
 %% Generate time-offset versions of each regressor then parse into trials
 
-lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lr_filt, 15, 15, t, trials);
 velocity_regressor = ctxstr.analysis.regress.define_regressor('velocity', v_filt, 15, 15, t, trials);
+accel_regressor = ctxstr.analysis.regress.define_regressor('accel', a_filt, 15, 15, t, trials);
+lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lr_filt, 15, 15, t, trials);
+
 reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_frames, 15, 15, t, trials);
 motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 15, 15*3, t, trials);
 
 %% Define model
 
-model = {velocity_regressor, motion_regressor, reward_regressor};
+model = {velocity_regressor, accel_regressor, lick_regressor, motion_regressor, reward_regressor};
 num_regressors = length(model);
 
 %% Define model and run regression
@@ -120,7 +122,7 @@ for k = 1:num_regressors
     subplot(3, num_regressors, 2*num_regressors + k);
     r = model{k};
     plot(r.t_kernel, kernels{k}, '.-');
-    title(r.name);
+    title(r.name, 'Interpreter', 'none');
     xlim(r.t_kernel([1 end]));
     grid on;
     xlabel('Time (s)');
