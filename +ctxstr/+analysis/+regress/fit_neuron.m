@@ -1,4 +1,4 @@
-function [w_opt, train_info, test_info] = fit_neuron(traces_by_trial, cell_idx, regressors, train_trial_inds, test_trial_inds)
+function [kernels, train_info, test_info] = fit_neuron(traces_by_trial, cell_idx, regressors, train_trial_inds, test_trial_inds)
 
 traces_train = ctxstr.core.concatenate_trials(traces_by_trial, train_trial_inds)'; % [num_frames x num_cells]
 
@@ -27,7 +27,16 @@ train_info = pack_info(y_train,...
                        nll_opt,...
                        compute_null_model_nll(y_train));
                    
-% TODO: Convert w_opt into individual kernels
+% Parse w_opt into individual kernels
+num_regressors = length(regressors);
+kernels = cell(size(regressors));
+
+ind = 1;
+for k = 1:num_regressors
+    r = regressors{k};
+    kernels{k} = w_opt(ind:ind+r.num_dofs-1);
+    ind = ind + r.num_dofs;
+end
                        
 % Evaluate fit using on test data
 %------------------------------------------------------------

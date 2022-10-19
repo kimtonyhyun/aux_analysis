@@ -58,13 +58,6 @@ ctxstr.analysis.regress.visualize_behavioral_regressors(trials, st_trial_inds, t
     reward_frames, motion_frames);
 title(sprintf('%s: All behavioral regressors', dataset_name));
 
-%% Generate time-offset versions of each regressor then parse into trials
-
-lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lr_filt, 15, 15, t, trials);
-velocity_regressor = ctxstr.analysis.regress.define_regressor('velocity', v_filt, 15, 15, t, trials);
-reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_frames, 15, 15, t, trials);
-motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 15, 15*3, t, trials);
-
 %% Split ST trials into training and test
 
 num_st_trials = length(st_trial_inds);
@@ -77,13 +70,25 @@ num_train = length(train_trial_inds);
 fprintf('%s: %d ST trials split into %d training trials and %d test trials\n',...
     dataset_name, num_st_trials, num_train, num_test);
 
+%% Generate time-offset versions of each regressor then parse into trials
+
+lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lr_filt, 15, 15, t, trials);
+velocity_regressor = ctxstr.analysis.regress.define_regressor('velocity', v_filt, 15, 15, t, trials);
+reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_frames, 15, 15, t, trials);
+motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 15, 15*3, t, trials);
+
+%% Define model
+
+model = {velocity_regressor, motion_regressor, reward_regressor};
+num_regressors = length(model);
+
 %% Define model and run regression
 
 cell_idx = 10;
 
-[w_opt, train_info, test_info] = ctxstr.analysis.regress.fit_neuron(...
+[kernels, train_info, test_info] = ctxstr.analysis.regress.fit_neuron(...
     binned_str_traces_by_trial, cell_idx,...
-    {lick_regressor, velocity_regressor, motion_regressor, reward_regressor},...
+    model,...
     train_trial_inds, test_trial_inds);
 
 ax1 = subplot(311);
@@ -111,7 +116,11 @@ title(sprintf('Fraction deviance explained: R^2_{test}=%.3f', test_info.R2));
 
 set([ax1 ax2], 'TickLength', [0 0]);
 
-% subplot(3,2,5);
-% plot(w0(1:31));
-% subplot(3,2,6);
-% plot(w0(32:end));
+for k = 1:num_regressors
+    subplot(3, num_regressors, 2*num_regressors + k);
+    r = model{k};
+    plot(r.t_kernel, kernels{k}, '.-');
+    title(r.name);
+    xlim(r.t_kernel([1 end]));
+    grid on;
+end
