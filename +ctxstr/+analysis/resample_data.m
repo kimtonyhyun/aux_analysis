@@ -123,7 +123,7 @@ bin_threshold = 0.2;
 [binned_ctx_traces, binned_ctx_traces_by_trial] = ctxstr.core.binarize_traces(ctx_traces, ctx_traces_by_trial, bin_threshold);
 
 output_dir = sprintf('_rasters-ctx/bin0-%d', 100*bin_threshold);
-mkdir(output_dir);
+% mkdir(output_dir);
 
 for k = 1:ctx_info.num_cells
     ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, binned_ctx_traces(k,:), t);
@@ -132,7 +132,8 @@ for k = 1:ctx_info.num_cells
           'Interpreter', 'None');
 
     drawnow;
-    print('-dpng', fullfile(output_dir, sprintf('%s-ctx_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
+%     print('-dpng', fullfile(output_dir, sprintf('%s-ctx_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
+    pause;
 end
 
 %% Visualization #3A: Str single-cell rasters

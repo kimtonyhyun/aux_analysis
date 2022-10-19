@@ -12,7 +12,7 @@ t_offset = 0;
 
 %%
 
-idx = 7;
+idx = 40;
 
 ephys_trace = info.ephys_traces{idx};
 num_ephys_samples = length(ephys_trace);

@@ -1,7 +1,8 @@
-function visualize_filtered_regressors(trials, st_trial_inds, t,...
+function visualize_behavioral_regressors(trials, st_trial_inds, t,...
             velocity_raw, velocity_filt,...
             accel_raw, accel_filt,...
-            lick_times, lick_rate_raw, lick_rate_filt)
+            lick_times, lick_rate_raw, lick_rate_filt,...
+            reward_frames, motion_frames)
         
 sp = @(m,n,p) subtightplot(m, n, p, [0.01 0.05], 0.04, 0.04); % Gap, Margin-X, Margin-Y
 
@@ -33,6 +34,10 @@ for k = 1:num_trials
 end
 plot(t([1 end]), [0 0], 'k:');
 plot_vertical_lines([trials.us_time], v_lims, 'b:');
+st_reward_times = t(reward_frames);
+st_motion_frames = t(motion_frames);
+plot(st_reward_times, ones(size(st_reward_times)), 'b.', 'MarkerSize', 18);
+plot(st_motion_frames, ones(size(st_motion_frames)), 'r.', 'MarkerSize', 18);
 hold off;
 ylim(v_lims);
 ylabel('Velocity (norm.)');
