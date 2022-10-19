@@ -123,4 +123,5 @@ for k = 1:num_regressors
     title(r.name);
     xlim(r.t_kernel([1 end]));
     grid on;
+    xlabel('Time (s)');
 end
