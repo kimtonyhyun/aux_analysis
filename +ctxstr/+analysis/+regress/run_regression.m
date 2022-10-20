@@ -26,7 +26,7 @@ accel = accel / max(abs(accel));
 lick_rate = lick_rate / max(lick_rate);
 
 % Low-pass filtering
-cutoff_freq = 1.5; % Hz
+cutoff_freq = 7; % Hz
 v_filt = ctxstr.analysis.filter_trace(velocity, cutoff_freq, fps);
 a_filt = ctxstr.analysis.filter_trace(accel, cutoff_freq, fps);
 lr_filt = ctxstr.analysis.filter_trace(lick_rate, cutoff_freq, fps);
@@ -70,58 +70,78 @@ num_train = length(train_trial_inds);
 fprintf('%s: %d ST trials split into %d training trials and %d test trials\n',...
     dataset_name, num_st_trials, num_train, num_test);
 
-%% Generate time-offset versions of each regressor then parse into trials
+%% Define regressors to be used in regression analysis
 
-velocity_regressor = ctxstr.analysis.regress.define_regressor('velocity', v_filt, 15, 15, t, trials);
-accel_regressor = ctxstr.analysis.regress.define_regressor('accel', a_filt, 15, 15, t, trials);
-lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lr_filt, 15, 15, t, trials);
+velocity_regressor = ctxstr.analysis.regress.define_regressor('velocity', velocity, 5, 5, t, trials);
+accel_regressor = ctxstr.analysis.regress.define_regressor('accel', accel, 5, 5, t, trials);
+lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lick_rate, 5, 5, t, trials);
 
 reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_frames, 15, 15, t, trials);
 motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 15, 15*3, t, trials);
 
 %% Define model
 
-model = {velocity_regressor, accel_regressor, lick_regressor, motion_regressor, reward_regressor};
+% model = {velocity_regressor, accel_regressor, lick_regressor, motion_regressor, reward_regressor};
+model = {accel_regressor};
 num_regressors = length(model);
 
 %% Define model and run regression
 
 cell_idx = 10;
 
+lambdas = 0:0.25:10;
 [kernels, train_info, test_info] = ctxstr.analysis.regress.fit_neuron(...
     binned_str_traces_by_trial, cell_idx,...
     model,...
-    train_trial_inds, test_trial_inds);
+    train_trial_inds, test_trial_inds, lambdas);
 
-ax1 = subplot(311);
-plot(train_info.y);
+%%
+
+[~, best_ind] = max(test_info.R2);
+
+subplot(4,2,1);
+plot(train_info.lambdas, train_info.R2, '.-');
+xlabel('\lambda');
+ylabel({'Train R^2', '(Higher is better)'});
+title(sprintf('%s Cell = %d', dataset_name, cell_idx));
+
+subplot(4,2,2);
+plot(test_info.lambdas, test_info.R2, '.-');
 hold on;
-plot(train_info.y_fit, 'r-');
+plot(test_info.lambdas(best_ind), test_info.R2(best_ind), 'ro');
+hold off;
+xlabel('\lambda');
+ylabel('Test R^2');
+title(sprintf('Optimal R^2=%.4f', test_info.R2(best_ind)));
+
+ax1 = subplot(4,1,2);
+plot(train_info.y, 'k-');
+hold on;
+plot(train_info.y_fits(:,best_ind), 'r');
 hold off;
 ylim([-0.1 1.1]);
-title(sprintf('%s Cell = %d\nFraction deviance explained: R^2_{train}=%.3f',...
-    dataset_name, cell_idx, train_info.R2));
+
 ylabel('Training fit');
 grid on;
 zoom xon;
 
-ax2 = subplot(312);
-plot(test_info.y);
+ax2 = subplot(4,1,3);
+plot(test_info.y, 'k-');
 hold on;
-plot(test_info.y_fit, 'r-');
+plot(test_info.y_fits(:,best_ind), 'r');
 hold off;
 ylim([-0.1 1.1]);
 ylabel('Test fit');
 grid on;
 zoom xon;
-title(sprintf('Fraction deviance explained: R^2_{test}=%.3f', test_info.R2));
 
 set([ax1 ax2], 'TickLength', [0 0]);
 
 for k = 1:num_regressors
-    subplot(3, num_regressors, 2*num_regressors + k);
+    subplot(4, num_regressors, 3*num_regressors + k);
     r = model{k};
-    plot(r.t_kernel, kernels{k}, '.-');
+    plot(r.t_kernel, kernels{k}(:,best_ind), 'r.-');
+    hold off;
     title(r.name, 'Interpreter', 'none');
     xlim(r.t_kernel([1 end]));
     grid on;

@@ -1,61 +1,77 @@
-function [kernels, train_info, test_info] = fit_neuron(traces_by_trial, cell_idx, regressors, train_trial_inds, test_trial_inds)
+function [kernels, train_info, test_info] = fit_neuron(traces_by_trial, cell_idx, model, train_trial_inds, test_trial_inds, lambdas)
 
-num_regressors = length(regressors);
+if ~exist('lambdas', 'var') % Regularization weight
+    lambdas = 0;
+end
+num_lambdas = length(lambdas);
+
+num_regressors = length(model);
 
 traces_train = ctxstr.core.concatenate_trials(traces_by_trial, train_trial_inds)'; % [num_frames x num_cells]
 
 y_train = traces_train(:,cell_idx);
-X_train = build_design_matrix(regressors, train_trial_inds);
+n_train = length(y_train);
+X_train = build_design_matrix(model, train_trial_inds);
+num_dofs = size(X_train,2);
 
-% Define the log likelihood function and optimize
+% Fit to the training data for each regularization weight
 %------------------------------------------------------------
+
+% Preallocate
+w_opts = zeros(num_dofs, num_lambdas);
+y_train_fits = zeros(n_train, num_lambdas);
+train_nlls = zeros(1, num_lambdas);
+
+% These are reused across problems
+D = build_squared_diff_matrix(model);
+% D = eye(num_dofs); D(end,end) = 0; % Ridge
 nll_fun = @(w) ctxstr.analysis.regress.bernoulli_nll(w, X_train, y_train);
-
-% Ridge
-% D = eye(size(X_train,2));
-% D(end,end) = 0; % No regularization penalty for DC term
-
-% Squared diffs
-D = build_squared_diff_matrix(regressors);
-Cinv = 1e2*D;
-
-% Smoothing penalty
-
-reg_nll_fun = @(w) ctxstr.analysis.regress.neglogposterior(w, nll_fun, Cinv);
-
+w_init = zeros(num_dofs, 1);
 opts = optimoptions(@fminunc, 'Algorithm', 'trust-region',...
     'GradObj', 'on', 'Hessian', 'on', 'Display', 'iter-detailed');
 
-w_init = zeros(size(X_train,2), 1);
-[w_opt, nll_opt] = fminunc(reg_nll_fun, w_init, opts);
+for j = 1:num_lambdas
+    % Regularized log likelihood function
+    reg_nll_fun = @(w) ctxstr.analysis.regress.neglogposterior(w, nll_fun, lambdas(j)*D);
+    
+    w_opts(:,j) = fminunc(reg_nll_fun, w_init, opts);
+    y_train_fits(:,j) = sigmoid(X_train*w_opts(:,j));
+    train_nlls(j) = nll_fun(w_opts(:,j)); % Note use of non-regularized NLL
+end
 
-train_info = pack_info(y_train,...
-                       sigmoid(X_train*w_opt),...
-                       nll_opt,...
-                       compute_null_model_nll(y_train));
-                   
 % Parse w_opt into individual kernels
-kernels = cell(size(regressors));
+kernels = cell(1, num_regressors+1);
 
 ind = 1;
 for k = 1:num_regressors
-    r = regressors{k};
-    kernels{k} = w_opt(ind:ind+r.num_dofs-1);
+    r = model{k};
+    kernels{k} = w_opts(ind:ind+r.num_dofs-1,:);
     ind = ind + r.num_dofs;
 end
-                       
+kernels{end} = w_opts(end,:); % Bias term
+
+train_info = pack_info(y_train, lambdas, y_train_fits, train_nlls);
+
+
 % Evaluate fit using on test data
 %------------------------------------------------------------
 
 traces_test = ctxstr.core.concatenate_trials(traces_by_trial, test_trial_inds)';
 
 y_test = traces_test(:,cell_idx);
-X_test = build_design_matrix(regressors, test_trial_inds);
+n_test = length(y_test);
+X_test = build_design_matrix(model, test_trial_inds);
 
-test_info = pack_info(y_test,...
-                      sigmoid(X_test*w_opt),...
-                      ctxstr.analysis.regress.bernoulli_nll(w_opt, X_test, y_test),...
-                      compute_null_model_nll(y_test));
+% Preallocate
+y_test_fits = zeros(n_test, num_lambdas);
+test_nlls = zeros(1, num_lambdas);
+
+for j = 1:num_lambdas
+    y_test_fits(:,j) = sigmoid(X_test*w_opts(:,j));
+    test_nlls(j) = ctxstr.analysis.regress.bernoulli_nll(w_opts(:,j), X_test, y_test);
+end
+
+test_info = pack_info(y_test, lambdas, y_test_fits, test_nlls);
 
 end
 
@@ -105,10 +121,13 @@ function nll_null = compute_null_model_nll(y)
     nll_null = ctxstr.analysis.regress.bernoulli_nll(w_null, ones(size(y)), y);
 end
 
-function info = pack_info(y, y_fit, nll_fit, nll_null)
+function info = pack_info(y, lambdas, y_fits, nlls)
+    nll_null = compute_null_model_nll(y);
+    
     info.y = y;
-    info.y_fit = y_fit;
-    info.nll_fit = nll_fit;
+    info.lambdas = lambdas;
+    info.y_fits = y_fits;
+    info.nlls = nlls;
     info.nll_null = nll_null;
-    info.R2 = 1 - nll_fit/nll_null;
+    info.R2 = 1 - nlls/nll_null;
 end
