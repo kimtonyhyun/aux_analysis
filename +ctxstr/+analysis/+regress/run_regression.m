@@ -25,12 +25,6 @@ velocity = velocity / max(abs(velocity));
 accel = accel / max(abs(accel));
 lick_rate = lick_rate / max(lick_rate);
 
-% Low-pass filtering
-cutoff_freq = 7; % Hz
-v_filt = ctxstr.analysis.filter_trace(velocity, cutoff_freq, fps);
-a_filt = ctxstr.analysis.filter_trace(accel, cutoff_freq, fps);
-lr_filt = ctxstr.analysis.filter_trace(lick_rate, cutoff_freq, fps);
-
 %% Resample event-type behavioral regressors to neural data sampling rate
 
 % Note: By filtering for reward and motion onset times from ST trials only,
@@ -52,9 +46,8 @@ motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 
 % Visualize all continuous and event-type behavioral regressors
 ctxstr.analysis.regress.visualize_behavioral_regressors(trials, st_trial_inds, t,...
-    velocity, v_filt,...
-    accel, a_filt,...
-    lick_times, lick_rate, lr_filt,...
+    velocity, accel,...
+    lick_times, lick_rate,...
     reward_frames, motion_frames);
 title(sprintf('%s: All behavioral regressors', dataset_name));
 
@@ -77,12 +70,12 @@ accel_regressor = ctxstr.analysis.regress.define_regressor('accel', accel, 5, 5,
 lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lick_rate, 5, 5, t, trials);
 
 reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_frames, 15, 15, t, trials);
-motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 15, 15*3, t, trials);
+motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 0, 15*2, t, trials);
 
 %% Define model
 
 % model = {velocity_regressor, accel_regressor, lick_regressor, motion_regressor, reward_regressor};
-model = {accel_regressor};
+model = {motion_regressor};
 num_regressors = length(model);
 
 %% Define model and run regression
@@ -99,28 +92,42 @@ lambdas = 0:0.25:10;
 
 [~, best_ind] = max(test_info.R2);
 
-subplot(4,2,1);
+subplot(4,3,1);
 plot(train_info.lambdas, train_info.R2, '.-');
 xlabel('\lambda');
 ylabel({'Train R^2', '(Higher is better)'});
+grid on;
 title(sprintf('%s Cell = %d', dataset_name, cell_idx));
 
-subplot(4,2,2);
+subplot(4,3,2);
 plot(test_info.lambdas, test_info.R2, '.-');
 hold on;
 plot(test_info.lambdas(best_ind), test_info.R2(best_ind), 'ro');
 hold off;
 xlabel('\lambda');
 ylabel('Test R^2');
+grid on;
 title(sprintf('Optimal R^2=%.4f', test_info.R2(best_ind)));
+
+subplot(4,3,3);
+plot(train_info.lambdas, kernels{end}, '.-');
+bias_opt = kernels{end}(best_ind);
+hold on;
+plot(test_info.lambdas(best_ind), bias_opt, 'ro');
+hold off;
+grid on;
+xlabel('\lambda');
+ylabel('Bias term');
+title(sprintf('Optimal bias=%.4f', bias_opt));
 
 ax1 = subplot(4,1,2);
 plot(train_info.y, 'k-');
 hold on;
+plot([1 length(train_info.y)], sigmoid(bias_opt)*[1 1], 'b--', 'LineWidth', 2);
 plot(train_info.y_fits(:,best_ind), 'r');
 hold off;
+xlabel('Training frames');
 ylim([-0.1 1.1]);
-
 ylabel('Training fit');
 grid on;
 zoom xon;

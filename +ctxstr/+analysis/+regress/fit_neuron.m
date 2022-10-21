@@ -110,12 +110,8 @@ function D = build_squared_diff_matrix(regressors)
     D = blkdiag(D,0); % Last row/col for the DC offset
 end
 
-function y = sigmoid(proj)
-    y = 1./(1+exp(-proj));
-end
-
 function nll_null = compute_null_model_nll(y)
-    n = length(y) + 2; % Pretend we observed 0 and 1 at least once
+    n = length(y) + 2; % Pretend we observed 0 and 1 at least once; "Laplacian smoothing"
     m = sum(y) + 1;
     w_null = log(m/(n-m));
     nll_null = ctxstr.analysis.regress.bernoulli_nll(w_null, ones(size(y)), y);
