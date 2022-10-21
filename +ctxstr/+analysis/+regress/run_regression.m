@@ -69,13 +69,13 @@ velocity_regressor = ctxstr.analysis.regress.define_regressor('velocity', veloci
 accel_regressor = ctxstr.analysis.regress.define_regressor('accel', accel, 5, 5, t, trials);
 lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lick_rate, 5, 5, t, trials);
 
-reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_frames, 15, 15, t, trials);
+reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_frames, 0, 15, t, trials);
 motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 0, 15*2, t, trials);
 
 %% Define model
 
 % model = {velocity_regressor, accel_regressor, lick_regressor, motion_regressor, reward_regressor};
-model = {motion_regressor};
+model = {reward_regressor};
 num_regressors = length(model);
 
 %% Define model and run regression
@@ -90,67 +90,7 @@ lambdas = 0:0.25:10;
 
 %%
 
-[~, best_ind] = max(test_info.R2);
-
-subplot(4,3,1);
-plot(train_info.lambdas, train_info.R2, '.-');
-xlabel('\lambda');
-ylabel({'Train R^2', '(Higher is better)'});
-grid on;
-title(sprintf('%s Cell = %d', dataset_name, cell_idx));
-
-subplot(4,3,2);
-plot(test_info.lambdas, test_info.R2, '.-');
-hold on;
-plot(test_info.lambdas(best_ind), test_info.R2(best_ind), 'ro');
-hold off;
-xlabel('\lambda');
-ylabel('Test R^2');
-grid on;
-title(sprintf('Optimal R^2=%.4f', test_info.R2(best_ind)));
-
-subplot(4,3,3);
-plot(train_info.lambdas, kernels{end}, '.-');
-bias_opt = kernels{end}(best_ind);
-hold on;
-plot(test_info.lambdas(best_ind), bias_opt, 'ro');
-hold off;
-grid on;
-xlabel('\lambda');
-ylabel('Bias term');
-title(sprintf('Optimal bias=%.4f', bias_opt));
-
-ax1 = subplot(4,1,2);
-plot(train_info.y, 'k-');
-hold on;
-plot([1 length(train_info.y)], sigmoid(bias_opt)*[1 1], 'b--', 'LineWidth', 2);
-plot(train_info.y_fits(:,best_ind), 'r');
-hold off;
-xlabel('Training frames');
-ylim([-0.1 1.1]);
-ylabel('Training fit');
-grid on;
-zoom xon;
-
-ax2 = subplot(4,1,3);
-plot(test_info.y, 'k-');
-hold on;
-plot(test_info.y_fits(:,best_ind), 'r');
-hold off;
-ylim([-0.1 1.1]);
-ylabel('Test fit');
-grid on;
-zoom xon;
-
-set([ax1 ax2], 'TickLength', [0 0]);
-
-for k = 1:num_regressors
-    subplot(4, num_regressors, 3*num_regressors + k);
-    r = model{k};
-    plot(r.t_kernel, kernels{k}(:,best_ind), 'r.-');
-    hold off;
-    title(r.name, 'Interpreter', 'none');
-    xlim(r.t_kernel([1 end]));
-    grid on;
-    xlabel('Time (s)');
-end
+ctxstr.analysis.regress.visualize_fit(...
+    time_by_trial, train_trial_inds, test_trial_inds,...
+    model, kernels, train_info, test_info,...
+    t, reward_frames, motion_frames);
