@@ -1,6 +1,6 @@
 function visualize_fit(time_by_trial, train_trial_inds, test_trial_inds,...
     model, kernels, train_results, test_results,...
-    t, reward_frames, motion_frames)
+    t, reward_frames, motion_frames, velocity)
 
 lambdas = test_results.lambdas;
 [~, best_ind] = max(test_results.R2);
@@ -43,7 +43,7 @@ plot_fit(train_results.y',...
          train_results.y_fits(:,best_ind)',...
          time_by_trial, train_trial_inds,...
          best_bias,...
-         t, reward_frames, motion_frames);
+         t, reward_frames, motion_frames, velocity);
 ylabel('Training fit');
 
 % Plot testing data fit in time
@@ -53,7 +53,7 @@ plot_fit(test_results.y',...
          test_results.y_fits(:,best_ind)',...
          time_by_trial, test_trial_inds,...
          best_bias,...
-         t, reward_frames, motion_frames);
+         t, reward_frames, motion_frames, velocity);
 ylabel('Test fit');
 
 linkaxes([ax_train ax_test], 'x');
@@ -69,11 +69,15 @@ num_regressors = length(model);
 for k = 1:num_regressors
     subplot(4, num_regressors, 3*num_regressors+k);
     r = model{k};
-    plot(r.t_kernel, kernels{k}(:,best_ind), 'm.-');
+    stem(r.t_kernel, kernels{k}(:,best_ind), 'm.-');
     title(sprintf('%s (%d dofs)', r.name, r.num_dofs), 'Interpreter', 'none');
-    xlim(r.t_kernel([1 end]));
+    if r.num_dofs > 1
+        xlim(r.t_kernel([1 end]));
+    end
     grid on;
     xlabel('Time (s)');
+ 
+    
     if k == 1
         ylabel('Kernel weights');
     end
@@ -83,7 +87,7 @@ end % visualize_fit
 
 function plot_fit(y, y_fit, time_by_trial, trial_inds_to_show,...
     bias_weight,...
-    t, reward_frames, motion_frames)
+    t, reward_frames, motion_frames, velocity)
 
 y_lims = [-0.1 1.1];
 t_y = ctxstr.core.concatenate_trials(time_by_trial, trial_inds_to_show);
@@ -100,6 +104,9 @@ for k = 1:num_trials_to_show
     
     plot(t_k, y_k, '.-', 'Color', [0 0.5 0]);
     plot(t_k, y_fit_k, 'm.-');
+    
+    v_k = ctxstr.core.get_traces_by_time(velocity, t, t_lims);
+    plot(t_k, v_k, 'b.-');
     
     rf_k = ctxstr.core.get_traces_by_time(reward_frames, t, t_lims);
     plot_vertical_lines(t_k(rf_k), y_lims, 'b:');
