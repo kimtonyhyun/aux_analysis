@@ -45,11 +45,11 @@ reward_frames = ctxstr.core.assign_events_to_frames(selected_reward_times, t);
 motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 
 % Visualize all continuous and event-type behavioral regressors
-ctxstr.analysis.regress.visualize_behavioral_regressors(trials, st_trial_inds, t,...
-    velocity, accel,...
-    lick_times, lick_rate,...
-    reward_frames, motion_frames);
-title(sprintf('%s: All behavioral regressors', dataset_name));
+% ctxstr.analysis.regress.visualize_behavioral_regressors(trials, st_trial_inds, t,...
+%     velocity, accel,...
+%     lick_times, lick_rate,...
+%     reward_frames, motion_frames);
+% title(sprintf('%s: All behavioral regressors', dataset_name));
 
 %% Split ST trials into training and test
 
@@ -63,19 +63,17 @@ num_train = length(train_trial_inds);
 fprintf('%s: %d ST trials split into %d training trials and %d test trials\n',...
     dataset_name, num_st_trials, num_train, num_test);
 
-%% Define regressors to be used in regression analysis
+%% Define regression model
 
 velocity_regressor = ctxstr.analysis.regress.define_regressor('velocity', velocity, 5, 10, t, trials);
 accel_regressor = ctxstr.analysis.regress.define_regressor('accel', accel, 5, 15, t, trials);
 lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lick_rate, 5, 5, t, trials);
 
 reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_frames, 0, 15, t, trials);
-motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 0, 15*2, t, trials);
-
-%% Define model
+motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 5, 35, t, trials);
 
 % model = {motion_regressor, reward_regressor};
-model = {accel_regressor, motion_regressor};
+model = {motion_regressor};
 
 %% Define model and run regression
 
@@ -86,8 +84,6 @@ lambdas = 0:0.25:10;
     binned_str_traces_by_trial, cell_idx,...
     model,...
     train_trial_inds, test_trial_inds, lambdas);
-
-%%
 
 ctxstr.analysis.regress.visualize_fit(...
     time_by_trial, train_trial_inds, test_trial_inds,...
