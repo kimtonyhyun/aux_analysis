@@ -65,8 +65,8 @@ fprintf('%s: %d ST trials split into %d training trials and %d test trials\n',..
 
 %% Define regressors to be used in regression analysis
 
-velocity_regressor = ctxstr.analysis.regress.define_regressor('velocity', velocity, 0, 0, t, trials);
-accel_regressor = ctxstr.analysis.regress.define_regressor('accel', accel, 5, 5, t, trials);
+velocity_regressor = ctxstr.analysis.regress.define_regressor('velocity', velocity, 5, 10, t, trials);
+accel_regressor = ctxstr.analysis.regress.define_regressor('accel', accel, 5, 15, t, trials);
 lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lick_rate, 5, 5, t, trials);
 
 reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_frames, 0, 15, t, trials);
@@ -74,8 +74,8 @@ motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_fra
 
 %% Define model
 
-% model = {velocity_regressor, accel_regressor, lick_regressor, motion_regressor, reward_regressor};
-model = {velocity_regressor};
+% model = {motion_regressor, reward_regressor};
+model = {accel_regressor, motion_regressor};
 
 %% Define model and run regression
 
