@@ -70,22 +70,25 @@ accel_regressor = ctxstr.analysis.regress.define_regressor('accel', accel, 5, 15
 lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lick_rate, 5, 5, t, trials);
 
 reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_frames, 0, 15, t, trials);
-motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 5, 35, t, trials);
+motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 15, 30, t, trials);
 
 % model = {motion_regressor, reward_regressor};
 model = {motion_regressor};
 
 %% Define model and run regression
 
-cell_idx = 10;
+cell_idx = 58;
 
 lambdas = 0:0.25:10;
-[kernels, train_info, test_info] = ctxstr.analysis.regress.fit_neuron(...
+[kernels, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
     binned_str_traces_by_trial, cell_idx,...
     model,...
     train_trial_inds, test_trial_inds, lambdas);
 
+%%
+
+figure;
 ctxstr.analysis.regress.visualize_fit(...
     time_by_trial, train_trial_inds, test_trial_inds,...
-    model, kernels, train_info, test_info,...
+    model, kernels, train_results, test_results,...
     t, reward_frames, motion_frames, velocity);

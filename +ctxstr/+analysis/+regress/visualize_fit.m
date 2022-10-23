@@ -105,8 +105,8 @@ for k = 1:num_trials_to_show
     plot(t_k, y_k, '.-', 'Color', [0 0.5 0]);
     plot(t_k, y_fit_k, 'm.-');
     
-    v_k = ctxstr.core.get_traces_by_time(velocity, t, t_lims);
-    plot(t_k, v_k, 'b.-');
+%     v_k = ctxstr.core.get_traces_by_time(velocity, t, t_lims);
+%     plot(t_k, v_k, 'b.-');
     
     rf_k = ctxstr.core.get_traces_by_time(reward_frames, t, t_lims);
     plot_vertical_lines(t_k(rf_k), y_lims, 'b:');
