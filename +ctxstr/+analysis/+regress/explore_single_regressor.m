@@ -2,9 +2,9 @@
 % effect on the resulting kernel, R^2, lambda-plots.
 
 pre_vals = 0:5:30;
-post_vals = 5:5:60;
+post_vals = 0:5:60;
 
-cell_idx = 58;
+cell_idx = 10;
 lambdas = 0:0.25:20;
 
 % Preallocate results
@@ -26,9 +26,9 @@ for i = 1:num_pre
         post_val = post_vals(j);
         
         % Define model
-        motion_regressor = ctxstr.analysis.regress.define_regressor(...
-            'motion', motion_frames, pre_val, post_val, t, trials);
-        model = {motion_regressor};
+        velocity_regressor = ctxstr.analysis.regress.define_regressor(...
+            'velocity', velocity, pre_val, post_val, t, trials);
+        model = {velocity_regressor};
         t_kernels{i,j} = model{1}.t_kernel;
         
         [k, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...

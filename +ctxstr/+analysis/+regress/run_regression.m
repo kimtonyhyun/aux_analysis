@@ -65,7 +65,7 @@ fprintf('%s: %d ST trials split into %d training trials and %d test trials\n',..
 
 %% Define regression model
 
-velocity_regressor = ctxstr.analysis.regress.define_regressor('velocity', velocity, 5, 10, t, trials);
+velocity_regressor = ctxstr.analysis.regress.define_regressor('velocity', velocity, 5, 45, t, trials);
 accel_regressor = ctxstr.analysis.regress.define_regressor('accel', accel, 5, 15, t, trials);
 lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lick_rate, 5, 5, t, trials);
 
@@ -73,22 +73,31 @@ reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_fra
 motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 15, 30, t, trials);
 
 % model = {motion_regressor, reward_regressor};
-model = {motion_regressor};
+model = {velocity_regressor};
 
 %% Define model and run regression
 
-cell_idx = 58;
+brain_area = 'ctx'; % 'ctx' or 'str'
+cell_idx = 10;
+
+switch brain_area
+    case 'ctx'
+        binned_traces_by_trial = binned_ctx_traces_by_trial;
+    case 'str'
+        binned_traces_by_trial = binned_str_traces_by_trial;
+end
 
 lambdas = 0:0.25:10;
 [kernels, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
-    binned_str_traces_by_trial, cell_idx,...
+    binned_traces_by_trial, cell_idx,...
     model,...
     train_trial_inds, test_trial_inds, lambdas);
 
 %%
 
-figure;
+% figure;
 ctxstr.analysis.regress.visualize_fit(...
     time_by_trial, train_trial_inds, test_trial_inds,...
     model, kernels, train_results, test_results,...
-    t, reward_frames, motion_frames, velocity);
+    t, reward_frames, motion_frames, velocity, accel, lick_rate);
+title(sprintf('%s-%s, Cell %d', dataset_name, brain_area, cell_idx));
