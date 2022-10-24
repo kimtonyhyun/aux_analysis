@@ -77,8 +77,8 @@ model = {velocity_regressor};
 
 %% Define model and run regression
 
-brain_area = 'ctx'; % 'ctx' or 'str'
-cell_idx = 10;
+brain_area = 'str'; % 'ctx' or 'str'
+cell_idx = 23;
 
 switch brain_area
     case 'ctx'
@@ -101,3 +101,8 @@ ctxstr.analysis.regress.visualize_fit(...
     model, kernels, train_results, test_results,...
     t, reward_frames, motion_frames, velocity, accel, lick_rate);
 title(sprintf('%s-%s, Cell %d', dataset_name, brain_area, cell_idx));
+
+%%
+
+best_ind = test_results.best_ind;
+visualize_step_response(model{1}, kernels{1}(:,best_ind));

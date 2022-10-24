@@ -73,6 +73,10 @@ end
 
 test_info = pack_info(y_test, lambdas, y_test_fits, test_nlls);
 
+% For convenience. TODO: Consider other output formats
+[~, best_ind] = max(test_info.R2);
+test_info.best_ind = best_ind;
+
 end
 
 function X = build_design_matrix(regressors, trial_inds)

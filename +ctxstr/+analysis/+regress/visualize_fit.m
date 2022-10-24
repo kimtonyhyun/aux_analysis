@@ -5,7 +5,7 @@ function visualize_fit(time_by_trial, train_trial_inds, test_trial_inds,...
 sp = @(m,n,p) subtightplot(m, n, p, 0.05, 0.04, 0.04); % Gap, Margin-X, Margin-Y
 
 lambdas = test_results.lambdas;
-[~, best_ind] = max(test_results.R2);
+best_ind = test_results.best_ind;
 best_lambda = lambdas(best_ind);
 best_R2 = test_results.R2(best_ind);
 best_bias = kernels{end}(best_ind);
