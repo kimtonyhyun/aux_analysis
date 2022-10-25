@@ -1,4 +1,6 @@
-function r = define_regressor(name, trace, pre_samples, post_samples, t, trials)
+function r = define_regressor_full(name, trace, pre_samples, post_samples, t, trials)
+% The regressor kernel ranges pre_samples:post_samples, where each temporal
+% sample is an independently optimized parameter in the fit.
 
 r.name = name;
 r.pre_samples = pre_samples;

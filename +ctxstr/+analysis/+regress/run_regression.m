@@ -51,32 +51,24 @@ motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 %     reward_frames, motion_frames);
 % title(sprintf('%s: All behavioral regressors', dataset_name));
 
+%% Define regression model
+
+velocity_regressor = ctxstr.analysis.regress.define_regressor_full('velocity', velocity, 5, 45, t, trials);
+
+reward_regressor = ctxstr.analysis.regress.define_regressor_full('reward', reward_frames, 15, 15, t, trials);
+motion_regressor = ctxstr.analysis.regress.define_regressor_full('motion', motion_frames, 15, 30, t, trials);
+
+model = {motion_regressor, reward_regressor};
+
 %% Split ST trials into training and test
 
 num_st_trials = length(st_trial_inds);
-split_no = 3; % 1, 2, or 3
+split_no = 2; % 1, 2, or 3
 test_trial_inds = st_trial_inds(split_no:3:end); % Every third trial is a test trial
 train_trial_inds = setdiff(st_trial_inds, test_trial_inds);
-
-num_test = length(test_trial_inds);
-num_train = length(train_trial_inds);
-
-fprintf('%s: %d ST trials split into %d training trials and %d test trials\n',...
-    dataset_name, num_st_trials, num_train, num_test);
-
-%% Define regression model
-
-velocity_regressor = ctxstr.analysis.regress.define_regressor('velocity', velocity, 5, 45, t, trials);
-accel_regressor = ctxstr.analysis.regress.define_regressor('accel', accel, 5, 15, t, trials);
-lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lick_rate, 5, 5, t, trials);
-
-reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_frames, 15, 15, t, trials);
-motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 15, 30, t, trials);
-
-model = {motion_regressor, reward_regressor};
 % model = {velocity_regressor};
 
-%% Define model and run regression
+%% Run regression
 
 brain_area = 'ctx'; % 'ctx' or 'str'
 cell_idx = 32;
@@ -94,7 +86,7 @@ lambdas = 0:0.25:30;
     model,...
     train_trial_inds, test_trial_inds, lambdas);
 
-%%
+%% Show regression results
 
 figure;
 ctxstr.analysis.regress.visualize_fit(...
@@ -103,13 +95,7 @@ ctxstr.analysis.regress.visualize_fit(...
     t, reward_frames, motion_frames, velocity, accel, lick_rate);
 title(sprintf('%s-%s, Cell %d, split=%d', dataset_name, brain_area, cell_idx, split_no));
 
-%%
-
-best_ind = test_results.best_ind;
-figure;
-ctxstr.analysis.regress.visualize_step_response(model{1}, kernels{1}(:,best_ind));
-
-%%
+%% Show cell raster
 
 switch brain_area
     case 'ctx'
@@ -120,3 +106,9 @@ end
 
 figure;
 ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, binned_traces(cell_idx,:), t);
+
+%% Use for analyzing kernels for continuous predictor variables
+
+best_ind = test_results.best_ind;
+figure;
+ctxstr.analysis.regress.visualize_step_response(model{1}, kernels{1}(:,best_ind));
