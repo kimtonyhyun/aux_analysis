@@ -15,6 +15,7 @@ hold off;
 xlim(regressor.t_kernel([1 end]));
 xlabel('Time (s)');
 ylabel('Kernel, k[t]');
+title(regressor.name);
 
 ax2 = subplot(312);
 plot(t, u, '.-');

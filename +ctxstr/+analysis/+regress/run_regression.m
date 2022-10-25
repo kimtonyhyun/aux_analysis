@@ -54,7 +54,8 @@ motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 %% Split ST trials into training and test
 
 num_st_trials = length(st_trial_inds);
-test_trial_inds = st_trial_inds(3:3:end); % Every third trial is a test trial
+split_no = 3; % 1, 2, or 3
+test_trial_inds = st_trial_inds(split_no:3:end); % Every third trial is a test trial
 train_trial_inds = setdiff(st_trial_inds, test_trial_inds);
 
 num_test = length(test_trial_inds);
@@ -69,16 +70,16 @@ velocity_regressor = ctxstr.analysis.regress.define_regressor('velocity', veloci
 accel_regressor = ctxstr.analysis.regress.define_regressor('accel', accel, 5, 15, t, trials);
 lick_regressor = ctxstr.analysis.regress.define_regressor('lick_rate', lick_rate, 5, 5, t, trials);
 
-reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_frames, 0, 15, t, trials);
+reward_regressor = ctxstr.analysis.regress.define_regressor('reward', reward_frames, 15, 15, t, trials);
 motion_regressor = ctxstr.analysis.regress.define_regressor('motion', motion_frames, 15, 30, t, trials);
 
-% model = {motion_regressor, reward_regressor};
-model = {velocity_regressor};
+model = {motion_regressor, reward_regressor};
+% model = {velocity_regressor};
 
 %% Define model and run regression
 
-brain_area = 'str'; % 'ctx' or 'str'
-cell_idx = 23;
+brain_area = 'ctx'; % 'ctx' or 'str'
+cell_idx = 32;
 
 switch brain_area
     case 'ctx'
@@ -87,7 +88,7 @@ switch brain_area
         binned_traces_by_trial = binned_str_traces_by_trial;
 end
 
-lambdas = 0:0.25:10;
+lambdas = 0:0.25:30;
 [kernels, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
     binned_traces_by_trial, cell_idx,...
     model,...
@@ -95,14 +96,27 @@ lambdas = 0:0.25:10;
 
 %%
 
-% figure;
+figure;
 ctxstr.analysis.regress.visualize_fit(...
     time_by_trial, train_trial_inds, test_trial_inds,...
     model, kernels, train_results, test_results,...
     t, reward_frames, motion_frames, velocity, accel, lick_rate);
-title(sprintf('%s-%s, Cell %d', dataset_name, brain_area, cell_idx));
+title(sprintf('%s-%s, Cell %d, split=%d', dataset_name, brain_area, cell_idx, split_no));
 
 %%
 
 best_ind = test_results.best_ind;
-visualize_step_response(model{1}, kernels{1}(:,best_ind));
+figure;
+ctxstr.analysis.regress.visualize_step_response(model{1}, kernels{1}(:,best_ind));
+
+%%
+
+switch brain_area
+    case 'ctx'
+        binned_traces = binned_ctx_traces;
+    case 'str'
+        binned_traces = binned_str_traces;
+end
+
+figure;
+ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, binned_traces(cell_idx,:), t);

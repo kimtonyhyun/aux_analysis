@@ -37,6 +37,8 @@ for j = 1:num_lambdas
     w_opts(:,j) = fminunc(reg_nll_fun, w_init, opts);
     y_train_fits(:,j) = sigmoid(X_train*w_opts(:,j));
     train_nlls(j) = nll_fun(w_opts(:,j)); % Note use of non-regularized NLL
+    
+    w_init = w_opts(:,j); % Use previously computed optimum as the initial guess for next run
 end
 
 % Parse w_opt into individual kernels
