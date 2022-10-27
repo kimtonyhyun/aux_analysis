@@ -86,14 +86,16 @@ num_regressors = length(model);
 for k = 1:num_regressors
     sp(5, num_regressors, 4*num_regressors+k);
     r = model{k};
-    stem(r.t_kernel, kernels{k}(:,best_ind), 'm.-');
-    title(sprintf('%s (%d dofs)', r.name, r.num_dofs), 'Interpreter', 'none');
+    weights = kernels{k}(:,best_ind);
+    kernel = r.basis_vectors' * weights;
+    stem(r.t_kernel, kernel, 'm.-');
+    title(sprintf('%s (%s; %d dofs)', r.name, r.type, r.num_dofs), 'Interpreter', 'none');
     if r.num_dofs > 1
         xlim(r.t_kernel([1 end]));
     end
     grid on;
     xlabel('Time (s)');
- 
+    set(gca, 'TickLength', [0 0]);
     
     if k == 1
         ylabel('Kernel weights');

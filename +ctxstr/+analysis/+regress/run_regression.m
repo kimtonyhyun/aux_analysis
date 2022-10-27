@@ -56,8 +56,15 @@ motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 velocity_regressor = ctxstr.analysis.regress.define_regressor_full('velocity', velocity, 5, 45, t, trials);
 
 reward_regressor = ctxstr.analysis.regress.define_regressor_full('reward', reward_frames, 15, 15, t, trials);
-motion_regressor = ctxstr.analysis.regress.define_regressor_full('motion', motion_frames, 15, 30, t, trials);
+motion_regressor = ctxstr.analysis.regress.define_regressor_full('motion', motion_frames, 15, 60, t, trials);
 
+model = {motion_regressor, reward_regressor};
+
+%%
+
+spacing = 3; % samples
+reward_regressor = ctxstr.analysis.regress.define_regressor_smooth('reward', reward_frames, 2, 3, spacing, t, trials);
+motion_regressor = ctxstr.analysis.regress.define_regressor_smooth('motion', motion_frames, 2, 3, spacing, t, trials);
 model = {motion_regressor, reward_regressor};
 
 %% Split ST trials into training and test
