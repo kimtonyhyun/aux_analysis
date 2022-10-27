@@ -22,9 +22,15 @@ w_opts = zeros(num_dofs, num_lambdas);
 y_train_fits = zeros(n_train, num_lambdas);
 train_nlls = zeros(1, num_lambdas);
 
-% These are reused across problems
-D = build_squared_diff_matrix(model);
-% D = eye(num_dofs); D(end,end) = 0; % Ridge
+% Regularization
+
+% If the regressor type is full rank, then the squared diff regularizer
+% (below) is a reasonable one to try.
+% D = build_squared_diff_matrix(model);
+
+% Alternatively, if we are effectively enforcing kernel smoothness by using
+% smooth temporal basis functions, then L1 / L2 regularization makes sense.
+D = eye(num_dofs); D(end,end) = 0; % Ridge
 nll_fun = @(w) ctxstr.analysis.regress.bernoulli_nll(w, X_train, y_train);
 w_init = zeros(num_dofs, 1);
 opts = optimoptions(@fminunc, 'Algorithm', 'trust-region',...
