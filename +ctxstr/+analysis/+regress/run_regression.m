@@ -63,8 +63,8 @@ model = {motion_regressor, reward_regressor};
 %%
 
 spacing = 3; % samples
-reward_regressor = ctxstr.analysis.regress.define_regressor_smooth('reward', reward_frames, 2, 3, spacing, t, trials);
-motion_regressor = ctxstr.analysis.regress.define_regressor_smooth('motion', motion_frames, 2, 3, spacing, t, trials);
+reward_regressor = ctxstr.analysis.regress.define_regressor_smooth('reward', reward_frames, 3, 3, spacing, t, trials);
+motion_regressor = ctxstr.analysis.regress.define_regressor_smooth('motion', motion_frames, 3, 18, spacing, t, trials);
 model = {motion_regressor, reward_regressor};
 
 %% Split ST trials into training and test
@@ -77,8 +77,8 @@ train_trial_inds = setdiff(st_trial_inds, test_trial_inds);
 
 %% Run regression
 
-brain_area = 'ctx'; % 'ctx' or 'str'
-cell_idx = 32;
+brain_area = 'str'; % 'ctx' or 'str'
+cell_idx = 12;
 
 switch brain_area
     case 'ctx'

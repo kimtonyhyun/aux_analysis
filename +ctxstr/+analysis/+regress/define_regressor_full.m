@@ -11,6 +11,9 @@ r.num_dofs = pre_dofs + 1 + post_dofs;
 T = t(2) - t(1); % Deduce frame rate from provided time
 
 r.t_kernel = T*(-pre_dofs:post_dofs);
+fprintf('%s kernel has support over t = %.2f to %.2f s\n',...
+    name, r.t_kernel(1), r.t_kernel(end));
+
 r.basis_vectors = eye(r.num_dofs); % For common syntax with define_regressor_smooth
 
 % trace = trace - mean(trace);
