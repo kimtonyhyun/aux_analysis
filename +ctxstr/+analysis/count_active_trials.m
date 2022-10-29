@@ -1,6 +1,5 @@
-function count_active_trials(cell_idx, binned_traces_by_trial, trial_inds)
+function [num_active_trials, active_frac] = count_active_trials(cell_idx, binned_traces_by_trial, trial_inds)
 
-num_trials = length(trial_inds);
 num_active_trials = 0;
 
 for k = trial_inds
@@ -10,6 +9,4 @@ for k = trial_inds
     end
 end
 
-fprintf('Cell %d shows activity in %d out of %d trials (%.1f%%)\n',...
-    cell_idx, num_active_trials, num_trials,...
-    100*num_active_trials/num_trials);
+active_frac = num_active_trials / length(trial_inds);

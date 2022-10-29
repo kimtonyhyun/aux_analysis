@@ -51,19 +51,13 @@ motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 %     reward_frames, motion_frames);
 % title(sprintf('%s: All behavioral regressors', dataset_name));
 
-%% Regression model using full rank kernels
-
-fig_offset = 0;
+%% Full rank kernels
 
 velocity_regressor = ctxstr.analysis.regress.define_regressor_full('velocity', velocity, 5, 45, t, trials);
 reward_regressor = ctxstr.analysis.regress.define_regressor_full('reward', reward_frames, 15, 15, t, trials);
 motion_regressor = ctxstr.analysis.regress.define_regressor_full('motion', motion_frames, 15, 60, t, trials);
 
-model = {motion_regressor, reward_regressor};
-
-%% Regression model using smooth temporal basis functions
-
-fig_offset = 100;
+%% Kernels represented by smooth temporal basis functions
 
 spacing = 3; % samples
 
@@ -71,12 +65,20 @@ velocity_regressor = ctxstr.analysis.regress.define_regressor_smooth('velocity',
 reward_regressor = ctxstr.analysis.regress.define_regressor_smooth('reward', reward_frames, 3, 3, spacing, t, trials);
 motion_regressor = ctxstr.analysis.regress.define_regressor_smooth('motion', motion_frames, 3, 18, spacing, t, trials);
 
+%% Compare models
+
+model_no = 1;
 model = {motion_regressor, reward_regressor};
+
+%%
+
+model_no = 2;
+model = {velocity_regressor, motion_regressor, reward_regressor};
 
 %% Run regression
 
 brain_area = 'str'; % 'ctx' or 'str'
-cell_idx = 5;
+cell_idx = 10;
 
 switch brain_area
     case 'ctx'
@@ -85,11 +87,15 @@ switch brain_area
         binned_traces_by_trial = binned_str_traces_by_trial;
 end
 
-ctxstr.analysis.count_active_trials(cell_idx, binned_traces_by_trial, st_trial_inds);
+num_active_trials = ctxstr.analysis.count_active_trials(cell_idx, binned_traces_by_trial, st_trial_inds);
+num_st_trials = length(st_trial_inds);
+cprintf('blue', '%s-%s, Cell %d\n', dataset_name, brain_area, cell_idx);
+fprintf('- Shows activity in %d out of %d trials (%.1f%%)\n',...
+    num_active_trials, num_st_trials, 100*num_active_trials/num_st_trials);
 
 %%
 
-num_splits = 10;
+num_splits = 3;
 R2_vals = zeros(1,num_splits);
 
 alpha = 0.95; % Elastic net parameter (0==ridge; 1==lasso)
@@ -109,7 +115,8 @@ for split_no = 1:num_splits
     R2_vals(split_no) = test_results.R2(test_results.best_ind);
     
     % Show regression results
-    figure(fig_offset + split_no);
+    fig_id = cell_idx * 1e3 + model_no * 1e2 + split_no;
+    figure(fig_id);
     clf;
     ctxstr.analysis.regress.visualize_fit(...
         time_by_trial, train_trial_inds, test_trial_inds,...
@@ -119,8 +126,8 @@ for split_no = 1:num_splits
         dataset_name, brain_area, cell_idx, alpha, split_no));
 end
 
-fprintf('  - R^2 = %.3f+/-%.3f across %d train/test splits\n',...
-    mean(R2_vals), std(R2_vals)/sqrt(num_splits), num_splits);
+fprintf('- Model no=%d: R^2=%.3f+/-%.3f across %d train/test splits\n',...
+    model_no, mean(R2_vals), std(R2_vals)/sqrt(num_splits), num_splits);
 
 %% Show cell raster
 
