@@ -11,14 +11,17 @@ best_R2 = test_results.R2(best_ind);
 best_bias = kernels{end}(best_ind);
 clf;
 
+l_lims = lambdas([1 end]);
+
 ax_main = sp(5,3,1);
-plot(lambdas, train_results.R2, '.-');
+semilogx(lambdas, train_results.R2, '.-');
 xlabel('Regularization weight, \lambda');
 ylabel('Training set R^2');
 grid on;
+xlim(l_lims);
 
 sp(5,3,2);
-plot(lambdas, test_results.R2, '.-');
+semilogx(lambdas, test_results.R2, '.-');
 hold on;
 plot(best_lambda, best_R2, 'mo');
 hold off;
@@ -26,17 +29,22 @@ xlabel('\lambda');
 ylabel({'Testing set R^2', '(Higher is better)'});
 title(sprintf('Optimal R^2=%.4f', best_R2));
 grid on;
+xlim(l_lims);
 
+w_null = train_results.w_null;
 sp(5,3,3);
-plot(lambdas, kernels{end}, '.-');
+semilogx(lambdas, kernels{end}, '.-');
 hold on;
 plot(best_lambda, best_bias, 'mo');
+plot(l_lims, w_null*[1 1], 'k--');
 hold off;
 xlabel('\lambda');
 ylabel('Bias weight');
-title(sprintf('Optimal bias=%.4f (\\pi=%.1f%%)',...
-    best_bias, 100*sigmoid(best_bias)));
+title(sprintf('Optimal bias=%.4f (\\pi=%.1f%%); Null bias=%.4f (\\pi=%.1f%%)',...
+    best_bias, 100*sigmoid(best_bias),...
+    w_null, 100*sigmoid(w_null)));
 grid on;
+xlim(l_lims);
 
 % Plot behavioral regressors in time
 %------------------------------------------------------------

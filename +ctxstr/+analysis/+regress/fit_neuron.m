@@ -28,9 +28,13 @@ train_nlls = zeros(1, num_lambdas);
 % (below) is a reasonable one to try.
 % D = build_squared_diff_matrix(model);
 
-% Alternatively, if we are effectively enforcing kernel smoothness by using
-% smooth temporal basis functions, then L1 / L2 regularization makes sense.
-D = eye(num_dofs); D(end,end) = 0; % Ridge
+% Alternatively, if we are enforcing kernel smoothness by using smooth
+% temporal basis functions, then L1 and/or L2 regularization on the weights
+% make sense.
+C1 = ones(num_dofs,1); % Lasso
+C1(end) = 0; % No L1 penalty for bias term
+C2 = eye(num_dofs); % Ridge
+C2(end,end) = 0; % No L2 penalty for bias term
 nll_fun = @(w) ctxstr.analysis.regress.bernoulli_nll(w, X_train, y_train);
 w_init = zeros(num_dofs, 1);
 opts = optimoptions(@fminunc, 'Algorithm', 'trust-region',...
@@ -38,7 +42,9 @@ opts = optimoptions(@fminunc, 'Algorithm', 'trust-region',...
 
 for j = 1:num_lambdas
     % Regularized log likelihood function
-    reg_nll_fun = @(w) ctxstr.analysis.regress.neglogposterior(w, nll_fun, lambdas(j)*D);
+    reg_nll_fun = @(w) ctxstr.analysis.regress.neglogposterior(w, nll_fun, lambdas(j)*C2);
+%     reg_nll_fun = @(w) ctxstr.analysis.regress.neglogelasticnet(w, nll_fun,...
+%                         lambdas(j)*C1, lambdas(j)*C2);
     
     w_opts(:,j) = fminunc(reg_nll_fun, w_init, opts);
     y_train_fits(:,j) = sigmoid(X_train*w_opts(:,j));
@@ -64,7 +70,7 @@ kernels{end} = w_opts(end,:); % Bias term
 [train_nll_null, w_null] = ctxstr.analysis.regress.compute_null_model(y_train);
 
 train_info = pack_info(y_train, lambdas, y_train_fits, train_nlls, train_nll_null);
-
+train_info.w_null = w_null;
 
 % Evaluate fit using on test data
 %------------------------------------------------------------

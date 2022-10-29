@@ -54,31 +54,25 @@ motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 %% Define regression model
 
 velocity_regressor = ctxstr.analysis.regress.define_regressor_full('velocity', velocity, 5, 45, t, trials);
-
 reward_regressor = ctxstr.analysis.regress.define_regressor_full('reward', reward_frames, 15, 15, t, trials);
 motion_regressor = ctxstr.analysis.regress.define_regressor_full('motion', motion_frames, 15, 60, t, trials);
 
-model = {motion_regressor, reward_regressor};
+model = {velocity_regressor};
 
 %%
 
 spacing = 3; % samples
+
+velocity_regressor = ctxstr.analysis.regress.define_regressor_smooth('velocity', velocity, 3, 3, spacing, t, trials);
 reward_regressor = ctxstr.analysis.regress.define_regressor_smooth('reward', reward_frames, 3, 3, spacing, t, trials);
 motion_regressor = ctxstr.analysis.regress.define_regressor_smooth('motion', motion_frames, 3, 18, spacing, t, trials);
+
 model = {motion_regressor, reward_regressor};
-
-%% Split ST trials into training and test
-
-num_st_trials = length(st_trial_inds);
-split_no = 2; % 1, 2, or 3
-test_trial_inds = st_trial_inds(split_no:3:end); % Every third trial is a test trial
-train_trial_inds = setdiff(st_trial_inds, test_trial_inds);
-% model = {velocity_regressor};
 
 %% Run regression
 
 brain_area = 'str'; % 'ctx' or 'str'
-cell_idx = 12;
+cell_idx = 78;
 
 switch brain_area
     case 'ctx'
@@ -87,20 +81,26 @@ switch brain_area
         binned_traces_by_trial = binned_str_traces_by_trial;
 end
 
-lambdas = 0:0.25:30;
-[kernels, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
-    binned_traces_by_trial, cell_idx,...
-    model,...
-    train_trial_inds, test_trial_inds, lambdas);
+lambdas = 2.^(-10:0.5:15);
 
-%% Show regression results
+for split_no = 1:3
+    % Split trials into training and testing sets
+    test_trial_inds = st_trial_inds(split_no:3:end); % Every third trial is a test trial
+    train_trial_inds = setdiff(st_trial_inds, test_trial_inds);   
+    
+    [kernels, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
+        binned_traces_by_trial, cell_idx,...
+        model,...
+        train_trial_inds, test_trial_inds, lambdas);
 
-figure;
-ctxstr.analysis.regress.visualize_fit(...
-    time_by_trial, train_trial_inds, test_trial_inds,...
-    model, kernels, train_results, test_results,...
-    t, reward_frames, motion_frames, velocity, accel, lick_rate);
-title(sprintf('%s-%s, Cell %d, split=%d', dataset_name, brain_area, cell_idx, split_no));
+    % Show regression results
+    figure(split_no);
+    ctxstr.analysis.regress.visualize_fit(...
+        time_by_trial, train_trial_inds, test_trial_inds,...
+        model, kernels, train_results, test_results,...
+        t, reward_frames, motion_frames, velocity, accel, lick_rate);
+    title(sprintf('%s-%s, Cell %d, split=%d', dataset_name, brain_area, cell_idx, split_no));
+end
 
 %% Show cell raster
 
@@ -113,6 +113,7 @@ end
 
 figure;
 ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, binned_traces(cell_idx,:), t);
+title(sprintf('%s-%s, Cell %d', dataset_name, brain_area, cell_idx));
 
 %% Use for analyzing kernels for continuous predictor variables
 

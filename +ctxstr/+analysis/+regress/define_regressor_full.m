@@ -10,7 +10,8 @@ r.num_dofs = pre_dofs + 1 + post_dofs;
 
 T = t(2) - t(1); % Deduce frame rate from provided time
 
-r.t_kernel = T*(-pre_dofs:post_dofs);
+r.j_kernel = (-pre_dofs:post_dofs);
+r.t_kernel = T*r.j_kernel;
 fprintf('%s kernel has support over t = %.2f to %.2f s\n',...
     name, r.t_kernel(1), r.t_kernel(end));
 

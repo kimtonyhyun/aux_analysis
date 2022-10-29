@@ -28,6 +28,7 @@ T = t(2) - t(1); % Deduce frame rate from provided time
 % non-zero support
 j = -(2+pre_dofs)*spacing:(2+post_dofs)*spacing;
 
+r.j_kernel = j;
 r.t_kernel = T*j; % Time axis in seconds
 fprintf('%s kernel has support over t = %.2f to %.2f s\n',...
     name, r.t_kernel(1), r.t_kernel(end));

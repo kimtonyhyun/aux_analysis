@@ -25,7 +25,7 @@ ylabel('Input, u[t]');
 
 ax3 = subplot(313);
 U = ctxstr.analysis.regress.generate_temporally_offset_regressors(u,...
-        regressor.pre_samples, regressor.post_samples)';
+        -regressor.j_kernel(1), regressor.j_kernel(end))';
 y = U*kernel;
 plot(t,y, '.-');
 grid on;
