@@ -53,6 +53,8 @@ motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 
 %% Regression model using full rank kernels
 
+fig_offset = 0;
+
 velocity_regressor = ctxstr.analysis.regress.define_regressor_full('velocity', velocity, 5, 45, t, trials);
 reward_regressor = ctxstr.analysis.regress.define_regressor_full('reward', reward_frames, 15, 15, t, trials);
 motion_regressor = ctxstr.analysis.regress.define_regressor_full('motion', motion_frames, 15, 60, t, trials);
@@ -60,6 +62,8 @@ motion_regressor = ctxstr.analysis.regress.define_regressor_full('motion', motio
 model = {motion_regressor, reward_regressor};
 
 %% Regression model using smooth temporal basis functions
+
+fig_offset = 100;
 
 spacing = 3; % samples
 
@@ -81,7 +85,9 @@ switch brain_area
         binned_traces_by_trial = binned_str_traces_by_trial;
 end
 
-lambdas = 2.^(-10:0.5:15);
+alpha = 0.95; % Elastic net parameter (0==ridge; 1==lasso)
+lambdas = fliplr(2.^(-20:0.5:5));
+% lambdas = []; % lets glmnet explore regularization weights
 
 for split_no = 1:3
     % Split trials into training and testing sets
@@ -91,15 +97,16 @@ for split_no = 1:3
     [kernels, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
         binned_traces_by_trial, cell_idx,...
         model,...
-        train_trial_inds, test_trial_inds, lambdas);
+        train_trial_inds, test_trial_inds, alpha, lambdas);
 
     % Show regression results
-    figure(split_no);
+    figure(fig_offset + split_no);
     ctxstr.analysis.regress.visualize_fit(...
         time_by_trial, train_trial_inds, test_trial_inds,...
         model, kernels, train_results, test_results,...
         t, reward_frames, motion_frames, velocity, accel, lick_rate);
-    title(sprintf('%s-%s, Cell %d, split=%d', dataset_name, brain_area, cell_idx, split_no));
+    title(sprintf('%s-%s, Cell %d, \\alpha=%.2f, split=%d',...
+        dataset_name, brain_area, cell_idx, alpha, split_no));
 end
 
 %% Show cell raster

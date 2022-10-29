@@ -11,7 +11,7 @@ best_R2 = test_results.R2(best_ind);
 best_bias = kernels{end}(best_ind);
 clf;
 
-l_lims = lambdas([1 end]);
+l_lims = [min(lambdas) max(lambdas)];
 
 ax_main = sp(5,3,1);
 semilogx(lambdas, train_results.R2, '.-');
