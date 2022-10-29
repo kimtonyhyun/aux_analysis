@@ -51,15 +51,15 @@ motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 %     reward_frames, motion_frames);
 % title(sprintf('%s: All behavioral regressors', dataset_name));
 
-%% Define regression model
+%% Regression model using full rank kernels
 
 velocity_regressor = ctxstr.analysis.regress.define_regressor_full('velocity', velocity, 5, 45, t, trials);
 reward_regressor = ctxstr.analysis.regress.define_regressor_full('reward', reward_frames, 15, 15, t, trials);
 motion_regressor = ctxstr.analysis.regress.define_regressor_full('motion', motion_frames, 15, 60, t, trials);
 
-model = {velocity_regressor};
+model = {motion_regressor, reward_regressor};
 
-%%
+%% Regression model using smooth temporal basis functions
 
 spacing = 3; % samples
 
@@ -72,7 +72,7 @@ model = {motion_regressor, reward_regressor};
 %% Run regression
 
 brain_area = 'str'; % 'ctx' or 'str'
-cell_idx = 78;
+cell_idx = 10;
 
 switch brain_area
     case 'ctx'

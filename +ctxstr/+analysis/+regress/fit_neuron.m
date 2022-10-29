@@ -11,7 +11,7 @@ traces_train = ctxstr.core.concatenate_trials(traces_by_trial, train_trial_inds)
 
 y_train = traces_train(:,cell_idx);
 n_train = length(y_train);
-X_train = build_design_matrix(model, train_trial_inds);
+X_train = ctxstr.analysis.regress.build_design_matrix(model, train_trial_inds);
 num_dofs = size(X_train,2);
 
 % Fit to the training data for each regularization weight
@@ -47,6 +47,7 @@ for j = 1:num_lambdas
 %                         lambdas(j)*C1, lambdas(j)*C2);
     
     w_opts(:,j) = fminunc(reg_nll_fun, w_init, opts);
+    
     y_train_fits(:,j) = sigmoid(X_train*w_opts(:,j));
     train_nlls(j) = nll_fun(w_opts(:,j)); % Note use of non-regularized NLL
     
@@ -79,7 +80,7 @@ traces_test = ctxstr.core.concatenate_trials(traces_by_trial, test_trial_inds)';
 
 y_test = traces_test(:,cell_idx);
 n_test = length(y_test);
-X_test = build_design_matrix(model, test_trial_inds);
+X_test = ctxstr.analysis.regress.build_design_matrix(model, test_trial_inds);
 
 % Preallocate
 y_test_fits = zeros(n_test, num_lambdas);
@@ -99,18 +100,6 @@ test_info = pack_info(y_test, lambdas, y_test_fits, test_nlls, test_nll_null);
 [~, best_ind] = max(test_info.R2);
 test_info.best_ind = best_ind;
 
-end
-
-function X = build_design_matrix(regressors, trial_inds)
-    num_regressors = length(regressors);
-
-    Xs = cell(num_regressors+1, 1); % Extra term for DC offset
-    for k = 1:num_regressors
-        r = regressors{k};
-        Xs{k} = ctxstr.core.concatenate_trials(r.X_by_trial, trial_inds);
-    end
-    Xs{end} = ones(1,size(Xs{1},2)); % DC offset
-    X = cell2mat(Xs)'; % [num_frames x num_regressor_dofs]
 end
 
 function D = build_squared_diff_matrix(regressors)
