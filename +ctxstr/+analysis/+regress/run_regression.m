@@ -61,21 +61,12 @@ motion_regressor = ctxstr.analysis.regress.define_regressor_full('motion', motio
 
 spacing = 3; % samples
 
+accel_regressor = ctxstr.analysis.regress.define_regressor_smooth('accel', accel, 3, 3, spacing, t, trials);
 velocity_regressor = ctxstr.analysis.regress.define_regressor_smooth('velocity', velocity, 3, 3, spacing, t, trials);
 reward_regressor = ctxstr.analysis.regress.define_regressor_smooth('reward', reward_frames, 3, 3, spacing, t, trials);
 motion_regressor = ctxstr.analysis.regress.define_regressor_smooth('motion', motion_frames, 3, 18, spacing, t, trials);
 
-%% Compare models
-
-model_no = 1;
-model = {motion_regressor, reward_regressor};
-
-%%
-
-model_no = 2;
-model = {velocity_regressor, motion_regressor, reward_regressor};
-
-%% Run regression
+%% Select cell for analysis
 
 brain_area = 'str'; % 'ctx' or 'str'
 cell_idx = 10;
@@ -93,9 +84,49 @@ cprintf('blue', '%s-%s, Cell %d\n', dataset_name, brain_area, cell_idx);
 fprintf('- Shows activity in %d out of %d trials (%.1f%%)\n',...
     num_active_trials, num_st_trials, 100*num_active_trials/num_st_trials);
 
+%% Compare models
+
+model_no = 0;
+model = {velocity_regressor};
+
 %%
 
-num_splits = 3;
+model_no = 1;
+model = {accel_regressor};
+
+%%
+
+model_no = 2;
+model = {velocity_regressor, accel_regressor};
+
+%%
+
+model_no = 2;
+model = {motion_regressor};
+
+%%
+
+model_no = 3;
+model = {reward_regressor};
+
+%%
+
+model_no = 4;
+model = {motion_regressor, reward_regressor};
+
+%%
+
+model_no = 5;
+model = {velocity_regressor, motion_regressor};
+
+%%
+
+model_no = 6;
+model = {velocity_regressor, motion_regressor, reward_regressor};
+
+%%
+
+num_splits = 10;
 R2_vals = zeros(1,num_splits);
 
 alpha = 0.95; % Elastic net parameter (0==ridge; 1==lasso)
@@ -115,13 +146,15 @@ for split_no = 1:num_splits
     R2_vals(split_no) = test_results.R2(test_results.best_ind);
     
     % Show regression results
-    fig_id = cell_idx * 1e3 + model_no * 1e2 + split_no;
-    figure(fig_id);
-    clf;
-    ctxstr.analysis.regress.visualize_fit(...
-        time_by_trial, train_trial_inds, test_trial_inds,...
-        model, kernels, train_results, test_results,...
-        t, reward_frames, motion_frames, velocity, accel, lick_rate);
+    if split_no < 4
+        fig_id = cell_idx * 1e3 + model_no * 1e2 + split_no;
+        figure(fig_id);
+        clf;
+        ctxstr.analysis.regress.visualize_fit(...
+            time_by_trial, train_trial_inds, test_trial_inds,...
+            model, kernels, train_results, test_results,...
+            t, reward_frames, motion_frames, velocity, accel, lick_rate);
+    end
     title(sprintf('%s-%s, Cell %d, \\alpha=%.2f, split=%d',...
         dataset_name, brain_area, cell_idx, alpha, split_no));
 end

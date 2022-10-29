@@ -14,8 +14,10 @@ traces_train = ctxstr.core.concatenate_trials(traces_by_trial, train_trial_inds)
 y_train = traces_train(:,cell_idx);
 
 % FIXME: Note that build_design_matrix actually adds a column of ones at
-% the end to fit the DC offset. Not sure if this is the most "clean"
-% approach when using the glmnet package.
+% the end to fit the DC offset. This isn't the most "clean" approach when
+% when using the glmnet package. The fix would be to get rid of the bias
+% column in build_design_matrix, and modify the bernoulli_nll function to
+% accept the bias term as a parameter separate from the weights.
 X_train = ctxstr.analysis.regress.build_design_matrix(model, train_trial_inds); % [num_frames x num_preds]
 
 options = glmnetSet;
