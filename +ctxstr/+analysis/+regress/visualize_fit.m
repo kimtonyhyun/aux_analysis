@@ -86,9 +86,8 @@ num_regressors = length(model);
 for k = 1:num_regressors
     sp(5, num_regressors, 4*num_regressors+k);
     r = model{k};
-    weights = kernels{k}(:,best_ind);
-    kernel = r.basis_vectors' * weights;
-    stem(r.t_kernel, kernel, 'm.-');
+    best_kernel = kernels{k}(:,best_ind);
+    stem(r.t_kernel, best_kernel, 'm.-');
     title(sprintf('%s (%s; %d dofs)', r.name, r.type, r.num_dofs), 'Interpreter', 'none');
     if r.num_dofs > 1
         xlim(r.t_kernel([1 end]));

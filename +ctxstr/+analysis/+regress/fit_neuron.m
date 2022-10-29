@@ -47,18 +47,23 @@ for j = 1:num_lambdas
     w_init = w_opts(:,j); % Use previously computed optimum as the initial guess for next run
 end
 
-% Parse w_opt into individual kernels
+% Parse w_opt into individual kernels.
 kernels = cell(1, num_regressors+1);
 
 ind = 1;
 for k = 1:num_regressors
     r = model{k};
-    kernels{k} = w_opts(ind:ind+r.num_dofs-1,:);
+    % In case we used temporal basis functions, convert the weights into an
+    % actual kernel function in time. TODO: Save weights too?
+    kernels{k} = r.basis_vectors' * w_opts(ind:ind+r.num_dofs-1,:);
     ind = ind + r.num_dofs;
 end
 kernels{end} = w_opts(end,:); % Bias term
 
-train_info = pack_info(y_train, lambdas, y_train_fits, train_nlls);
+% Fit null model (i.e. constant predictor) to training data
+[train_nll_null, w_null] = ctxstr.analysis.regress.compute_null_model(y_train);
+
+train_info = pack_info(y_train, lambdas, y_train_fits, train_nlls, train_nll_null);
 
 
 % Evaluate fit using on test data
@@ -79,7 +84,10 @@ for j = 1:num_lambdas
     test_nlls(j) = ctxstr.analysis.regress.bernoulli_nll(w_opts(:,j), X_test, y_test);
 end
 
-test_info = pack_info(y_test, lambdas, y_test_fits, test_nlls);
+% Evaluate the null model on testing data
+test_nll_null = ctxstr.analysis.regress.bernoulli_nll(w_null, ones(size(y_test)), y_test);
+
+test_info = pack_info(y_test, lambdas, y_test_fits, test_nlls, test_nll_null);
 
 % For convenience. TODO: Consider other output formats
 [~, best_ind] = max(test_info.R2);
@@ -122,9 +130,7 @@ function D = build_squared_diff_matrix(regressors)
     D = blkdiag(D,0); % Last row/col for the DC offset
 end
 
-function info = pack_info(y, lambdas, y_fits, nlls)
-    nll_null = ctxstr.analysis.regress.compute_null_model(y);
-    
+function info = pack_info(y, lambdas, y_fits, nlls, nll_null)
     info.y = y;
     info.lambdas = lambdas;
     info.y_fits = y_fits;
