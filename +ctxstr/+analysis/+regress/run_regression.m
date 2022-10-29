@@ -76,7 +76,7 @@ model = {motion_regressor, reward_regressor};
 %% Run regression
 
 brain_area = 'str'; % 'ctx' or 'str'
-cell_idx = 10;
+cell_idx = 5;
 
 switch brain_area
     case 'ctx'
@@ -85,22 +85,32 @@ switch brain_area
         binned_traces_by_trial = binned_str_traces_by_trial;
 end
 
-alpha = 0.95; % Elastic net parameter (0==ridge; 1==lasso)
-lambdas = fliplr(2.^(-20:0.5:5));
-% lambdas = []; % lets glmnet explore regularization weights
+ctxstr.analysis.count_active_trials(cell_idx, binned_traces_by_trial, st_trial_inds);
 
-for split_no = 1:3
-    % Split trials into training and testing sets
-    test_trial_inds = st_trial_inds(split_no:3:end); % Every third trial is a test trial
-    train_trial_inds = setdiff(st_trial_inds, test_trial_inds);   
+%%
+
+num_splits = 10;
+R2_vals = zeros(1,num_splits);
+
+alpha = 0.95; % Elastic net parameter (0==ridge; 1==lasso)
+lambdas = []; % lets glmnet explore regularization weights
+
+% We will be makig lots of figures, one for each train/test split, so it's
+% convenient to dock all figures.
+set(0, 'DefaultFigureWindowStyle', 'docked');
+
+for split_no = 1:num_splits
+    [train_trial_inds, test_trial_inds] = ctxstr.analysis.regress.generate_train_test_trials(st_trial_inds, split_no);
     
     [kernels, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
         binned_traces_by_trial, cell_idx,...
         model,...
         train_trial_inds, test_trial_inds, alpha, lambdas);
-
+    R2_vals(split_no) = test_results.R2(test_results.best_ind);
+    
     % Show regression results
     figure(fig_offset + split_no);
+    clf;
     ctxstr.analysis.regress.visualize_fit(...
         time_by_trial, train_trial_inds, test_trial_inds,...
         model, kernels, train_results, test_results,...
@@ -108,6 +118,9 @@ for split_no = 1:3
     title(sprintf('%s-%s, Cell %d, \\alpha=%.2f, split=%d',...
         dataset_name, brain_area, cell_idx, alpha, split_no));
 end
+
+fprintf('  - R^2 = %.3f+/-%.3f across %d train/test splits\n',...
+    mean(R2_vals), std(R2_vals)/sqrt(num_splits), num_splits);
 
 %% Show cell raster
 
