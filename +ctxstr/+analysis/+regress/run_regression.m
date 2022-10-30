@@ -10,6 +10,10 @@ bin_threshold = 0.2;
 [binned_str_traces, binned_str_traces_by_trial] = ...
     ctxstr.core.binarize_traces(str_traces, str_traces_by_trial, bin_threshold);
 
+% We will be makig lots of figures, one for each train/test split, so it's
+% convenient to dock all figures.
+set(0, 'DefaultFigureWindowStyle', 'docked');
+
 %% Resample continuous behavioral regressors to neural data sampling rate
 
 % Note: the original velocity calculation is performed at 10 Hz, so the
@@ -51,12 +55,6 @@ motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 %     reward_frames, motion_frames);
 % title(sprintf('%s: All behavioral regressors', dataset_name));
 
-%% Full rank kernels
-
-velocity_regressor = ctxstr.analysis.regress.define_regressor_full('velocity', velocity, 5, 45, t, trials);
-reward_regressor = ctxstr.analysis.regress.define_regressor_full('reward', reward_frames, 15, 15, t, trials);
-motion_regressor = ctxstr.analysis.regress.define_regressor_full('motion', motion_frames, 15, 60, t, trials);
-
 %% Kernels represented by smooth temporal basis functions
 
 spacing = 3; % samples
@@ -67,6 +65,21 @@ lick_regressor = ctxstr.analysis.regress.define_regressor_smooth('lick_rate', li
 
 reward_regressor = ctxstr.analysis.regress.define_regressor_smooth('reward', reward_frames, 3, 3, spacing, t, trials);
 motion_regressor = ctxstr.analysis.regress.define_regressor_smooth('motion', motion_frames, 3, 18, spacing, t, trials);
+
+%% Compare models
+
+generate_model = @(rs) ctxstr.analysis.regress.model(rs); % Shorthand
+
+models = {generate_model(velocity_regressor);
+          generate_model(accel_regressor);
+          generate_model(lick_regressor);
+          generate_model(motion_regressor);
+          generate_model(reward_regressor);
+          generate_model({motion_regressor, reward_regressor});
+          generate_model({velocity_regressor, motion_regressor, reward_regressor});
+          generate_model({velocity_regressor, accel_regressor, lick_regressor, motion_regressor, reward_regressor});
+         };
+num_models = length(models);
 
 %% Select cell for analysis
 
@@ -86,50 +99,68 @@ cprintf('blue', '%s-%s, Cell %d\n', dataset_name, brain_area, cell_idx);
 fprintf('- Shows activity in %d out of %d trials (%.1f%%)\n',...
     num_active_trials, num_st_trials, 100*num_active_trials/num_st_trials);
 
-%% Compare models
-
-model_no = 1;
-model = ctxstr.analysis.regress.model(velocity_regressor);
-
 %%
 
-num_splits = 10;
-R2_vals = zeros(1,num_splits);
+num_splits = 10; % Number of training/test splits
+R2_vals = zeros(num_models, num_splits);
 
 alpha = 0.95; % Elastic net parameter (0==ridge; 1==lasso)
 lambdas = []; % lets glmnet explore regularization weights
 
-% We will be makig lots of figures, one for each train/test split, so it's
-% convenient to dock all figures.
-set(0, 'DefaultFigureWindowStyle', 'docked');
+for model_no = 1:num_models
+    model = models{model_no};
+    fprintf('- Model no=%d (%s): ', model_no, model.get_desc);
+    for split_no = 1:num_splits
+        [train_trial_inds, test_trial_inds] = ctxstr.analysis.regress.generate_train_test_trials(st_trial_inds, split_no);
 
-for split_no = 1:num_splits
-    [train_trial_inds, test_trial_inds] = ctxstr.analysis.regress.generate_train_test_trials(st_trial_inds, split_no);
-    
-    [kernels, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
-        binned_traces_by_trial, cell_idx,...
-        model,...
-        train_trial_inds, test_trial_inds, alpha, lambdas);
-    R2_vals(split_no) = test_results.R2(test_results.best_ind);
-    
-    % Show regression results
-    if split_no < 4
-        fig_id = cell_idx * 1e3 + model_no * 1e2 + split_no;
-        figure(fig_id);
-        clf;
-        ctxstr.analysis.regress.visualize_fit(...
-            time_by_trial, train_trial_inds, test_trial_inds,...
-            model, kernels, train_results, test_results,...
-            t, reward_frames, motion_frames, velocity, accel, lick_rate);
+        [kernels, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
+            binned_traces_by_trial, cell_idx,...
+            model,...
+            train_trial_inds, test_trial_inds, alpha, lambdas);
+        
+        % Store the optimal test R2
+        R2_vals(model_no, split_no) = test_results.R2(test_results.best_ind);
+
+        % Show regression results. Note, we show the plots only for the
+        % first 3 splits, as these are deterministic and can be directly
+        % compared across models.
+        if split_no < 4
+            fig_id = 10*model_no + split_no;
+            figure(fig_id);
+            clf;
+            ctxstr.analysis.regress.visualize_fit(...
+                time_by_trial, train_trial_inds, test_trial_inds,...
+                model, kernels, train_results, test_results,...
+                t, reward_frames, motion_frames, velocity, accel, lick_rate);
+        end
+        title(sprintf('%s-%s, Cell %d, \\alpha=%.2f, split=%d',...
+            dataset_name, brain_area, cell_idx, alpha, split_no));
     end
-    title(sprintf('%s-%s, Cell %d, \\alpha=%.2f, split=%d',...
-        dataset_name, brain_area, cell_idx, alpha, split_no));
+
+    fprintf('R^2=%.3f+/-%.3f across %d train/test splits\n',...
+        mean(R2_vals(model_no,:)),...
+        std(R2_vals(model_no,:))/sqrt(num_splits),...
+        num_splits);
 end
 
-fprintf('- Model no=%d (%s): R^2=%.3f+/-%.3f across %d train/test splits\n',...
-    model_no, model.get_desc, mean(R2_vals), std(R2_vals)/sqrt(num_splits), num_splits);
+%% Compare results across models
 
-%% Show cell raster
+figure(1000);
+hold on;
+errorbar(mean(R2_vals,2), std(R2_vals,[],2)/sqrt(num_splits), '.--', 'MarkerSize', 18);
+xlim([0 num_models+1]);
+set(gca, 'XTick', 1:num_models);
+set(gca, 'XTickLabel', cellfun(@(m) m.get_desc, models, 'UniformOutput', false));
+set(gca, 'TickLabelInterpreter', 'none');
+xtickangle(45);
+xlabel('Model');
+ylim([0 0.5]);
+ylabel('Test R^2');
+set(gca, 'TickLength', [0 0]);
+set(gca, 'FontSize', 18);
+grid on;
+
+%% Show cell raster (use for cross referencing cell identity)
 
 switch brain_area
     case 'ctx'
@@ -141,9 +172,3 @@ end
 figure;
 ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, binned_traces(cell_idx,:), t);
 title(sprintf('%s-%s, Cell %d', dataset_name, brain_area, cell_idx));
-
-%% Use for analyzing kernels for continuous predictor variables
-
-best_ind = test_results.best_ind;
-figure;
-ctxstr.analysis.regress.visualize_step_response(model{1}, kernels{1}(:,best_ind));
