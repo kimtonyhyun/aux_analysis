@@ -61,15 +61,17 @@ motion_regressor = ctxstr.analysis.regress.define_regressor_full('motion', motio
 
 spacing = 3; % samples
 
-accel_regressor = ctxstr.analysis.regress.define_regressor_smooth('accel', accel, 3, 3, spacing, t, trials);
 velocity_regressor = ctxstr.analysis.regress.define_regressor_smooth('velocity', velocity, 3, 3, spacing, t, trials);
+accel_regressor = ctxstr.analysis.regress.define_regressor_smooth('accel', accel, 3, 3, spacing, t, trials);
+lick_regressor = ctxstr.analysis.regress.define_regressor_smooth('lick_rate', lick_rate, 3, 3, spacing, t, trials);
+
 reward_regressor = ctxstr.analysis.regress.define_regressor_smooth('reward', reward_frames, 3, 3, spacing, t, trials);
 motion_regressor = ctxstr.analysis.regress.define_regressor_smooth('motion', motion_frames, 3, 18, spacing, t, trials);
 
 %% Select cell for analysis
 
 brain_area = 'str'; % 'ctx' or 'str'
-cell_idx = 10;
+cell_idx = 5;
 
 switch brain_area
     case 'ctx'
@@ -86,43 +88,8 @@ fprintf('- Shows activity in %d out of %d trials (%.1f%%)\n',...
 
 %% Compare models
 
-model_no = 0;
-model = {velocity_regressor};
-
-%%
-
 model_no = 1;
-model = {accel_regressor};
-
-%%
-
-model_no = 2;
-model = {velocity_regressor, accel_regressor};
-
-%%
-
-model_no = 2;
-model = {motion_regressor};
-
-%%
-
-model_no = 3;
-model = {reward_regressor};
-
-%%
-
-model_no = 4;
-model = {motion_regressor, reward_regressor};
-
-%%
-
-model_no = 5;
-model = {velocity_regressor, motion_regressor};
-
-%%
-
-model_no = 6;
-model = {velocity_regressor, motion_regressor, reward_regressor};
+model = ctxstr.analysis.regress.model(velocity_regressor);
 
 %%
 
@@ -159,8 +126,8 @@ for split_no = 1:num_splits
         dataset_name, brain_area, cell_idx, alpha, split_no));
 end
 
-fprintf('- Model no=%d: R^2=%.3f+/-%.3f across %d train/test splits\n',...
-    model_no, mean(R2_vals), std(R2_vals)/sqrt(num_splits), num_splits);
+fprintf('- Model no=%d (%s): R^2=%.3f+/-%.3f across %d train/test splits\n',...
+    model_no, model.get_desc, mean(R2_vals), std(R2_vals)/sqrt(num_splits), num_splits);
 
 %% Show cell raster
 

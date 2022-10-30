@@ -33,12 +33,11 @@ y_train_fits = glmnetPredict(fit, X_train, [], 'response');
 
 % Parse w_opt into individual kernels.
 %------------------------------------------------------------
-num_regressors = length(model);
-kernels = cell(1, num_regressors+1);
+kernels = cell(1, model.num_regressors+1);
 
 ind = 1;
-for k = 1:num_regressors
-    r = model{k};
+for k = 1:model.num_regressors
+    r = model.regressors{k};
     % In case we used temporal basis functions, convert the weights into an
     % actual kernel function in time. TODO: Save weights too?
     kernels{k} = r.basis_vectors' * w_opts(ind:ind+r.num_dofs-1,:);

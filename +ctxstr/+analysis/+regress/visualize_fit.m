@@ -89,11 +89,11 @@ zoom xon;
 
 % Plot kernels
 %------------------------------------------------------------
-num_regressors = length(model);
+num_regressors = model.num_regressors;
 
 for k = 1:num_regressors
     sp(5, num_regressors, 4*num_regressors+k);
-    r = model{k};
+    r = model.regressors{k};
     best_kernel = kernels{k}(:,best_ind);
     stem(r.t_kernel, best_kernel, 'm.-');
     title(sprintf('%s (%s; %d dofs)', r.name, r.type, r.num_dofs), 'Interpreter', 'none');
