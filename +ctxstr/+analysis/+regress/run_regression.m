@@ -2,6 +2,8 @@ clear;
 
 load('resampled_data.mat');
 
+% Load neural data (CASCADE traces) and binarize
+%----------------------------------------------------------------------
 bin_threshold = 0.2;
 
 [binned_ctx_traces, binned_ctx_traces_by_trial] = ...
@@ -10,14 +12,12 @@ bin_threshold = 0.2;
 [binned_str_traces, binned_str_traces_by_trial] = ...
     ctxstr.core.binarize_traces(str_traces, str_traces_by_trial, bin_threshold);
 
-% We will be makig lots of figures, one for each train/test split, so it's
-% convenient to dock all figures.
-set(0, 'DefaultFigureWindowStyle', 'docked');
-
-%% Resample continuous behavioral regressors to neural data sampling rate
+% Resample continuous behavioral regressors to neural data sampling rate
+%----------------------------------------------------------------------
 
 % Note: the original velocity calculation is performed at 10 Hz, so the
-% interpolation below upsamples the original data.
+% interpolation below upsamples the original data. Consider calculating
+% velocity directly at a 15 Hz timebase.
 velocity = interp1(session.behavior.velocity(:,1), session.behavior.velocity(:,2), t);
 accel = ctxstr.analysis.compute_derivative(t, velocity);
 
@@ -29,7 +29,8 @@ velocity = velocity / max(abs(velocity));
 accel = accel / max(abs(accel));
 lick_rate = lick_rate / max(lick_rate);
 
-%% Resample event-type behavioral regressors to neural data sampling rate
+% Resample event-type behavioral regressors to neural data sampling rate
+%----------------------------------------------------------------------
 
 % Note: By filtering for reward and motion onset times from ST trials only,
 % we prevent those events from non-ST trials from "leaking" into ST trials.
@@ -54,6 +55,8 @@ motion_frames = ctxstr.core.assign_events_to_frames(selected_motion_times, t);
 %     lick_times, lick_rate,...
 %     reward_frames, motion_frames);
 % title(sprintf('%s: All behavioral regressors', dataset_name));
+
+cprintf('blue', 'Loaded "%s" data for regression analyses\n', dataset_name);
 
 %% Kernels represented by smooth temporal basis functions
 
@@ -81,10 +84,10 @@ models = {generate_model(velocity_regressor);
          };
 num_models = length(models);
 
-%% Select cell for analysis
+%% Select a single cell for analysis (see also run_regression_all.m)
 
 brain_area = 'str'; % 'ctx' or 'str'
-cell_idx = 5;
+cell_idx = 124;
 
 switch brain_area
     case 'ctx'
@@ -106,6 +109,10 @@ R2_vals = zeros(num_models, num_splits);
 
 alpha = 0.95; % Elastic net parameter (0==ridge; 1==lasso)
 lambdas = []; % lets glmnet explore regularization weights
+
+% We will be makig lots of figures, one for each train/test split, so it's
+% convenient to dock all figures.
+set(0, 'DefaultFigureWindowStyle', 'docked');
 
 for model_no = 1:num_models
     model = models{model_no};
@@ -143,23 +150,6 @@ for model_no = 1:num_models
         num_splits);
 end
 
-%% Compare results across models
-
-figure(1000);
-hold on;
-errorbar(mean(R2_vals,2), std(R2_vals,[],2)/sqrt(num_splits), '.--', 'MarkerSize', 18);
-xlim([0 num_models+1]);
-set(gca, 'XTick', 1:num_models);
-set(gca, 'XTickLabel', cellfun(@(m) m.get_desc, models, 'UniformOutput', false));
-set(gca, 'TickLabelInterpreter', 'none');
-xtickangle(45);
-xlabel('Model');
-ylim([0 0.5]);
-ylabel('Test R^2');
-set(gca, 'TickLength', [0 0]);
-set(gca, 'FontSize', 18);
-grid on;
-
 %% Show cell raster (use for cross referencing cell identity)
 
 switch brain_area
@@ -172,3 +162,13 @@ end
 figure;
 ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, binned_traces(cell_idx,:), t);
 title(sprintf('%s-%s, Cell %d', dataset_name, brain_area, cell_idx));
+
+%% Fit all neurons
+
+alpha = 0.95;
+num_splits = 10;
+active_frac_thresh = 0.1; % Only fit neurons that show activity on >10% of trials
+
+[ctx_fit.results, ctx_fit.data] = ctxstr.analysis.regress.fit_all_neurons(binned_ctx_traces_by_trial, st_trial_inds, models, active_frac_thresh, alpha, num_splits);
+[str_fit.results, str_fit.data] = ctxstr.analysis.regress.fit_all_neurons(binned_str_traces_by_trial, st_trial_inds, models, active_frac_thresh, alpha, num_splits);
+
