@@ -12,7 +12,8 @@ results.error = zeros(num_neurons, num_models);
 for k = 1:num_neurons
     cprintf('blue', 'Cell=%d out of %d (%s)\n', k, num_neurons, datestr(now));
     
-    [~, active_frac] = ctxstr.analysis.count_active_trials(k, binned_traces_by_trial, st_trial_inds);
+    binned_traces_by_trial_k = ctxstr.core.get_traces_for_cell(binned_traces_by_trial, k);
+    [~, active_frac] = ctxstr.analysis.count_active_trials(binned_traces_by_trial_k, st_trial_inds);
     results.active_fracs(k) = active_frac;
     
     if active_frac < active_frac_thresh
@@ -28,10 +29,10 @@ for k = 1:num_neurons
                 [train_trial_inds, test_trial_inds] = ctxstr.analysis.regress.generate_train_test_trials(st_trial_inds, s);
                 
                 [kernels, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
-                    binned_traces_by_trial, k, model,...
+                    binned_traces_by_trial_k, model,...
                     train_trial_inds, test_trial_inds, alpha, []);
                 
-                R2_vals(s) = test_results.R2(test_results.best_ind);
+                R2_vals(s) = test_results.R2(test_results.best_fit_ind);
                 
                 % Save full fit data for later inspection. All information
                 % needed to run 'visualize_fit' needs to be saved.

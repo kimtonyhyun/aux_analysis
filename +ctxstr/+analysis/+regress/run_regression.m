@@ -87,16 +87,16 @@ num_models = length(models);
 %% Select a single cell for analysis (see also run_regression_all.m)
 
 brain_area = 'str'; % 'ctx' or 'str'
-cell_idx = 124;
+cell_idx = 10;
 
 switch brain_area
     case 'ctx'
-        binned_traces_by_trial = binned_ctx_traces_by_trial;
+        binned_traces_by_trial = ctxstr.core.get_traces_for_cell(binned_ctx_traces_by_trial, cell_idx);
     case 'str'
-        binned_traces_by_trial = binned_str_traces_by_trial;
+        binned_traces_by_trial = ctxstr.core.get_traces_for_cell(binned_str_traces_by_trial, cell_idx);
 end
 
-num_active_trials = ctxstr.analysis.count_active_trials(cell_idx, binned_traces_by_trial, st_trial_inds);
+num_active_trials = ctxstr.analysis.count_active_trials(binned_traces_by_trial, st_trial_inds);
 num_st_trials = length(st_trial_inds);
 cprintf('blue', '%s-%s, Cell %d\n', dataset_name, brain_area, cell_idx);
 fprintf('- Shows activity in %d out of %d trials (%.1f%%)\n',...
@@ -121,12 +121,11 @@ for model_no = 1:num_models
         [train_trial_inds, test_trial_inds] = ctxstr.analysis.regress.generate_train_test_trials(st_trial_inds, split_no);
 
         [kernels, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
-            binned_traces_by_trial, cell_idx,...
-            model,...
+            binned_traces_by_trial, model,...
             train_trial_inds, test_trial_inds, alpha, lambdas);
         
         % Store the optimal test R2
-        R2_vals(model_no, split_no) = test_results.R2(test_results.best_ind);
+        R2_vals(model_no, split_no) = test_results.R2(test_results.best_fit_ind);
 
         % Show regression results. Note, we show the plots only for the
         % first 3 splits, as these are deterministic and can be directly
@@ -136,7 +135,7 @@ for model_no = 1:num_models
             figure(fig_id);
             clf;
             ctxstr.analysis.regress.visualize_fit(...
-                time_by_trial, train_trial_inds, test_trial_inds,...
+                time_by_trial, binned_traces_by_trial, train_trial_inds, test_trial_inds,...
                 model, kernels, train_results, test_results,...
                 t, reward_frames, motion_frames, velocity, accel, lick_rate);
         end
@@ -165,10 +164,13 @@ title(sprintf('%s-%s, Cell %d', dataset_name, brain_area, cell_idx));
 
 %% Fit all neurons
 
+active_frac_thresh = 0.1; % Only fit neurons that show activity on >10% of trials
 alpha = 0.95;
 num_splits = 10;
-active_frac_thresh = 0.1; % Only fit neurons that show activity on >10% of trials
 
 [ctx_fit.results, ctx_fit.data] = ctxstr.analysis.regress.fit_all_neurons(binned_ctx_traces_by_trial, st_trial_inds, models, active_frac_thresh, alpha, num_splits);
 [str_fit.results, str_fit.data] = ctxstr.analysis.regress.fit_all_neurons(binned_str_traces_by_trial, st_trial_inds, models, active_frac_thresh, alpha, num_splits);
 
+% save('regression.mat', 'ctx_fit', 'str_fit', 'active_frac_thresh', 'alpha', 'num_splits',...
+%     'models', 'reward_frames', 'motion_frames', 'velocity', 'accel', 'lick_rate',...
+%     'dataset_name', 'time_by_trial', 'bin_threshold', 'binned_ctx_traces_by_trial', 'binned_str_traces_by_trial');

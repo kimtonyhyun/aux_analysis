@@ -1,9 +1,4 @@
-function traces_j = get_traces_for_cell(j, traces)
+function cell_traces_by_trial = get_traces_for_cell(traces_by_trial, cell_idx)
 
-traces_j = cell(size(traces));
-
-for k = 1:length(traces)
-    if ~isempty(traces{k})
-        traces_j{k} = traces{k}(j,:);
-    end
-end
+cell_traces_by_trial = cellfun(@(x) x(cell_idx,:), traces_by_trial,...
+                                'UniformOutput', false);

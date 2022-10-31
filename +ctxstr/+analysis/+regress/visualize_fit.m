@@ -1,14 +1,14 @@
-function visualize_fit(time_by_trial, train_trial_inds, test_trial_inds,...
+function visualize_fit(time_by_trial, binned_traces_by_trial, train_trial_inds, test_trial_inds,...
     model, kernels, train_results, test_results,...
     t, reward_frames, motion_frames, velocity, accel, lick_rate)
 
 sp = @(m,n,p) subtightplot(m, n, p, 0.05, 0.04, 0.04); % Gap, Margin-X, Margin-Y
 
 lambdas = test_results.lambdas;
-best_ind = test_results.best_ind;
-best_lambda = lambdas(best_ind);
-best_R2 = test_results.R2(best_ind);
-best_bias = kernels{end}(best_ind);
+best_fit_ind = test_results.best_fit_ind;
+best_lambda = lambdas(best_fit_ind);
+best_R2 = test_results.R2(best_fit_ind);
+best_bias = kernels{end}(best_fit_ind);
 clf;
 
 l_lims = [min(lambdas) max(lambdas)];
@@ -63,9 +63,10 @@ ylabel('Velocity (norm.)');
 %------------------------------------------------------------
 ax_train = sp(5,1,3);
 t_train = ctxstr.core.concatenate_trials(time_by_trial, train_trial_inds);
+y_train = ctxstr.core.concatenate_trials(binned_traces_by_trial, train_trial_inds);
 plot_traces_by_trial(...
-    {train_results.y', t_train, [0 0.5 0];...
-     train_results.y_fits(:,best_ind)', t_train, 'm'},...
+    {y_train, t_train, [0 0.5 0];...
+     train_results.y_fits', t_train, 'm'},...
     time_by_trial, train_trial_inds,...
     t, reward_frames, motion_frames);
 ylabel(sprintf('Training fit (%d trials)', length(train_trial_inds)));
@@ -74,9 +75,10 @@ ylabel(sprintf('Training fit (%d trials)', length(train_trial_inds)));
 %------------------------------------------------------------
 ax_test = sp(5,1,4);
 t_test = ctxstr.core.concatenate_trials(time_by_trial, test_trial_inds);
+y_test = ctxstr.core.concatenate_trials(binned_traces_by_trial, test_trial_inds);
 plot_traces_by_trial(...
-    {test_results.y', t_test, [0 0.5 0];...
-     test_results.y_fits(:,best_ind)', t_test, 'm'},...
+    {y_test, t_test, [0 0.5 0];...
+     test_results.y_fits', t_test, 'm'},...
     time_by_trial, test_trial_inds,...
     t, reward_frames, motion_frames);
 ylabel(sprintf('Testing fit (%d trials)', length(test_trial_inds)));
@@ -94,8 +96,7 @@ num_regressors = model.num_regressors;
 for k = 1:num_regressors
     sp(5, num_regressors, 4*num_regressors+k);
     r = model.regressors{k};
-    best_kernel = kernels{k}(:,best_ind);
-    stem(r.t_kernel, best_kernel, 'm.-');
+    stem(r.t_kernel, kernels{k}, 'm.-');
     title(sprintf('%s (%s; %d dofs)', r.name, r.type, r.num_dofs), 'Interpreter', 'none');
     if r.num_dofs > 1
         xlim(r.t_kernel([1 end]));
