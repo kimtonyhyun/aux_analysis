@@ -5,7 +5,8 @@ num_models = length(models);
 
 fit_data = cell(num_neurons, num_models, num_splits);
 
-results.active_fracs = zeros(num_neurons, 1); % Fraction of trials with activity
+results.active_fracs = zeros(num_neurons, 1);  % Fraction of trials with activity
+results.fit_performed = false(num_neurons, 1); % Indicate whether fit was performed for this cell
 results.R2 = zeros(num_neurons, num_models);
 results.error = zeros(num_neurons, num_models);
 
@@ -20,6 +21,7 @@ for k = 1:num_neurons
         cprintf('red', '- Activity in only %.1f%% of ST trials. Skip fit!\n', 100*active_frac);
     else
         fprintf('- Activity on %.1f%% of ST trials\n', 100*active_frac);
+        results.fit_performed(k) = true;
         tic;
         for m = 1:num_models
             model = models{m};

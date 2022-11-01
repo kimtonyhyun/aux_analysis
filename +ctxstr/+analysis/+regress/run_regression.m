@@ -85,8 +85,22 @@ models = {generate_model(velocity_regressor);
           generate_model({velocity_regressor, accel_regressor, lick_regressor, motion_regressor, reward_regressor});
          };
 num_models = length(models);
+fprintf('Evaluating %d models...\n', num_models);
 
-%% Select a single cell for analysis (see also run_regression_all.m)
+%% Fit all neurons
+
+active_frac_thresh = 0.1; % Only fit neurons that show activity on >10% of trials
+alpha = 0.95;
+num_splits = 10;
+
+[ctx_fit.results, ctx_fit.data] = ctxstr.analysis.regress.fit_all_neurons(binned_ctx_traces_by_trial, st_trial_inds, models, active_frac_thresh, alpha, num_splits);
+[str_fit.results, str_fit.data] = ctxstr.analysis.regress.fit_all_neurons(binned_str_traces_by_trial, st_trial_inds, models, active_frac_thresh, alpha, num_splits);
+
+save('regression.mat', 'ctx_fit', 'str_fit', 'active_frac_thresh', 'alpha', 'num_splits',...
+    'models', 't', 'reward_frames', 'motion_frames', 'velocity', 'accel', 'lick_rate',...
+    'dataset_name', 'time_by_trial', 'bin_threshold', 'binned_ctx_traces_by_trial', 'binned_str_traces_by_trial');
+
+%% Select a single cell for analysis
 
 brain_area = 'str'; % 'ctx' or 'str'
 cell_idx = 23;
@@ -163,16 +177,3 @@ end
 figure;
 ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, binned_traces(cell_idx,:), t);
 title(sprintf('%s-%s, Cell %d', dataset_name, brain_area, cell_idx));
-
-%% Fit all neurons
-
-active_frac_thresh = 0.1; % Only fit neurons that show activity on >10% of trials
-alpha = 0.95;
-num_splits = 10;
-
-[ctx_fit.results, ctx_fit.data] = ctxstr.analysis.regress.fit_all_neurons(binned_ctx_traces_by_trial, st_trial_inds, models, active_frac_thresh, alpha, num_splits);
-[str_fit.results, str_fit.data] = ctxstr.analysis.regress.fit_all_neurons(binned_str_traces_by_trial, st_trial_inds, models, active_frac_thresh, alpha, num_splits);
-
-save('regression.mat', 'ctx_fit', 'str_fit', 'active_frac_thresh', 'alpha', 'num_splits',...
-    'models', 't', 'reward_frames', 'motion_frames', 'velocity', 'accel', 'lick_rate',...
-    'dataset_name', 'time_by_trial', 'bin_threshold', 'binned_ctx_traces_by_trial', 'binned_str_traces_by_trial');
