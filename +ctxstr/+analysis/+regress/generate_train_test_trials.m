@@ -15,3 +15,7 @@ switch split_no
 end
 
 train_trial_inds = setdiff(trial_inds, test_trial_inds);
+
+% To save memory when storing the fit results across many splits
+train_trial_inds = uint16(train_trial_inds);
+test_trial_inds = uint16(test_trial_inds);

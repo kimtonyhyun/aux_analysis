@@ -72,7 +72,7 @@ test_R2s = 1 - test_nlls / test_nll_null;
 % of the fit result (esp. with 'fit_all_neurons.m' in mind).
 %------------------------------------------------------------
 for k = 1:model.num_regressors
-    kernels{k} = kernels{k}(:,best_fit_ind);
+    kernels{k} = single(kernels{k}(:,best_fit_ind));
 end
 
 test_info = pack_info(fit.lambda, y_test_fits(:,best_fit_ind), test_R2s);
@@ -86,7 +86,7 @@ train_info.w_null = w_null;
 end
 
 function info = pack_info(lambdas, y_fits, R2s)
-    info.lambdas = lambdas;
-    info.y_fits = y_fits;
-    info.R2 = R2s;
+    info.lambdas = single(lambdas);
+    info.y_fits = single(y_fits);
+    info.R2 = single(R2s);
 end
