@@ -28,7 +28,7 @@ for k = 1:num_neurons
             for s = 1:num_splits
                 [train_trial_inds, test_trial_inds] = ctxstr.analysis.regress.generate_train_test_trials(st_trial_inds, s);
                 
-                [kernels, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
+                [kernels, biases, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
                     binned_traces_by_trial_k, model,...
                     train_trial_inds, test_trial_inds, alpha, []);
                 
@@ -41,6 +41,7 @@ for k = 1:num_neurons
                 fd.test_trial_inds = test_trial_inds;
                 
                 fd.kernels = kernels;
+                fd.biases = biases;
                 fd.train_results = train_results;
                 fd.test_results = test_results;
                 
