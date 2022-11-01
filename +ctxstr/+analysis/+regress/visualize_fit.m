@@ -1,5 +1,5 @@
 function visualize_fit(time_by_trial, binned_traces_by_trial, train_trial_inds, test_trial_inds,...
-    model, kernels, train_results, test_results,...
+    model, kernels, biases, train_results, test_results,...
     t, reward_frames, motion_frames, velocity, accel, lick_rate)
 
 sp = @(m,n,p) subtightplot(m, n, p, 0.05, 0.04, 0.04); % Gap, Margin-X, Margin-Y
@@ -8,7 +8,7 @@ lambdas = test_results.lambdas;
 best_fit_ind = test_results.best_fit_ind;
 best_lambda = lambdas(best_fit_ind);
 best_R2 = test_results.R2(best_fit_ind);
-best_bias = kernels{end}(best_fit_ind);
+best_bias = biases(best_fit_ind);
 clf;
 
 l_lims = [min(lambdas) max(lambdas)];
@@ -33,7 +33,7 @@ xlim(l_lims);
 
 w_null = train_results.w_null;
 sp(5,3,3);
-semilogx(lambdas, kernels{end}, '.-');
+semilogx(lambdas, biases, '.-');
 hold on;
 plot(best_lambda, best_bias, 'mo');
 plot(l_lims, w_null*[1 1], 'k--');

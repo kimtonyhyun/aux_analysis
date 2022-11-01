@@ -87,7 +87,7 @@ num_models = length(models);
 %% Select a single cell for analysis (see also run_regression_all.m)
 
 brain_area = 'str'; % 'ctx' or 'str'
-cell_idx = 10;
+cell_idx = 23;
 
 switch brain_area
     case 'ctx'
@@ -120,7 +120,7 @@ for model_no = 1:num_models
     for split_no = 1:num_splits
         [train_trial_inds, test_trial_inds] = ctxstr.analysis.regress.generate_train_test_trials(st_trial_inds, split_no);
 
-        [kernels, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
+        [kernels, biases, train_results, test_results] = ctxstr.analysis.regress.fit_neuron(...
             binned_traces_by_trial, model,...
             train_trial_inds, test_trial_inds, alpha, lambdas);
         
@@ -136,7 +136,7 @@ for model_no = 1:num_models
             clf;
             ctxstr.analysis.regress.visualize_fit(...
                 time_by_trial, binned_traces_by_trial, train_trial_inds, test_trial_inds,...
-                model, kernels, train_results, test_results,...
+                model, kernels, biases, train_results, test_results,...
                 t, reward_frames, motion_frames, velocity, accel, lick_rate);
         end
         title(sprintf('%s-%s, Cell %d, \\alpha=%.2f, split=%d',...
