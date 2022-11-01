@@ -1,13 +1,13 @@
-function nll = compute_bernoulli_nll(Y, X, w, bias)
+function nll = compute_bernoulli_nll(y, X, w, bias)
 % Formats:
-%   - Y: [num_samples x 1]
+%   - y: [num_samples x 1]
 %   - X: [num_samples x num_dofs]
 %   - w: [num_dofs x 1]
 %   - bias: [1 x 1]
 
-xproj = X*w + bias;
-nll = -Y'*xproj + sum(softrect(xproj));
-nll = nll / length(Y);
+xproj = X*w + bias*ones(size(y)); % Need bias vector, even if X or w = 0
+nll = -y'*xproj + sum(softrect(xproj));
+nll = nll / length(y);
 
 % -------------------------------------------------------------
 % ----- SoftRect Function (log-normalizer) --------------------

@@ -57,7 +57,8 @@ end
 % Evaluate the null model on testing data. Note that we're not fitting a
 % new null model to the test data, but applying the null model from the
 % training data to the test data.
-test_nll_null = ctxstr.analysis.regress.bernoulli_nll(w_null, ones(size(y_test)), y_test);
+test_nll_null = ctxstr.analysis.regress.compute_bernoulli_nll(...
+    y_test, 0, 0, w_null);
 test_R2s = 1 - test_nlls / test_nll_null;
 [~, best_fit_ind] = max(test_R2s);
 
