@@ -1,23 +1,25 @@
-function [num_fitted_cells, num_cells] = plot_model_results(models, results, active_frac_thresh, R2_lims)
+function [num_fitted_cells, num_cells] = plot_model_results(models, results, models_to_show, R2_lims)
 
-num_models = length(models);
-num_cells = length(results.active_fracs);
-num_fitted_cells = 0;
+num_models = length(models_to_show);
+num_cells = length(results.fit_performed);
+fitted_cell_inds = find(results.fit_performed)'; % Row vector
+num_fitted_cells = length(fitted_cell_inds);
 
 cla;
 hold on;
-for k = 1:num_cells
-    active_frac_k = results.active_fracs(k);
-    if active_frac_k > active_frac_thresh
-        errorbar(results.R2(k,:), results.error(k,:),...
-            '.-', 'MarkerSize', 18);
-        num_fitted_cells = num_fitted_cells + 1;
-    end
+for k = fitted_cell_inds
+    he = errorbar(results.R2(k, models_to_show), results.error(k, models_to_show),...
+        '.-', 'MarkerSize', 18);
+
+    % The following lines were tested on Matlab 2022b
+    he.DataTipTemplate.DataTipRows(1) = dataTipTextRow('Cell #', k*ones(1,num_models));
+    he.DataTipTemplate.DataTipRows(2) = dataTipTextRow('Model #', 'XData');
+    he.DataTipTemplate.DataTipRows(3) = dataTipTextRow('R^2', 'YData', '%.4f');
 end
 hold off;
 xlim([0 num_models+1]);
 set(gca, 'XTick', 1:num_models);
-set(gca, 'XTickLabel', cellfun(@(x) x.get_desc, models, 'UniformOutput', false));
+set(gca, 'XTickLabel', cellfun(@(x) x.get_desc, models(models_to_show), 'UniformOutput', false));
 set(gca, 'TickLabelInterpreter', 'none');
 xtickangle(45);
 ylabel('Test R^2');

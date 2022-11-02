@@ -103,7 +103,7 @@ save('regression.mat', 'ctx_fit', 'str_fit', 'active_frac_thresh', 'alpha', 'num
 %% Select a single cell for analysis
 
 brain_area = 'str'; % 'ctx' or 'str'
-cell_idx = 23;
+cell_idx = 6;
 
 switch brain_area
     case 'ctx'
