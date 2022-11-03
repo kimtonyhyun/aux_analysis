@@ -29,7 +29,7 @@ datacursormode on; % Allows clicking of data points to retrieve cell idx and oth
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
 brain_area = 's'; % 'ctx'/'c' or 'str'/'s'
-cell_idx = 117;
+cell_idx = 105;
 model_no = 10;
 split_no = 1;
 
