@@ -13,7 +13,7 @@ for k = fitted_cell_inds
 
     % The following lines were tested on Matlab 2022b
     he.DataTipTemplate.DataTipRows(1) = dataTipTextRow('Cell #', k*ones(1,num_models));
-    he.DataTipTemplate.DataTipRows(2) = dataTipTextRow('Model #', 'XData');
+    he.DataTipTemplate.DataTipRows(2) = dataTipTextRow('Model #', models_to_show);
     he.DataTipTemplate.DataTipRows(3) = dataTipTextRow('R^2', 'YData', '%.4f');
 end
 hold off;
