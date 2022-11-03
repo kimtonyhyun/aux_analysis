@@ -126,7 +126,7 @@ R2_vals = zeros(num_models, num_splits);
 alpha = 0.95; % Elastic net parameter (0==ridge; 1==lasso)
 lambdas = []; % lets glmnet explore regularization weights
 
-% We will be makig lots of figures, one for each train/test split, so it's
+% We will be making lots of figures, one for each train/test split, so it's
 % convenient to dock all figures.
 set(0, 'DefaultFigureWindowStyle', 'docked');
 
