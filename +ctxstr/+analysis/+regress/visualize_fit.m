@@ -92,11 +92,20 @@ zoom xon;
 % Plot kernels
 %------------------------------------------------------------
 num_regressors = model.num_regressors;
+ax_kernels = zeros(num_regressors, 1);
+k_lims = [Inf -Inf];
 
 for k = 1:num_regressors
-    sp(5, num_regressors, 4*num_regressors+k);
+    ax_kernels(k) = sp(5, num_regressors, 4*num_regressors+k);
     r = model.regressors{k};
-    stem(r.t_kernel, kernels{k}, 'm.-');
+    kernel = kernels{k};
+    if min(kernel) < k_lims(1)
+        k_lims(1) = min(kernel);
+    end
+    if max(kernel) > k_lims(2)
+        k_lims(2) = max(kernel);
+    end
+    stem(r.t_kernel, kernel, 'm.-');
     title(sprintf('%s (%s; %d dofs)', r.name, r.type, r.num_dofs), 'Interpreter', 'none');
     if r.num_dofs > 1
         xlim(r.t_kernel([1 end]));
@@ -109,6 +118,9 @@ for k = 1:num_regressors
         ylabel('Kernel weights');
     end
 end
+% Plotting all kernels with equal YLims makes it easier to tell which
+% kernels have the most weight.
+set(ax_kernels, 'YLim', k_lims);
 
 subplot(ax_main); % So that title can be added externally
 
