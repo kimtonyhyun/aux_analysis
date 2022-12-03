@@ -93,8 +93,17 @@ active_frac_thresh = 0.1; % Only fit neurons that show activity on >10% of trial
 alpha = 0.95;
 num_splits = 10;
 
-[ctx_fit.results, ctx_fit.data] = ctxstr.analysis.regress.fit_all_neurons(binned_ctx_traces_by_trial, st_trial_inds, models, active_frac_thresh, alpha, num_splits);
-[str_fit.results, str_fit.data] = ctxstr.analysis.regress.fit_all_neurons(binned_str_traces_by_trial, st_trial_inds, models, active_frac_thresh, alpha, num_splits);
+if ~isempty(ctx_traces)
+    [ctx_fit.results, ctx_fit.data] = ctxstr.analysis.regress.fit_all_neurons(binned_ctx_traces_by_trial, st_trial_inds, models, active_frac_thresh, alpha, num_splits);
+else
+    ctx_fit = [];
+end
+
+if ~isempty(str_traces)
+    [str_fit.results, str_fit.data] = ctxstr.analysis.regress.fit_all_neurons(binned_str_traces_by_trial, st_trial_inds, models, active_frac_thresh, alpha, num_splits);
+else
+    str_fit = [];
+end
 
 save('regression.mat', 'ctx_fit', 'str_fit', 'active_frac_thresh', 'alpha', 'num_splits',...
     'models', 'dataset_name', 'reward_frames', 'motion_frames', 'velocity', 'accel', 'lick_rate',...

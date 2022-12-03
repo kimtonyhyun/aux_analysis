@@ -1,4 +1,4 @@
-clear all; close all;
+clear all; %close all;
 
 load('regression.mat');
 cprintf('blue', 'Loaded regression results for "%s"\n', dataset_name);
@@ -9,28 +9,32 @@ set(0, 'DefaultFigureWindowStyle', 'docked');
 %% Show R2 for all cells and (selected) models
 
 models_to_show = [1:6 8 10];
-R2_lims = [0 0.6]; % y-range for plots
+R2_lims = [0 0.8]; % y-range for plots
 
 figure(1);
 subplot(121);
-[num_fitted_ctx_cells, num_ctx_cells] = ctxstr.analysis.regress.plot_model_results(...
-    models, ctx_fit.results, models_to_show, R2_lims);
-title(sprintf('%s-ctx, Showing %d fits out of %d cells total',...
-    dataset_name, num_fitted_ctx_cells, num_ctx_cells));
+if ~isempty(ctx_fit)
+    [num_fitted_ctx_cells, num_ctx_cells] = ctxstr.analysis.regress.plot_model_results(...
+        models, ctx_fit.results, models_to_show, R2_lims);
+    title(sprintf('%s-ctx, Showing %d fits out of %d cells total',...
+        dataset_name, num_fitted_ctx_cells, num_ctx_cells));
+end
 
 subplot(122);
-[num_fitted_str_cells, num_str_cells] = ctxstr.analysis.regress.plot_model_results(...
-    models, str_fit.results, models_to_show, R2_lims);
-title(sprintf('%s-str, Showing %d fits out of %d cells total',...
-    dataset_name, num_fitted_str_cells, num_str_cells));
+if ~isempty(str_fit)
+    [num_fitted_str_cells, num_str_cells] = ctxstr.analysis.regress.plot_model_results(...
+        models, str_fit.results, models_to_show, R2_lims);
+    title(sprintf('%s-str, Showing %d fits out of %d cells total',...
+        dataset_name, num_fitted_str_cells, num_str_cells));
+end
 
 datacursormode on; % Allows clicking of data points to retrieve cell idx and other info
 
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
-brain_area = 's'; % 'ctx'/'c' or 'str'/'s'
-cell_idx = 105;
-model_no = 10;
+brain_area = 'c'; % 'ctx'/'c' or 'str'/'s'
+cell_idx = 50;
+model_no = 8;
 split_no = 1;
 
 switch brain_area

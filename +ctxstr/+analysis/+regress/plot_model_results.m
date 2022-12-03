@@ -22,7 +22,7 @@ set(gca, 'XTick', 1:num_models);
 set(gca, 'XTickLabel', cellfun(@(x) x.get_desc, models(models_to_show), 'UniformOutput', false));
 set(gca, 'TickLabelInterpreter', 'none');
 xtickangle(45);
-ylabel('Test R^2');
+ylabel('R^2_{Test}');
 ylim(R2_lims);
 ytickformat('%.2f');
 set(gca, 'FontSize', 18);

@@ -24,33 +24,48 @@ fps = 15;
 path_to_ctx = 'ctx/union_15hz/dff';
 path_to_str = 'str/union_15hz/dff';
 
-[ctx_traces, ctx_info] = ctxstr.load_cascade_traces(path_to_ctx, fps);
+t = [];
+if isfolder(path_to_ctx)
+    [ctx_traces, ctx_info] = ctxstr.load_cascade_traces(path_to_ctx, fps);
 
-% All data will be aligned to cortical imaging samples
-t = ctxstr.core.bin_frame_times(session.ctx.frame_times, 2);
-
-[str_traces_orig, str_info] = ctxstr.load_cascade_traces(path_to_str, fps);
-if isempty(str_info.tdt)
-    cprintf('Red', 'Warning: str_info lacks tdTomato classification\n');
+    % Dual-site CtxStr data will be aligned to _cortical_ imaging samples
+    t = ctxstr.core.bin_frame_times(session.ctx.frame_times, 2);
+    
+    % Parse data into trials
+    [ctx_traces_by_trial, time_by_trial] = ctxstr.core.parse_into_trials(ctx_traces, t, trials);
+else
+    cprintf('red', '%s lacks ctx data!\n', dataset_name);
+    ctx_traces = [];
+    ctx_traces_by_trial = cell(1,num_all_trials);
+    ctx_info = [];
 end
-str_times_orig = ctxstr.core.bin_frame_times(session.str.frame_times, 3);
 
-% Resample the striatal traces to line up with cortex sampling times
-str_traces = ctxstr.core.resample_traces(str_traces_orig, str_times_orig, t);
-
-% Parse data into trials, and compute correlations
-[ctx_traces_by_trial, time_by_trial] = ctxstr.core.parse_into_trials(ctx_traces, t, trials);
-str_traces_by_trial = ctxstr.core.parse_into_trials(str_traces, t, trials);
-
-% Load the behavior video, if available
-% vid_filename = get_most_recent_file('.', '*.mp4');
-% if ~isempty(vid_filename)
-%     vid = VideoReader(vid_filename);
-% end
+if isfolder(path_to_str)
+    [str_traces_orig, str_info] = ctxstr.load_cascade_traces(path_to_str, fps);
+    if isempty(str_info.tdt)
+        cprintf('Red', 'Warning: str_info lacks tdTomato classification\n');
+    end
+    str_times_orig = ctxstr.core.bin_frame_times(session.str.frame_times, 3);
+    
+    if isempty(t) % No ctx data
+        str_traces = str_traces_orig;
+        t = str_times_orig;
+    else % Ctx data exists
+        % Resample the striatal traces to line up with cortex sampling times
+        str_traces = ctxstr.core.resample_traces(str_traces_orig, str_times_orig, t);
+    end
+    
+    [str_traces_by_trial, time_by_trial] = ctxstr.core.parse_into_trials(str_traces, t, trials);
+else
+    cprintf('red', '%s lacks str data!\n', dataset_name);
+    str_traces = [];
+    str_traces_by_trial = cell(1,num_all_trials);
+    str_info = [];
+end
 
 %% Omit trials for grooming, etc., and filter out NaN's
 
-omitted_trials = [31 143]; % e.g. grooming trials
+omitted_trials = [10 24 27 44 59]; % e.g. grooming trials
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 
 % Filter for NaN values, arising from CASCADE
@@ -106,8 +121,8 @@ end
 
 %% Visualization #2A: Ctx single-cell rasters
 
-% ctx_dir = '_rasters-ctx';
-% mkdir(ctx_dir);
+output_dir = '_rasters-ctx/cascade';
+mkdir(output_dir);
 
 for k = 1:ctx_info.num_cells
     ctxstr.vis.show_aligned_raster(st_trial_inds, trials, ctx_traces(k,:), t);
@@ -115,9 +130,9 @@ for k = 1:ctx_info.num_cells
     title(sprintf('%s-ctx, cell #=r%d (%s)', dataset_name, cell_id_in_rec, ctx_info.rec_name),...
           'Interpreter', 'None');
       
-%     drawnow;
-%     print('-dpng', fullfile(ctx_dir, sprintf('%s-ctx_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
-    pause;
+    drawnow;
+    print('-dpng', fullfile(output_dir, sprintf('%s-ctx_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
+%     pause;
 end
 
 %% Visualization 2B: Ctx single-cell rasters, for binzarized data
@@ -126,7 +141,7 @@ bin_threshold = 0.2;
 [binned_ctx_traces, binned_ctx_traces_by_trial] = ctxstr.core.binarize_traces(ctx_traces, ctx_traces_by_trial, bin_threshold);
 
 output_dir = sprintf('_rasters-ctx/bin0-%d', 100*bin_threshold);
-% mkdir(output_dir);
+mkdir(output_dir);
 
 for k = 1:ctx_info.num_cells
     ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, binned_ctx_traces(k,:), t);
@@ -135,14 +150,14 @@ for k = 1:ctx_info.num_cells
           'Interpreter', 'None');
 
     drawnow;
-%     print('-dpng', fullfile(output_dir, sprintf('%s-ctx_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
-    pause;
+    print('-dpng', fullfile(output_dir, sprintf('%s-ctx_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
+%     pause;
 end
 
 %% Visualization #3A: Str single-cell rasters
 
-str_dir = '_rasters-str';
-mkdir(str_dir);
+output_dir = '_rasters-str/cascade';
+mkdir(output_dir);
 
 for k = 1:str_info.num_cells
     ctxstr.vis.show_aligned_raster(st_trial_inds, trials, str_traces(k,:), t);
@@ -151,7 +166,7 @@ for k = 1:str_info.num_cells
           'Interpreter', 'None');
       
     drawnow;
-    print('-dpng', fullfile(str_dir, sprintf('%s-str_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
+    print('-dpng', fullfile(output_dir, sprintf('%s-str_cell-r%03d_raster.png', dataset_name, cell_id_in_rec)));
 %     pause;
 end
 
