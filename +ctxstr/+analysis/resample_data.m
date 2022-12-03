@@ -30,6 +30,9 @@ path_to_str = 'str/union_15hz/dff';
 t = ctxstr.core.bin_frame_times(session.ctx.frame_times, 2);
 
 [str_traces_orig, str_info] = ctxstr.load_cascade_traces(path_to_str, fps);
+if isempty(str_info.tdt)
+    cprintf('Red', 'Warning: str_info lacks tdTomato classification\n');
+end
 str_times_orig = ctxstr.core.bin_frame_times(session.str.frame_times, 3);
 
 % Resample the striatal traces to line up with cortex sampling times
