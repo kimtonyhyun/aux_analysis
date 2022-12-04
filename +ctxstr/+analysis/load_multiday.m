@@ -3,7 +3,7 @@ clear all;
 load('all_matches.mat');
 num_sessions = length(session_names);
 
-sessions_to_track = [1 2 3 4 5 6 7 8];
+sessions_to_track = [1 2 4 5 6 7 8];
 
 %%
 
@@ -36,12 +36,16 @@ end
 %%
 
 region = 'ctx';
-md = ctxstr.core.generate_md(ds_ctx, ctx_matches, sessions_to_track);
+md = ctxstr.core.generate_md(ds_ctx, ctx_matches,...
+        cellfun(@(x) sprintf('%s-ctx', x), session_names, 'UniformOutput', false),...
+        sessions_to_track);
 
 %%
 
 region = 'str';
-md = ctxstr.core.generate_md(ds_str, str_matches, sessions_to_track);
+md = ctxstr.core.generate_md(ds_str, str_matches,...
+    cellfun(@(x) sprintf('%s-str', x), session_names, 'UniformOutput', false),...
+    sessions_to_track);
 
 %% Visualization #1: Plot tracked cell rasters across days
 
@@ -52,6 +56,7 @@ for k = 1:md.num_cells
     draw_md_cell(md, k, raster_fns);
     drawnow;
     
-    filename = sprintf('%s-%s_md%03d_bin0-2.png', mouse_name, region, k);
-    print('-dpng', filename);
+%     filename = sprintf('%s-%s_md%03d_bin0-2.png', mouse_name, region, k);
+%     print('-dpng', filename);
+    pause;
 end
