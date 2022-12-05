@@ -6,7 +6,7 @@ cprintf('blue', 'Loaded regression results for "%s"\n', dataset_name);
 % Dock all figures for convenience
 set(0, 'DefaultFigureWindowStyle', 'docked');
 
-%% Show R2 for all cells and (selected) models
+%% Show R2 for all cells across (selected) models
 
 models_to_show = [1:6 8 10];
 R2_lims = [0 0.8]; % y-range for plots
@@ -33,7 +33,7 @@ datacursormode on; % Allows clicking of data points to retrieve cell idx and oth
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
 brain_area = 's'; % 'ctx'/'c' or 'str'/'s'
-cell_idx = 51;
+cell_idx = 168;
 model_no = 8;
 split_no = 1;
 

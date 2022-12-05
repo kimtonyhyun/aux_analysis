@@ -56,7 +56,7 @@ for k = 1:md.num_cells
     draw_md_cell(md, k, raster_fns);
     drawnow;
     
-%     filename = sprintf('%s-%s_md%03d_bin0-2.png', mouse_name, region, k);
-%     print('-dpng', filename);
-    pause;
+    filename = sprintf('%s-%s_md%03d_bin0-2.png', mouse_name, region, k);
+    print('-dpng', filename);
+%     pause;
 end

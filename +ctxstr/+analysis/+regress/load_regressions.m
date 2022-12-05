@@ -1,5 +1,7 @@
 clear all;
 
+% Manually list datasets with regression data. TODO: Consider just scanning
+% the directory for 'regression.mat'?
 % Format: {Day-idx, session-directory}
 oh08 = {2, 'oh08-0305';
         4, 'oh08-0307';
@@ -67,46 +69,51 @@ num_sources = size(sources,1);
 mouse_name = dirname;
 
 % Load data
-rdata = cell(num_sources,1);
+regs = cell(num_sources,1);
 tdt_data = cell(num_sources,1);
 for k = 1:num_sources
-    path_to_reg_mat = fullfile(sources{k,2}, 'regression.mat');
+    source = sources{k,2};
+
+    path_to_reg_mat = fullfile(source, 'regression.mat');
     fprintf('%s: Loading "%s"...\n', datestr(now), path_to_reg_mat);
-    rdata{k} = load(path_to_reg_mat);
+    regs{k} = load(path_to_reg_mat);
 
     % Get striatum tdTomato labeling from resampled_data
-    path_to_tdt = fullfile(sources{k,2}, 'resampled_data.mat');
+    path_to_tdt = fullfile(source, 'resampled_data.mat');
     temp = load(path_to_tdt, 'str_info');
     tdt_data{k} = temp.str_info.tdt;
+    if isempty(tdt_data{k})
+        cprintf('red', 'Warning: tdTomato labels missing for "%s"\n', source);
+    end
 end
-fprintf('Done!\n');
+fprintf('Done!\n'); clear temp;
 
-%%
+%% Collect R2 data and compute medians for chosen model across days
 
 % model_no = 6; % The {motion, reward} model
 % model_no = 7; % {velocity, reward}
 model_no = 8; % {velocity, motion, reward}
 % model_no = 10; % {velocity, accel, lick_rate, motion, reward}
-model_desc = rdata{1}.models{model_no}.get_desc;
+model_desc = regs{1}.models{model_no}.get_desc;
 
 ctx_R2s = cell(num_sources, 1);
 str_R2s = cell(num_sources, 1);
 
 fprintf('* * *\n%s, model=%s\nDay CtxR2Median StrR2Median StrTdtPosR2Median StrTdtNegR2Median\n', mouse_name, model_desc)
 for k = 1:num_sources
-    fit_performed = rdata{k}.ctx_fit.results.fit_performed;
-    ctx_R2s{k} = rdata{k}.ctx_fit.results.R2(fit_performed, model_no);
+    fit_performed = regs{k}.ctx_fit.results.fit_performed;
+    ctx_R2s{k} = regs{k}.ctx_fit.results.R2(fit_performed, model_no);
 
-    fit_performed = rdata{k}.str_fit.results.fit_performed;
-    str_R2s{k} = rdata{k}.str_fit.results.R2(fit_performed, model_no);
+    fit_performed = regs{k}.str_fit.results.fit_performed;
+    str_R2s{k} = regs{k}.str_fit.results.R2(fit_performed, model_no);
 
     tdt_pos = false(size(fit_performed));
     tdt_pos(tdt_data{k}.pos) = true;
-    str_tdtpos_R2s = rdata{k}.str_fit.results.R2(tdt_pos & fit_performed, model_no);
+    str_tdtpos_R2s = regs{k}.str_fit.results.R2(tdt_pos & fit_performed, model_no);
 
     tdt_neg = false(size(fit_performed));
     tdt_neg(tdt_data{k}.neg) = true;
-    str_tdtneg_R2s = rdata{k}.str_fit.results.R2(tdt_neg & fit_performed, model_no);
+    str_tdtneg_R2s = regs{k}.str_fit.results.R2(tdt_neg & fit_performed, model_no);
 
     % Format: [Day CtxR2Median StrR2Median]
     fprintf('%d %.4f %.4f %.4f %.4f; %% %s\n',...
