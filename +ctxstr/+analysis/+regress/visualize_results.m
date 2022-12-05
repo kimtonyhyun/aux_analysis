@@ -9,7 +9,7 @@ set(0, 'DefaultFigureWindowStyle', 'docked');
 %% Show R2 for all cells and (selected) models
 
 models_to_show = [1:6 8 10];
-R2_lims = [0 0.6]; % y-range for plots
+R2_lims = [0 0.8]; % y-range for plots
 
 figure(1);
 subplot(121);
@@ -33,7 +33,7 @@ datacursormode on; % Allows clicking of data points to retrieve cell idx and oth
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
 brain_area = 's'; % 'ctx'/'c' or 'str'/'s'
-cell_idx = 168;
+cell_idx = 51;
 model_no = 8;
 split_no = 1;
 
@@ -51,23 +51,24 @@ switch brain_area
         fd = str_fit.data{cell_idx, model_no, split_no};
 end
 
+% Show the detailed fit
+figure(2); clf;
 if isempty(fd)
-    error('Fit data is empty. Is the requested brain area correct?');
+    cprintf('red', 'Fit data is empty. Is the requested brain area correct?\n');
 else
     fprintf('Visualizing %s-%s, Cell=%d...\n', dataset_name, brain_area, cell_idx);
-    % Show the detailed fit
-    figure(2);
+    
     ctxstr.analysis.regress.visualize_fit(...
                     time_by_trial, trace_by_trial, fd.train_trial_inds, fd.test_trial_inds,...
                     models{model_no}, fd.kernels, fd.biases, fd.train_results, fd.test_results,...
                     t, reward_frames, motion_frames, velocity, accel, lick_rate);
     title(sprintf('%s-%s, Cell=%d, model #=%d, split #=%d',...
                 dataset_name, brain_area, cell_idx, model_no, split_no));
-
-    % Show the cell raster
-    figure(3);
-    load('resampled_data.mat', 'st_trial_inds', 'trials');
-    ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, trace, t);
-    title(sprintf('%s-%s, Cell %d', dataset_name, brain_area, cell_idx));
 end
+
+% Show the cell raster
+figure(3);
+load('resampled_data.mat', 'st_trial_inds', 'trials');
+ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, trace, t);
+title(sprintf('%s-%s, Cell %d', dataset_name, brain_area, cell_idx));
 
