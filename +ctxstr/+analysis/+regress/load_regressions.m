@@ -88,24 +88,30 @@ for k = 1:num_sources
 end
 fprintf('Done!\n'); clear temp;
 
-%% Collect R2 data and compute medians for chosen model across days
+%% Collect R2 data and other stats for chosen model across days
 
 % model_no = 6; % The {motion, reward} model
 % model_no = 7; % {velocity, reward}
 model_no = 8; % {velocity, motion, reward}
 % model_no = 10; % {velocity, accel, lick_rate, motion, reward}
-model_desc = regs{1}.models{model_no}.get_desc;
 
 ctx_R2s = cell(num_sources, 1);
 str_R2s = cell(num_sources, 1);
 
-fprintf('* * *\n%s, model=%s\nDay CtxR2Median StrR2Median StrTdtPosR2Median StrTdtNegR2Median\n', mouse_name, model_desc)
+ctx_cell_counts = zeros(num_sources, 2); % Format: [Num-fitted Num-total]
+str_cell_counts = zeros(num_sources, 2);
+
+model_desc = regs{1}.models{model_no}.get_desc;
+fprintf('* * *\n%s, model=%s\n', mouse_name, model_desc)
+fprintf('Day CtxR2Median StrR2Median StrTdtPosR2Median StrTdtNegR2Median\n');
 for k = 1:num_sources
     fit_performed = regs{k}.ctx_fit.results.fit_performed;
     ctx_R2s{k} = regs{k}.ctx_fit.results.R2(fit_performed, model_no);
+    ctx_cell_counts(k,:) = [sum(fit_performed) length(fit_performed)];
 
     fit_performed = regs{k}.str_fit.results.fit_performed;
     str_R2s{k} = regs{k}.str_fit.results.R2(fit_performed, model_no);
+    str_cell_counts(k,:) = [sum(fit_performed) length(fit_performed)];
 
     tdt_pos = false(size(fit_performed));
     tdt_pos(tdt_data{k}.pos) = true;
@@ -126,27 +132,9 @@ for k = 1:num_sources
 end
 clear fit_performed;
 
-% Plot results
+%% Plot cross-day stats
 clf;
 
-ax1 = subplot(121);
-boxplot_wrapper([sources{:,1}], ctx_R2s);
-grid on;
-xlabel('Training day');
-ylabel('Test R^2');
-title({sprintf('%s-ctx', mouse_name),...
-       sprintf('model=%s', model_desc)},...
-      'Interpreter', 'none');
-
-ax2 = subplot(122);
-boxplot_wrapper([sources{:,1}], str_R2s);
-grid on;
-xlabel('Training day');
-ylabel('Test R^2');
-title({sprintf('%s-str', mouse_name),...
-       sprintf('model=%s', model_desc)},...
-      'Interpreter', 'none');
-
-linkaxes([ax1 ax2], 'y');
-ylim([0 0.6]);
-set([ax1 ax2], 'FontSize', 14);
+days = [sources{:,1}];
+ctxstr.analysis.regress.visualize_cross_day_stats(mouse_name, model_desc,...
+    days, ctx_R2s, ctx_cell_counts, str_R2s, str_cell_counts);
