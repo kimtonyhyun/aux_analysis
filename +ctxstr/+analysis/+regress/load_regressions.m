@@ -149,45 +149,20 @@ ctxstr.analysis.regress.visualize_cross_day_stats(mouse_name, model_desc,...
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
 brain_area = 'c'; % 'ctx'/'c' or 'str'/'s'
-day = 8;
-cell_idx = 47;
+day = 6;
+cell_idx = 43;
 split_no = 1;
 
-% TODO: Simplify code!
-rdata = regs{days==day}; 
-
-switch brain_area
-    case {'ctx', 'c'}
-        brain_area = 'ctx';
-        trace_by_trial = ctxstr.core.get_traces_for_cell(rdata.binned_ctx_traces_by_trial, cell_idx);
-        trace = rdata.binned_ctx_traces(cell_idx,:);
-        fd = rdata.ctx_fit.data{cell_idx, model_no, split_no};
-
-    case {'str', 's'}
-        brain_area = 'str';
-        trace_by_trial = ctxstr.core.get_traces_for_cell(rdata.binned_str_traces_by_trial, cell_idx);
-        trace = rdata.binned_str_traces(cell_idx,:);
-        fd = rdata.str_fit.data{cell_idx, model_no, split_no};
-end
+% Retrieve the regression data for the chosen day
+reg = regs{days==day}; 
 
 % Show the detailed fit
 figure(2); clf;
-if isempty(fd)
-    cprintf('red', 'Fit data is empty!\n');
-else
-    fprintf('Visualizing %s-%s, Cell=%d...\n', rdata.dataset_name, brain_area, cell_idx);
-    
-    ctxstr.analysis.regress.visualize_fit(...
-                    rdata.time_by_trial, trace_by_trial, fd.train_trial_inds, fd.test_trial_inds,...
-                    rdata.models{model_no}, fd.kernels, fd.biases, fd.train_results, fd.test_results,...
-                    rdata.t, rdata.reward_frames, rdata.motion_frames, rdata.velocity, rdata.accel, rdata.lick_rate);
-    title(sprintf('%s-%s, Cell=%d, model #=%d, split #=%d',...
-                rdata.dataset_name, brain_area, cell_idx, model_no, split_no));
-end
+[brain_area, binned_trace] = ctxstr.analysis.regress.visualize_fit(reg, brain_area, cell_idx, model_no, split_no);
 
 % Show the cell raster
 figure(3);
-rd = load(fullfile(rdata.dataset_name, 'resampled_data.mat'), 'st_trial_inds', 'trials');
-ctxstr.vis.show_aligned_binned_raster(rd.st_trial_inds, rd.trials, trace, rdata.t);
-title(sprintf('%s-%s, Cell %d', rdata.dataset_name, brain_area, cell_idx));
+rd = load(fullfile(reg.dataset_name, 'resampled_data.mat'), 'st_trial_inds', 'trials');
+ctxstr.vis.show_aligned_binned_raster(rd.st_trial_inds, rd.trials, binned_trace, reg.t);
+title(sprintf('%s-%s, Cell %d', reg.dataset_name, brain_area, cell_idx));
 

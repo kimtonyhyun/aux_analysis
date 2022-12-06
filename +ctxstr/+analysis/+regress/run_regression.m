@@ -111,7 +111,7 @@ save('regression.mat', 'ctx_fit', 'str_fit', 'active_frac_thresh', 'alpha', 'num
     'bin_threshold', 'binned_ctx_traces', 'binned_str_traces',...
     'binned_ctx_traces_by_trial', 'binned_str_traces_by_trial');
 
-%% Select a single cell for analysis
+%% Select a single neuron for fit (e.g. for manual inspection)
 
 brain_area = 'str'; % 'ctx' or 'str'
 cell_idx = 6;
@@ -129,7 +129,7 @@ cprintf('blue', '%s-%s, Cell %d\n', dataset_name, brain_area, cell_idx);
 fprintf('- Shows activity in %d out of %d trials (%.1f%%)\n',...
     num_active_trials, num_st_trials, 100*num_active_trials/num_st_trials);
 
-%%
+%% Fit selected neuron
 
 num_splits = 10; % Number of training/test splits
 R2_vals = zeros(num_models, num_splits);
@@ -161,7 +161,7 @@ for model_no = 1:num_models
             fig_id = 10*model_no + split_no;
             figure(fig_id);
             clf;
-            ctxstr.analysis.regress.visualize_fit(...
+            ctxstr.analysis.regress.plot_fit(...
                 time_by_trial, binned_traces_by_trial, train_trial_inds, test_trial_inds,...
                 model, kernels, biases, train_results, test_results,...
                 t, reward_frames, motion_frames, velocity, accel, lick_rate);

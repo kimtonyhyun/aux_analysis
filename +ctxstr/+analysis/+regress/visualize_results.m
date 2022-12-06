@@ -38,45 +38,19 @@ ctx_top_fits = ctxstr.analysis.regress.get_top_fits(reg.ctx_fit.results.R2(:,mod
 str_top_fits = ctxstr.analysis.regress.get_top_fits(reg.str_fit.results.R2(:,model_no));
 
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
-% TODO: Simplify and unify code with 'load_regressions'!
 
 brain_area = 'c'; % 'ctx'/'c' or 'str'/'s'
 cell_idx = 47;
 model_no = 8;
 split_no = 1;
 
-switch brain_area
-    case {'ctx', 'c'}
-        brain_area = 'ctx';
-        trace_by_trial = ctxstr.core.get_traces_for_cell(reg.binned_ctx_traces_by_trial, cell_idx);
-        trace = reg.binned_ctx_traces(cell_idx,:);
-        fd = reg.ctx_fit.data{cell_idx, model_no, split_no};
-
-    case {'str', 's'}
-        brain_area = 'str';
-        trace_by_trial = ctxstr.core.get_traces_for_cell(reg.binned_str_traces_by_trial, cell_idx);
-        trace = reg.binned_str_traces(cell_idx,:);
-        fd = reg.str_fit.data{cell_idx, model_no, split_no};
-end
-
 % Show the detailed fit
 figure(2); clf;
-if isempty(fd)
-    cprintf('red', 'Fit data is empty. Is the requested brain area correct?\n');
-else
-    fprintf('Visualizing %s-%s, Cell=%d...\n', reg.dataset_name, brain_area, cell_idx);
-    
-    ctxstr.analysis.regress.visualize_fit(...
-                    reg.time_by_trial, trace_by_trial, fd.train_trial_inds, fd.test_trial_inds,...
-                    reg.models{model_no}, fd.kernels, fd.biases, fd.train_results, fd.test_results,...
-                    reg.t, reg.reward_frames, reg.motion_frames, reg.velocity, reg.accel, reg.lick_rate);
-    title(sprintf('%s-%s, Cell=%d, model #=%d, split #=%d',...
-                reg.dataset_name, brain_area, cell_idx, model_no, split_no));
-end
+[brain_area, binned_trace] = ctxstr.analysis.regress.visualize_fit(reg, brain_area, cell_idx, model_no, split_no);
 
 % Show the cell raster
 figure(3);
 load('resampled_data.mat', 'st_trial_inds', 'trials');
-ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, trace, reg.t);
+ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, binned_trace, reg.t);
 title(sprintf('%s-%s, Cell %d', reg.dataset_name, brain_area, cell_idx));
 
