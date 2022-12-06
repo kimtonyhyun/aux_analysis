@@ -30,10 +30,17 @@ end
 
 datacursormode on; % Allows clicking of data points to retrieve cell idx and other info
 
+%% Get list of top fits for ctx & str, for the chosen regression model
+
+model_no = 8;
+
+ctx_top_fits = ctxstr.analysis.regress.get_top_fits(ctx_fit.results.R2(:,model_no));
+str_top_fits = ctxstr.analysis.regress.get_top_fits(str_fit.results.R2(:,model_no));
+
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
 brain_area = 's'; % 'ctx'/'c' or 'str'/'s'
-cell_idx = 168;
+cell_idx = 23;
 model_no = 8;
 split_no = 1;
 

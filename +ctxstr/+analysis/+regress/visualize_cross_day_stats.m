@@ -1,9 +1,11 @@
 function visualize_cross_day_stats(mouse_name, model_desc, days, ctx_R2s, ctx_cell_counts, str_R2s, str_cell_counts)
 
+% Compute the max observed R2s over all cortical and striatal cells, over all days
 max_R2 = max([cell2mat(ctx_R2s)' cell2mat(str_R2s)']);
 
 ax1 = subplot(3,2,[1 3]);
 boxplot_wrapper(days, ctx_R2s);
+plot_top_k_cells(days, ctx_R2s);
 grid on;
 ylabel('Single-cell R^2_{test} values');
 title({sprintf('%s-ctx', mouse_name),...
@@ -12,6 +14,7 @@ title({sprintf('%s-ctx', mouse_name),...
 
 ax2 = subplot(3,2,[2 4]);
 boxplot_wrapper(days, str_R2s);
+plot_top_k_cells(days, str_R2s);
 grid on;
 title({sprintf('%s-str', mouse_name),...
        sprintf('model=%s', model_desc)},...
@@ -33,6 +36,8 @@ title('Str cell counts');
 all_axes = [ax1 ax2 ax3 ax4];
 xlim(all_axes, [days(1)-0.5 days(end)+0.5]);
 set(all_axes, 'TickLength', [0 0]);
+
+datacursormode on;
 
 end
 
@@ -56,5 +61,22 @@ set(gca, 'FontSize', 14);
 % legend('Total', 'Fitted', 'Location', 'NorthEast');
 xlim([days(1)-0.5 days(end)+0.5]);
 ylim([0 max(total)+25]);
+
+end
+
+function plot_top_k_cells(days, R2s)
+
+num_to_plot = 10;
+
+top_cells = cellfun(@ctxstr.analysis.regress.get_top_fits, R2s, 'UniformOutput', false);
+hold on;
+for k = 1:length(days)
+    N = min([num_to_plot size(top_cells{k},1)]);
+    ht = plot(days(k)*ones(N,1), top_cells{k}(1:N,2), 'o',...
+            "MarkerSize", 6, 'MarkerFaceColor', 'w', 'MarkerEdgeColor', 'k');
+    ht.DataTipTemplate.DataTipRows(1) = dataTipTextRow('Cell #', top_cells{k}(1:N,1));
+    ht.DataTipTemplate.DataTipRows(2) = dataTipTextRow('R^2 #', 'YData', '%.4f');
+end
+hold off;
 
 end
