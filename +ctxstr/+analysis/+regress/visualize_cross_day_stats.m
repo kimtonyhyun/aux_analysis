@@ -1,10 +1,17 @@
 function visualize_cross_day_stats(mouse_name, model_desc, days, ctx_R2s, ctx_cell_counts, str_R2s, str_cell_counts)
 
+get_R2_vals = @(array) cellfun(@(x) x(:,1), array, 'UniformOutput', false);
+
+ctx_R2_vals = get_R2_vals(ctx_R2s);
+str_R2_vals = get_R2_vals(str_R2s);
+
 % Compute the max observed R2s over all cortical and striatal cells, over all days
-max_R2 = max([cell2mat(ctx_R2s)' cell2mat(str_R2s)']);
+max_ctx_R2 = max(cell2mat(ctx_R2_vals));
+max_str_R2 = max(cell2mat(str_R2_vals));
+max_R2 = max([max_ctx_R2 max_str_R2]);
 
 ax1 = subplot(3,2,[1 3]);
-boxplot_wrapper(days, ctx_R2s);
+boxplot_wrapper(days, ctx_R2_vals);
 plot_top_k_cells(days, ctx_R2s);
 grid on;
 ylabel('Single-cell R^2_{test} values');
@@ -13,7 +20,7 @@ title({sprintf('%s-ctx', mouse_name),...
       'Interpreter', 'none');
 
 ax2 = subplot(3,2,[2 4]);
-boxplot_wrapper(days, str_R2s);
+boxplot_wrapper(days, str_R2_vals);
 plot_top_k_cells(days, str_R2s);
 grid on;
 title({sprintf('%s-str', mouse_name),...
@@ -72,9 +79,9 @@ top_cells = cellfun(@ctxstr.analysis.regress.get_top_fits, R2s, 'UniformOutput',
 hold on;
 for k = 1:length(days)
     N = min([num_to_plot size(top_cells{k},1)]);
-    ht = plot(days(k)*ones(N,1), top_cells{k}(1:N,2), 'o',...
+    ht = plot(days(k)*ones(N,1), top_cells{k}(1:N,1), 'o',...
             "MarkerSize", 6, 'MarkerFaceColor', 'w', 'MarkerEdgeColor', 'k');
-    ht.DataTipTemplate.DataTipRows(1) = dataTipTextRow('Cell #', top_cells{k}(1:N,1));
+    ht.DataTipTemplate.DataTipRows(1) = dataTipTextRow('Cell #', top_cells{k}(1:N,2));
     ht.DataTipTemplate.DataTipRows(2) = dataTipTextRow('R^2 #', 'YData', '%.4f');
 end
 hold off;

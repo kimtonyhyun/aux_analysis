@@ -67,26 +67,30 @@ sources = eval(dirname); % If the dirname is 'oh28', then retrieves the variable
 
 num_sources = size(sources,1);
 mouse_name = dirname;
+days = [sources{:,1}];
 
 % Load data
 regs = cell(num_sources,1);
 tdt_data = cell(num_sources,1);
 for k = 1:num_sources
-    source = sources{k,2};
+    path_to_source = sources{k,2};
 
-    path_to_reg_mat = fullfile(source, 'regression.mat');
-    fprintf('%s: Loading "%s"...\n', datestr(now), path_to_reg_mat);
+    path_to_reg_mat = fullfile(path_to_source, 'regression.mat');
+    fprintf('%s: Loading "%s"...\n', datetime, path_to_reg_mat);
     regs{k} = load(path_to_reg_mat);
 
     % Get striatum tdTomato labeling from resampled_data
-    path_to_tdt = fullfile(source, 'resampled_data.mat');
+    path_to_tdt = fullfile(path_to_source, 'resampled_data.mat');
     temp = load(path_to_tdt, 'str_info');
     tdt_data{k} = temp.str_info.tdt;
     if isempty(tdt_data{k})
-        cprintf('red', 'Warning: tdTomato labels missing for "%s"\n', source);
+        cprintf('red', 'Warning: tdTomato labels missing for "%s"\n', path_to_source);
     end
 end
 fprintf('Done!\n'); clear temp;
+
+% Dock all figures for convenience
+set(0, 'DefaultFigureWindowStyle', 'docked');
 
 %% Collect R2 data and other stats for chosen model across days
 
@@ -106,11 +110,15 @@ fprintf('* * *\n%s, model=%s\n', mouse_name, model_desc)
 fprintf('Day CtxR2Median StrR2Median StrTdtPosR2Median StrTdtNegR2Median\n');
 for k = 1:num_sources
     fit_performed = regs{k}.ctx_fit.results.fit_performed;
-    ctx_R2s{k} = regs{k}.ctx_fit.results.R2(fit_performed, model_no);
+    R2_vals = regs{k}.ctx_fit.results.R2(fit_performed, model_no);
+
+    ctx_R2s{k} = [R2_vals find(fit_performed)]; % [R2_val, cell_id]
     ctx_cell_counts(k,:) = [sum(fit_performed) length(fit_performed)];
 
     fit_performed = regs{k}.str_fit.results.fit_performed;
-    str_R2s{k} = regs{k}.str_fit.results.R2(fit_performed, model_no);
+    R2_vals = regs{k}.str_fit.results.R2(fit_performed, model_no);
+
+    str_R2s{k} = [R2_vals find(fit_performed)];
     str_cell_counts(k,:) = [sum(fit_performed) length(fit_performed)];
 
     tdt_pos = false(size(fit_performed));
@@ -124,17 +132,62 @@ for k = 1:num_sources
     % Format: [Day CtxR2Median StrR2Median]
     fprintf('%d %.4f %.4f %.4f %.4f; %% %s\n',...
         sources{k,1},...
-        median(ctx_R2s{k}),...
-        median(str_R2s{k}),...
+        median(ctx_R2s{k}(:,1)),...
+        median(str_R2s{k}(:,1)),...
         median(str_tdtpos_R2s),...
         median(str_tdtneg_R2s),...
         sources{k,2});
 end
-clear fit_performed;
+clear fit_performed R2_vals;
 
-%% Plot cross-day stats
-clf;
+%% Plot cross-day stats for chosen model
 
-days = [sources{:,1}];
+figure(1);
 ctxstr.analysis.regress.visualize_cross_day_stats(mouse_name, model_desc,...
     days, ctx_R2s, ctx_cell_counts, str_R2s, str_cell_counts);
+
+%% Visualize a specific fit (defined by cell_idx × model_no × split_no)
+
+brain_area = 'c'; % 'ctx'/'c' or 'str'/'s'
+day = 8;
+cell_idx = 47;
+split_no = 1;
+
+% TODO: Simplify code!
+rdata = regs{days==day}; 
+
+switch brain_area
+    case {'ctx', 'c'}
+        brain_area = 'ctx';
+        trace_by_trial = ctxstr.core.get_traces_for_cell(rdata.binned_ctx_traces_by_trial, cell_idx);
+        trace = rdata.binned_ctx_traces(cell_idx,:);
+        fd = rdata.ctx_fit.data{cell_idx, model_no, split_no};
+
+    case {'str', 's'}
+        brain_area = 'str';
+        trace_by_trial = ctxstr.core.get_traces_for_cell(rdata.binned_str_traces_by_trial, cell_idx);
+        trace = rdata.binned_str_traces(cell_idx,:);
+        fd = rdata.str_fit.data{cell_idx, model_no, split_no};
+end
+
+% Show the detailed fit
+figure(2); clf;
+if isempty(fd)
+    cprintf('red', 'Fit data is empty!\n');
+else
+    fprintf('Visualizing %s-%s, Cell=%d...\n', rdata.dataset_name, brain_area, cell_idx);
+    
+    ctxstr.analysis.regress.visualize_fit(...
+                    rdata.time_by_trial, trace_by_trial, fd.train_trial_inds, fd.test_trial_inds,...
+                    rdata.models{model_no}, fd.kernels, fd.biases, fd.train_results, fd.test_results,...
+                    rdata.t, rdata.reward_frames, rdata.motion_frames, rdata.velocity, rdata.accel, rdata.lick_rate);
+    title(sprintf('%s-%s, Cell=%d, model #=%d, split #=%d',...
+                rdata.dataset_name, brain_area, cell_idx, model_no, split_no));
+end
+
+% Show the cell raster
+figure(3);
+rd = load(fullfile(rdata.dataset_name, 'resampled_data.mat'), 'st_trial_inds', 'trials');
+ctxstr.vis.show_aligned_binned_raster(rd.st_trial_inds, rd.trials, trace, rdata.t);
+title(sprintf('%s-%s, Cell %d', rdata.dataset_name, brain_area, cell_idx));
+
