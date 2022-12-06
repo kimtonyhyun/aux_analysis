@@ -30,7 +30,9 @@ ax4 = subplot(3,2,6);
 plot_cell_counts(days, str_cell_counts(:,2), str_cell_counts(:,1));
 title('Str cell counts');
 
-linkaxes([ax2 ax4], 'x');
+all_axes = [ax1 ax2 ax3 ax4];
+xlim(all_axes, [days(1)-0.5 days(end)+0.5]);
+set(all_axes, 'TickLength', [0 0]);
 
 end
 
@@ -53,5 +55,6 @@ xlabel('Training day');
 set(gca, 'FontSize', 14);
 % legend('Total', 'Fitted', 'Location', 'NorthEast');
 xlim([days(1)-0.5 days(end)+0.5]);
+ylim([0 max(total)+25]);
 
 end
