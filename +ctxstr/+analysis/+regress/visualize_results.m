@@ -39,17 +39,18 @@ str_top_fits = ctxstr.analysis.regress.get_top_fits(reg.str_fit.results.R2(:,mod
 
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
-brain_area = 'c'; % 'ctx'/'c' or 'str'/'s'
-cell_idx = 47;
+brain_area = 'ctx'; % 'ctx' or 'str'
+cell_idx = 36;
 model_no = 8;
 split_no = 1;
 
 % Show the detailed fit
 figure(2); clf;
-[brain_area, binned_trace] = ctxstr.analysis.regress.visualize_fit(reg, brain_area, cell_idx, model_no, split_no);
+ctxstr.analysis.regress.visualize_fit(reg, brain_area, cell_idx, model_no, split_no);
 
 % Show the cell raster
 figure(3);
+binned_trace = ctxstr.analysis.regress.get_binned_trace(reg, brain_area, cell_idx);
 load('resampled_data.mat', 'st_trial_inds', 'trials');
 ctxstr.vis.show_aligned_binned_raster(st_trial_inds, trials, binned_trace, reg.t);
 title(sprintf('%s-%s, Cell %d', reg.dataset_name, brain_area, cell_idx));

@@ -105,11 +105,15 @@ else
     str_fit = [];
 end
 
+% Some notes regarding saved variables:
+% - Binarized traces are computed by 'run_regression'
+% - Include 'trials' and 'st_trial_inds' to facilitate downstream visualizations
 save('regression.mat', 'ctx_fit', 'str_fit', 'active_frac_thresh', 'alpha', 'num_splits',...
     'models', 'dataset_name', 'reward_frames', 'motion_frames', 'velocity', 'accel', 'lick_rate',...
     't', 'time_by_trial',...
     'bin_threshold', 'binned_ctx_traces', 'binned_str_traces',...
-    'binned_ctx_traces_by_trial', 'binned_str_traces_by_trial');
+    'binned_ctx_traces_by_trial', 'binned_str_traces_by_trial',...
+    'trials', 'st_trial_inds');
 
 %% Select a single neuron for fit (e.g. for manual inspection)
 
