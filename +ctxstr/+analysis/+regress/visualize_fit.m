@@ -1,4 +1,4 @@
-function [brain_area, binned_trace] = visualize_fit(reg, brain_area, cell_idx, model_no, split_no)
+function [binned_trace] = visualize_fit(reg, brain_area, cell_idx, model_no, split_no)
 % Wrapper around the 'plot_fit', in order to simplify the function call.
 %
 % FIXME: We return 'binned_trace' not because it's a conceptually relevant
@@ -6,14 +6,12 @@ function [brain_area, binned_trace] = visualize_fit(reg, brain_area, cell_idx, m
 % is used, we often also utilize 'binned_trace'.
 
 switch brain_area
-    case {'ctx', 'c'}
-        brain_area = 'ctx';
+    case 'ctx'
         trace_by_trial = ctxstr.core.get_traces_for_cell(reg.binned_ctx_traces_by_trial, cell_idx);
         binned_trace = reg.binned_ctx_traces(cell_idx,:);
         fd = reg.ctx_fit.data{cell_idx, model_no, split_no};
 
-    case {'str', 's'}
-        brain_area = 'str';
+    case 'str'
         trace_by_trial = ctxstr.core.get_traces_for_cell(reg.binned_str_traces_by_trial, cell_idx);
         binned_trace = reg.binned_str_traces(cell_idx,:);
         fd = reg.str_fit.data{cell_idx, model_no, split_no};

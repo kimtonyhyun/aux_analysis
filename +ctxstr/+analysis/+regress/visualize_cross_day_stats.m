@@ -81,8 +81,9 @@ for k = 1:length(days)
     N = min([num_to_plot size(top_cells{k},1)]);
     ht = plot(days(k)*ones(N,1), top_cells{k}(1:N,1), 'o',...
             "MarkerSize", 6, 'MarkerFaceColor', 'w', 'MarkerEdgeColor', 'k');
-    ht.DataTipTemplate.DataTipRows(1) = dataTipTextRow('Cell #', top_cells{k}(1:N,2));
-    ht.DataTipTemplate.DataTipRows(2) = dataTipTextRow('R^2 #', 'YData', '%.4f');
+    ht.DataTipTemplate.DataTipRows(1) = dataTipTextRow('Day', 'XData', '%d');
+    ht.DataTipTemplate.DataTipRows(2) = dataTipTextRow('Cell #', top_cells{k}(1:N,2));
+    ht.DataTipTemplate.DataTipRows(3) = dataTipTextRow('R^2 #', 'YData', '%.4f');
 end
 hold off;
 

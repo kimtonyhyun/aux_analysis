@@ -151,9 +151,9 @@ ctxstr.analysis.regress.visualize_cross_day_stats(mouse_name, model_desc,...
 
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
-brain_area = 's'; % 'ctx'/'c' or 'str'/'s'
+brain_area = 'str'; % 'ctx' or 'str'
 day = 8;
-cell_idx = 23;
+cell_idx = 22;
 split_no = 1;
 
 % Retrieve the regression data for the chosen day
@@ -161,7 +161,7 @@ reg = regs{days==day};
 
 % Show the detailed fit
 figure(2);
-[brain_area, binned_trace] = ctxstr.analysis.regress.visualize_fit(reg, brain_area, cell_idx, model_no, split_no);
+binned_trace = ctxstr.analysis.regress.visualize_fit(reg, brain_area, cell_idx, model_no, split_no);
 
 % Show the cell raster
 figure(3);
@@ -194,7 +194,7 @@ for other_day = other_days
         fprintf('- Day %d: Matched to %s cell=%d\n', other_day, brain_area, other_cell_ind);
 
         figure(figure_ind); figure_ind = figure_ind + 1;
-        [brain_area, binned_trace] = ctxstr.analysis.regress.visualize_fit(...
+        binned_trace = ctxstr.analysis.regress.visualize_fit(...
             other_reg, brain_area, other_cell_ind, model_no, split_no);
         
         figure(figure_ind); figure_ind = figure_ind + 1;
