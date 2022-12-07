@@ -69,7 +69,7 @@ num_sources = size(sources,1);
 mouse_name = dirname;
 days = [sources{:,1}];
 
-% Load data
+% Load regression data
 regs = cell(num_sources,1);
 tdt_data = cell(num_sources,1);
 for k = 1:num_sources
@@ -89,14 +89,17 @@ for k = 1:num_sources
 end
 fprintf('Done!\n'); clear temp;
 
+% Load cell matching data
+match_data = load('all_matches.mat');
+
 % Dock all figures for convenience
 set(0, 'DefaultFigureWindowStyle', 'docked');
 
 %% Collect R2 data and other stats for chosen model across days
 
-% model_no = 6; % The {motion, reward} model
+model_no = 6; % The {motion, reward} model
 % model_no = 7; % {velocity, reward}
-model_no = 8; % {velocity, motion, reward}
+% model_no = 8; % {velocity, motion, reward}
 % model_no = 10; % {velocity, accel, lick_rate, motion, reward}
 
 ctx_R2s = cell(num_sources, 1);
@@ -148,16 +151,16 @@ ctxstr.analysis.regress.visualize_cross_day_stats(mouse_name, model_desc,...
 
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
-brain_area = 'c'; % 'ctx'/'c' or 'str'/'s'
-day = 6;
-cell_idx = 43;
+brain_area = 's'; % 'ctx'/'c' or 'str'/'s'
+day = 8;
+cell_idx = 23;
 split_no = 1;
 
 % Retrieve the regression data for the chosen day
 reg = regs{days==day}; 
 
 % Show the detailed fit
-figure(2); clf;
+figure(2);
 [brain_area, binned_trace] = ctxstr.analysis.regress.visualize_fit(reg, brain_area, cell_idx, model_no, split_no);
 
 % Show the cell raster
@@ -166,3 +169,37 @@ rd = load(fullfile(reg.dataset_name, 'resampled_data.mat'), 'st_trial_inds', 'tr
 ctxstr.vis.show_aligned_binned_raster(rd.st_trial_inds, rd.trials, binned_trace, reg.t);
 title(sprintf('%s-%s, Cell %d', reg.dataset_name, brain_area, cell_idx));
 
+%% Track the chosen cell (above) across days
+
+switch brain_area
+    case {'ctx', 'c'}
+        matches = match_data.ctx_matches;
+
+    case {'str', 's'}
+        matches = match_data.str_matches;
+end
+
+other_days = setdiff(days, day);
+cprintf('blue', 'Matching Day %d, %s cell=%d across days...\n', day, brain_area, cell_idx);
+
+figure_ind = 4;
+for other_day = other_days
+    m = matches{day, other_day}{cell_idx};
+    if isempty(m)
+        fprintf('- Day %d: No match\n', other_day);
+    else
+        other_reg = regs{days==other_day};
+        other_cell_ind = m(1);
+
+        fprintf('- Day %d: Matched to %s cell=%d\n', other_day, brain_area, other_cell_ind);
+
+        figure(figure_ind); figure_ind = figure_ind + 1;
+        [brain_area, binned_trace] = ctxstr.analysis.regress.visualize_fit(...
+            other_reg, brain_area, other_cell_ind, model_no, split_no);
+        
+        figure(figure_ind); figure_ind = figure_ind + 1;
+        rd = load(fullfile(other_reg.dataset_name, 'resampled_data.mat'), 'st_trial_inds', 'trials');
+        ctxstr.vis.show_aligned_binned_raster(rd.st_trial_inds, rd.trials, binned_trace, other_reg.t);
+        title(sprintf('%s-%s, Cell %d', other_reg.dataset_name, brain_area, other_cell_ind));
+    end
+end
