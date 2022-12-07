@@ -152,24 +152,20 @@ ctxstr.analysis.regress.visualize_cross_day_stats(mouse_name, model_desc,...
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
 brain_area = 'str'; % 'ctx' or 'str'
-day = 8;
-cell_idx = 68;
+day = 1;
+cell_idx = 20;
 split_no = 1;
 
 % Retrieve the regression data for the chosen day
 reg = regs{days==day}; 
 
-% Show the detailed fit
-figure(2);
-ctxstr.analysis.regress.visualize_fit(reg, brain_area, cell_idx, model_no, split_no);
-
 % Show the cell raster
-figure(3);
-binned_trace = ctxstr.analysis.regress.get_binned_trace(reg, brain_area, cell_idx);
-rd = load(fullfile(reg.dataset_name, 'resampled_data.mat'), 'st_trial_inds', 'trials');
+figure(2);
+ctxstr.analysis.regress.visualize_binned_raster(reg, brain_area, cell_idx);
 
-ctxstr.vis.show_aligned_binned_raster(rd.st_trial_inds, rd.trials, binned_trace, reg.t);
-title(sprintf('%s-%s, Cell %d', reg.dataset_name, brain_area, cell_idx));
+% Show the detailed fit
+figure(3);
+ctxstr.analysis.regress.visualize_fit(reg, brain_area, cell_idx, model_no, split_no);
 
 %% Track the chosen cell (above) across days
 
@@ -182,7 +178,9 @@ switch brain_area
 end
 
 other_days = setdiff(days, day);
-cprintf('blue', 'Matching Day %d, %s cell=%d across days...\n', day, brain_area, cell_idx);
+cprintf('blue', 'Matching Day %d, %s cell=%d (R^2=%.4f) across days...\n',...
+    day, brain_area, cell_idx,...
+    ctxstr.analysis.regress.get_R2(reg, brain_area, cell_idx, model_no));
 
 figure_ind = 4;
 for other_day = other_days
@@ -192,16 +190,15 @@ for other_day = other_days
     else
         other_reg = regs{days==other_day};
         other_cell_idx = m(1);
+        other_R2 = ctxstr.analysis.regress.get_R2(other_reg, brain_area, other_cell_idx, model_no);
 
-        fprintf('- Day %d: Matched to %s cell=%d\n', other_day, brain_area, other_cell_idx);
+        fprintf('- Day %d: Matched to %s cell=%d (R^2=%.4f)\n',...
+            other_day, brain_area, other_cell_idx, other_R2);
 
+        figure(figure_ind); figure_ind = figure_ind + 1;
+        ctxstr.analysis.regress.visualize_binned_raster(other_reg, brain_area, other_cell_idx);
+                
         figure(figure_ind); figure_ind = figure_ind + 1;
         ctxstr.analysis.regress.visualize_fit(other_reg, brain_area, other_cell_idx, model_no, split_no);
-        
-        figure(figure_ind); figure_ind = figure_ind + 1;
-        binned_trace = ctxstr.analysis.regress.get_binned_trace(other_reg, brain_area, other_cell_idx);
-        rd = load(fullfile(other_reg.dataset_name, 'resampled_data.mat'), 'st_trial_inds', 'trials');
-        ctxstr.vis.show_aligned_binned_raster(rd.st_trial_inds, rd.trials, binned_trace, other_reg.t);
-        title(sprintf('%s-%s, Cell %d', other_reg.dataset_name, brain_area, other_cell_idx));
     end
 end
