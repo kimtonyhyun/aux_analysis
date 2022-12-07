@@ -120,6 +120,9 @@ for k = 1:num_regressors
 end
 % Plotting all kernels with equal YLims makes it easier to tell which
 % kernels have the most weight.
+if diff(k_lims) == 0
+    k_lims = k_lims(1) + [-1 1];
+end
 set(ax_kernels, 'YLim', k_lims);
 
 subplot(ax_main); % So that title can be added externally
