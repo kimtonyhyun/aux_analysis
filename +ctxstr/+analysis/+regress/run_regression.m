@@ -106,8 +106,10 @@ else
 end
 
 % Some notes regarding saved variables:
-% - Binarized traces are computed by 'run_regression'
-% - Include 'trials' and 'st_trial_inds' to facilitate downstream visualizations
+% - Binarized traces are computed at the time of 'run_regression', and are
+%   _not_ a part of 'resampled_data'.
+% - Includes 'trials' and 'st_trial_inds' to facilitate downstream 
+%   visualizations without having to separately load 'resampled_data'.
 save('regression.mat', 'ctx_fit', 'str_fit', 'active_frac_thresh', 'alpha', 'num_splits',...
     'models', 'dataset_name', 'reward_frames', 'motion_frames', 'velocity', 'accel', 'lick_rate',...
     't', 'time_by_trial',...
