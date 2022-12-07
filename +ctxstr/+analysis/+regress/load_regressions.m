@@ -152,8 +152,8 @@ ctxstr.analysis.regress.visualize_cross_day_stats(mouse_name, model_desc,...
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
 brain_area = 'str'; % 'ctx' or 'str'
-day = 1;
-cell_idx = 20;
+day = 8;
+cell_idx = 124;
 split_no = 1;
 
 % Retrieve the regression data for the chosen day
@@ -170,10 +170,10 @@ ctxstr.analysis.regress.visualize_fit(reg, brain_area, cell_idx, model_no, split
 %% Track the chosen cell (above) across days
 
 switch brain_area
-    case {'ctx', 'c'}
+    case 'ctx'
         matches = match_data.ctx_matches;
 
-    case {'str', 's'}
+    case 'str'
         matches = match_data.str_matches;
 end
 
