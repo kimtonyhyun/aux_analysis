@@ -1,7 +1,7 @@
 function show_aligned_binned_raster(trials_to_show, trials, trace, t)
 
 % Defaults
-font_size = 18;
+font_size = 14;
 resp_ind_width = 0.25; % Size, in seconds, of the response indicator
 
 % Custom "subplot" command that leaves less unusued space between panels

@@ -120,7 +120,7 @@ save('regression.mat', 'ctx_fit', 'str_fit', 'active_frac_thresh', 'alpha', 'num
 %% Select a single neuron for fit (e.g. for manual inspection)
 
 brain_area = 'str'; % 'ctx' or 'str'
-cell_idx = 6;
+cell_idx = 10;
 
 switch brain_area
     case 'ctx'

@@ -151,9 +151,9 @@ ctxstr.analysis.regress.visualize_cross_day_stats(mouse_name, model_desc,...
 
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
-brain_area = 'ctx'; % 'ctx' or 'str'
-day = 7;
-cell_idx = 53;
+brain_area = 'str'; % 'ctx' or 'str'
+day = 8;
+cell_idx = 117;
 split_no = 1;
 
 % Retrieve the regression data for the chosen day
@@ -177,30 +177,34 @@ switch brain_area
         matches = match_data.str_matches;
 end
 
-other_days = setdiff(days, day);
-cprintf('blue', 'Matching Day %d, %s cell=%d (AF=%.1f%%, R^2=%.4f) across days...\n',...
-    day, brain_area, cell_idx,...
-    100*ctxstr.analysis.regress.get_active_frac(reg, brain_area, cell_idx),...
-    ctxstr.analysis.regress.get_R2(reg, brain_area, cell_idx, model_no));
+cprintf('blue', 'Matching Day %d, %s cell=%d...\n', day, brain_area, cell_idx);
+figure_idx = 4;
+for d = days
+    if d == day
+        fprintf('- Day %d: Selected %s cell=%d (AF=%.1f%%, R^2=%.4f)\n',...
+            d, brain_area, cell_idx,...
+            100*ctxstr.analysis.regress.get_active_frac(reg, brain_area, cell_idx),...
+            ctxstr.analysis.regress.get_R2(reg, brain_area, cell_idx, model_no));
 
-figure_ind = 4;
-for other_day = other_days
-    m = matches{day, other_day}{cell_idx};
-    if isempty(m)
-        fprintf('- Day %d: No match\n', other_day);
+        figure(figure_idx); figure_idx = figure_idx + 1;
+        ctxstr.analysis.regress.visualize_binned_raster(reg, brain_area, cell_idx,...
+            'fig_name', sprintf('Day %d', d));
     else
-        other_reg = regs{days==other_day};
-        other_cell_idx = m(1);
-        other_active_frac = ctxstr.analysis.regress.get_active_frac(other_reg, brain_area, other_cell_idx);
-        other_R2 = ctxstr.analysis.regress.get_R2(other_reg, brain_area, other_cell_idx, model_no);
-
-        fprintf('- Day %d: Matched to %s cell=%d (AF=%.1f%%, R^2=%.4f)\n',...
-            other_day, brain_area, other_cell_idx, 100*other_active_frac, other_R2);
-
-        figure(figure_ind); figure_ind = figure_ind + 1;
-        ctxstr.analysis.regress.visualize_binned_raster(other_reg, brain_area, other_cell_idx);
-                
-%         figure(figure_ind); figure_ind = figure_ind + 1;
-%         ctxstr.analysis.regress.visualize_fit(other_reg, brain_area, other_cell_idx, model_no, split_no);
+        m = matches{day, d}{cell_idx};
+        if isempty(m)
+            fprintf('- Day %d: No match\n', d);
+        else
+            other_reg = regs{days==d};
+            other_cell_idx = m(1);
+            other_active_frac = ctxstr.analysis.regress.get_active_frac(other_reg, brain_area, other_cell_idx);
+            other_R2 = ctxstr.analysis.regress.get_R2(other_reg, brain_area, other_cell_idx, model_no);
+    
+            fprintf('- Day %d: Matched to %s cell=%d (AF=%.1f%%, R^2=%.4f)\n',...
+                d, brain_area, other_cell_idx, 100*other_active_frac, other_R2);
+    
+            figure(figure_idx); figure_idx = figure_idx + 1;
+            ctxstr.analysis.regress.visualize_binned_raster(other_reg, brain_area, other_cell_idx,...
+                'fig_name', sprintf('Day %d', d));
+        end
     end
 end

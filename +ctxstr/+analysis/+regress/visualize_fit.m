@@ -23,4 +23,9 @@ else
                     reg.t, reg.reward_frames, reg.motion_frames, reg.velocity, reg.accel, reg.lick_rate);
     title(sprintf('%s-%s, Cell=%d, model #=%d, split #=%d',...
                 reg.dataset_name, brain_area, cell_idx, model_no, split_no));
+
+    % Format figure name
+    hf = gcf;
+    hf.Name = 'Fit';
+    hf.NumberTitle = 'off';
 end
