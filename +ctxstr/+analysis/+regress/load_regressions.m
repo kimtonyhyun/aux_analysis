@@ -65,14 +65,14 @@ oh28 = {1, 'oh28-0202';
 
 sources = eval(dirname); % If the dirname is 'oh28', then retrieves the variable named 'oh28'
 
-num_sources = size(sources,1);
+num_days = size(sources,1);
 mouse_name = dirname;
 days = [sources{:,1}];
 
 % Load regression data
-regs = cell(num_sources,1);
-tdt_data = cell(num_sources,1);
-for k = 1:num_sources
+regs = cell(num_days,1);
+tdt_data = cell(num_days,1);
+for k = 1:num_days
     path_to_source = sources{k,2};
 
     path_to_reg_mat = fullfile(path_to_source, 'regression.mat');
@@ -102,16 +102,16 @@ model_no = 6; % The {motion, reward} model
 % model_no = 8; % {velocity, motion, reward}
 % model_no = 10; % {velocity, accel, lick_rate, motion, reward}
 
-ctx_R2s = cell(num_sources, 1);
-str_R2s = cell(num_sources, 1);
+ctx_R2s = cell(num_days, 1);
+str_R2s = cell(num_days, 1);
 
-ctx_cell_counts = zeros(num_sources, 2); % Format: [Num-fitted Num-total]
-str_cell_counts = zeros(num_sources, 2);
+ctx_cell_counts = zeros(num_days, 2); % Format: [Num-fitted Num-total]
+str_cell_counts = zeros(num_days, 2);
 
 model_desc = regs{1}.models{model_no}.get_desc;
 fprintf('* * *\n%s, model=%s\n', mouse_name, model_desc)
 fprintf('Day CtxR2Median StrR2Median StrTdtPosR2Median StrTdtNegR2Median\n');
-for k = 1:num_sources
+for k = 1:num_days
     fit_performed = regs{k}.ctx_fit.results.fit_performed;
     R2_vals = regs{k}.ctx_fit.results.R2(fit_performed, model_no);
 
@@ -146,14 +146,16 @@ clear fit_performed R2_vals;
 %% Plot cross-day stats for chosen model
 
 figure(1);
-ctxstr.analysis.regress.visualize_cross_day_stats(mouse_name, model_desc,...
+[ax_ctx, ax_str] = ctxstr.analysis.regress.visualize_cross_day_stats(mouse_name, model_desc,...
     days, ctx_R2s, ctx_cell_counts, str_R2s, str_cell_counts);
+
+%%
 
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
-brain_area = 'str'; % 'ctx' or 'str'
+brain_area = 'ctx'; % 'ctx' or 'str'
 day = 8;
-cell_idx = 117;
+cell_idx = 41;
 split_no = 1;
 
 % Retrieve the regression data for the chosen day
@@ -172,19 +174,32 @@ ctxstr.analysis.regress.visualize_fit(reg, brain_area, cell_idx, model_no, split
 switch brain_area
     case 'ctx'
         matches = match_data.ctx_matches;
+        ax = ax_ctx;
 
     case 'str'
         matches = match_data.str_matches;
+        ax = ax_str;
 end
 
-cprintf('blue', 'Matching Day %d, %s cell=%d...\n', day, brain_area, cell_idx);
+% Format: [Day, Cell#, ActiveFrac, R2]
+tracked_data = zeros(num_days, 4);
+tidx = 0;
+
+if exist('figure_idx', 'var')
+    close(4:figure_idx);
+end
 figure_idx = 4;
+
+cprintf('blue', 'Matching Day %d, %s cell=%d...\n', day, brain_area, cell_idx);
 for d = days
     if d == day
+        active_frac = 100*ctxstr.analysis.regress.get_active_frac(reg, brain_area, cell_idx);
+        R2_val = ctxstr.analysis.regress.get_R2(reg, brain_area, cell_idx, model_no);
         fprintf('- Day %d: Selected %s cell=%d (AF=%.1f%%, R^2=%.4f)\n',...
-            d, brain_area, cell_idx,...
-            100*ctxstr.analysis.regress.get_active_frac(reg, brain_area, cell_idx),...
-            ctxstr.analysis.regress.get_R2(reg, brain_area, cell_idx, model_no));
+            d, brain_area, cell_idx, active_frac, R2_val);
+
+        tidx = tidx + 1;
+        tracked_data(tidx,:) = [d, cell_idx, active_frac, R2_val];
 
         figure(figure_idx); figure_idx = figure_idx + 1;
         ctxstr.analysis.regress.visualize_binned_raster(reg, brain_area, cell_idx,...
@@ -196,11 +211,14 @@ for d = days
         else
             other_reg = regs{days==d};
             other_cell_idx = m(1);
-            other_active_frac = ctxstr.analysis.regress.get_active_frac(other_reg, brain_area, other_cell_idx);
-            other_R2 = ctxstr.analysis.regress.get_R2(other_reg, brain_area, other_cell_idx, model_no);
-    
+            other_active_frac = 100*ctxstr.analysis.regress.get_active_frac(other_reg, brain_area, other_cell_idx);
+            other_R2_val = ctxstr.analysis.regress.get_R2(other_reg, brain_area, other_cell_idx, model_no);
+
+            tidx = tidx + 1;
+            tracked_data(tidx,:) = [d, other_cell_idx, other_active_frac, other_R2_val];
+
             fprintf('- Day %d: Matched to %s cell=%d (AF=%.1f%%, R^2=%.4f)\n',...
-                d, brain_area, other_cell_idx, 100*other_active_frac, other_R2);
+                d, brain_area, other_cell_idx, other_active_frac, other_R2_val);
     
             figure(figure_idx); figure_idx = figure_idx + 1;
             ctxstr.analysis.regress.visualize_binned_raster(other_reg, brain_area, other_cell_idx,...
@@ -208,3 +226,10 @@ for d = days
         end
     end
 end
+tracked_data = tracked_data(1:tidx,:);
+
+figure(1);
+subplot(ax);
+hold on;
+plot(tracked_data(:,1), tracked_data(:,4), '.-', 'Color', [0 0.5 0]);
+hold off;

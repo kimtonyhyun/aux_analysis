@@ -1,4 +1,4 @@
-function visualize_cross_day_stats(mouse_name, model_desc, days, ctx_R2s, ctx_cell_counts, str_R2s, str_cell_counts)
+function [ax_ctx, ax_str] = visualize_cross_day_stats(mouse_name, model_desc, days, ctx_R2s, ctx_cell_counts, str_R2s, str_cell_counts)
 
 get_R2_vals = @(array) cellfun(@(x) x(:,1), array, 'UniformOutput', false);
 
@@ -10,7 +10,7 @@ max_ctx_R2 = max(cell2mat(ctx_R2_vals));
 max_str_R2 = max(cell2mat(str_R2_vals));
 max_R2 = max([max_ctx_R2 max_str_R2]);
 
-ax1 = subplot(3,2,[1 3]);
+ax_ctx = subplot(3,2,[1 3]);
 boxplot_wrapper(days, ctx_R2_vals);
 plot_top_k_cells(days, ctx_R2s);
 grid on;
@@ -19,7 +19,7 @@ title({sprintf('%s-ctx', mouse_name),...
        sprintf('model=%s', model_desc)},...
       'Interpreter', 'none');
 
-ax2 = subplot(3,2,[2 4]);
+ax_str = subplot(3,2,[2 4]);
 boxplot_wrapper(days, str_R2_vals);
 plot_top_k_cells(days, str_R2s);
 grid on;
@@ -27,9 +27,9 @@ title({sprintf('%s-str', mouse_name),...
        sprintf('model=%s', model_desc)},...
       'Interpreter', 'none');
 
-linkaxes([ax1 ax2], 'y');
+linkaxes([ax_ctx ax_str], 'y');
 ylim([0 max_R2+0.05]);
-set([ax1 ax2], 'FontSize', 14);
+set([ax_ctx ax_str], 'FontSize', 14);
 
 ax3 = subplot(3,2,5);
 plot_cell_counts(days, ctx_cell_counts(:,2), ctx_cell_counts(:,1));
@@ -40,7 +40,7 @@ ax4 = subplot(3,2,6);
 plot_cell_counts(days, str_cell_counts(:,2), str_cell_counts(:,1));
 title('Str cell counts');
 
-all_axes = [ax1 ax2 ax3 ax4];
+all_axes = [ax_ctx ax_str ax3 ax4];
 xlim(all_axes, [days(1)-0.5 days(end)+0.5]);
 set(all_axes, 'TickLength', [0 0]);
 

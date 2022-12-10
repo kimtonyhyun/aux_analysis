@@ -1,4 +1,4 @@
-function sorted_inds = get_top_fits(R2s)
+function sorted_inds = sort_R2s(R2s)
 % Given a list of R2s for each cell, return the cell indices corresponding
 % to top R2 values in descending order.
 %
