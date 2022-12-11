@@ -79,8 +79,11 @@ num_days = length(days);
 
 % Load regression data
 regs = cell(num_days,1);
-tdt_data = cell(num_days,1);
 
+% These variables are loaded from the "resampled_data" of each dataset.
+% The *_map variables are required to interface to cell matching data in
+% "all_matches.mat".
+tdt_data = cell(num_days,1);
 ctx_map = cell(num_days,1);
 str_map = cell(num_days,1);
 
@@ -91,9 +94,9 @@ for k = 1:num_days
     fprintf('%s: Loading "%s"...\n', datetime, path_to_reg_mat);
     regs{k} = load(path_to_reg_mat);
 
-    % Get auxiliary information from resampled_data.mat
-    path_to_tdt = fullfile(path_to_source, 'resampled_data.mat');
-    temp = load(path_to_tdt, 'ctx_info', 'str_info');
+    % Get auxiliary information from 'resampled_data'
+    path_to_resampled = fullfile(path_to_source, 'resampled_data.mat');
+    temp = load(path_to_resampled, 'ctx_info', 'str_info');
 
     ctx_map{k} = struct('ind2rec', temp.ctx_info.ind2rec, 'rec2ind', temp.ctx_info.rec2ind);
     str_map{k} = struct('ind2rec', temp.str_info.ind2rec, 'rec2ind', temp.str_info.rec2ind);
@@ -183,8 +186,8 @@ reg = regs{days==day};
 
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
-brain_area = 'str'; % 'ctx' or 'str'
-cell_idx = 43;
+brain_area = 'ctx'; % 'ctx' or 'str'
+cell_idx = 56;
 split_no = 1;
 
 % Retrieve the regression data for the chosen day
@@ -267,5 +270,6 @@ tracked_data = tracked_data(1:tidx,:);
 figure(1);
 subplot(ax);
 hold on;
-plot(tracked_data(:,1), tracked_data(:,4), '.-', 'Color', day_color);
+plot(tracked_data(:,1), tracked_data(:,4), '.-',...
+    'Color', day_color, 'MarkerSize', 14);
 hold off;
