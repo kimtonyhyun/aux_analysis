@@ -1,73 +1,81 @@
-clear all;
+clear all; close all;
+
+mouse_name = lower(dirname);
 
 % Manually list datasets with regression data. TODO: Consider just scanning
 % the directory for 'regression.mat'?
 % Format: {Day-idx, session-directory}
-oh08 = {2, 'oh08-0305';
-        4, 'oh08-0307';
-        5, 'oh08-0308';
-        6, 'oh08-0309';
-        7, 'oh08-0310';
-        8, 'oh08-0311';
-       };
+switch mouse_name
+    case 'oh08'
+        sources = {2, 'oh08-0305';
+                   4, 'oh08-0307';
+                   5, 'oh08-0308';
+                   6, 'oh08-0309';
+                   7, 'oh08-0310';
+                   8, 'oh08-0311';
+                  };
 
-oh12 = {2, 'oh12-0124';
-        3, 'oh12-0125';
-        5, 'oh12-0127';
-        7, 'oh12-0129';
-        8, 'oh12-0130';
-       };
+    case 'oh12'
+        sources = {2, 'oh12-0124';
+                   3, 'oh12-0125';
+                   5, 'oh12-0127';
+                   7, 'oh12-0129';
+                   8, 'oh12-0130';
+                  };
 
-oh15 = {2, 'oh15-0730';
-        3, 'oh15-0731';
-        4, 'oh15-0801';
-        5, 'oh15-0802';
-        6, 'oh15-0804';
-        7, 'oh15-0805';
-        8, 'oh15-0806';
-       };
+    case 'oh15'
+        sources = {2, 'oh15-0730';
+                   3, 'oh15-0731';
+                   4, 'oh15-0801';
+                   5, 'oh15-0802';
+                   6, 'oh15-0804';
+                   7, 'oh15-0805';
+                   8, 'oh15-0806';
+                  };
 
-oh20 = {2, 'oh20-1008';
-        3, 'oh20-1009';
-        5, 'oh20-1011';
-        6, 'oh20-1012';
-        7, 'oh20-1013';
-        8, 'oh20-1014';
-       };
+    case 'oh20'
+        sources = {2, 'oh20-1008';
+                   3, 'oh20-1009';
+                   5, 'oh20-1011';
+                   6, 'oh20-1012';
+                   7, 'oh20-1013';
+                   8, 'oh20-1014';
+                  };
 
-oh21 = {1, 'oh21-1007';
-        2, 'oh21-1008';
-        3, 'oh21-1009';
-        4, 'oh21-1010';
-        5, 'oh21-1011';
-        6, 'oh21-1012';
-        7, 'oh21-1013';
-        8, 'oh21-1014';
-       };
+    case 'oh21'
+        sources = {1, 'oh21-1007';
+                   2, 'oh21-1008';
+                   3, 'oh21-1009';
+                   4, 'oh21-1010';
+                   5, 'oh21-1011';
+                   6, 'oh21-1012';
+                   7, 'oh21-1013';
+                   8, 'oh21-1014';
+                  };
 
-oh27 = {2, 'oh27-0202';
-        3, 'oh27-0203';
-        4, 'oh27-0204';
-        5, 'oh27-0205';
-        6, 'oh27-0206';
-        7, 'oh27-0207';
-        8, 'oh27-0208';
-       };
+    case 'oh27'
+        sources = {2, 'oh27-0202';
+                   3, 'oh27-0203';
+                   4, 'oh27-0204';
+                   5, 'oh27-0205';
+                   6, 'oh27-0206';
+                   7, 'oh27-0207';
+                   8, 'oh27-0208';
+                  };
 
-oh28 = {1, 'oh28-0202';
-        2, 'oh28-0203';
-        4, 'oh28-0205';
-        5, 'oh28-0206';
-        6, 'oh28-0207';
-        7, 'oh28-0208';
-        8, 'oh28-0209';
-       };
+    case 'oh28'
+        sources = {1, 'oh28-0202';
+                   2, 'oh28-0203';
+                   4, 'oh28-0205';
+                   5, 'oh28-0206';
+                   6, 'oh28-0207';
+                   7, 'oh28-0208';
+                   8, 'oh28-0209';
+                  };
+end
 
-sources = eval(dirname); % If the dirname is 'oh28', then retrieves the variable named 'oh28'
-
-num_days = size(sources,1);
-mouse_name = dirname;
 days = [sources{:,1}];
+num_days = length(days);
 
 % Load regression data
 regs = cell(num_days,1);
@@ -87,7 +95,7 @@ for k = 1:num_days
         cprintf('red', 'Warning: tdTomato labels missing for "%s"\n', path_to_source);
     end
 end
-fprintf('Done!\n'); clear temp;
+fprintf('Done!\n'); clear temp path_to_*;
 
 % Load cell matching data
 match_data = load('all_matches.mat');
@@ -149,13 +157,24 @@ figure(1);
 [ax_ctx, ax_str] = ctxstr.analysis.regress.visualize_cross_day_stats(mouse_name, model_desc,...
     days, ctx_R2s, ctx_cell_counts, str_R2s, str_cell_counts);
 
-%%
+%% Find top cells for a given day
+
+day = 8;
+switch day
+    case {1, 2}
+        day_color = 'm';
+    case {7, 8}
+        day_color = [0 0.5 0];
+    otherwise
+        day_color = 'c';
+end
+reg = regs{days==day};
+[ctx_top_fits, str_top_fits] = ctxstr.analysis.regress.get_top_fits(reg, model_no);
 
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
 brain_area = 'ctx'; % 'ctx' or 'str'
-day = 8;
-cell_idx = 41;
+cell_idx = 56;
 split_no = 1;
 
 % Retrieve the regression data for the chosen day
@@ -169,8 +188,8 @@ ctxstr.analysis.regress.visualize_binned_raster(reg, brain_area, cell_idx);
 figure(3);
 ctxstr.analysis.regress.visualize_fit(reg, brain_area, cell_idx, model_no, split_no);
 
-%% Track the chosen cell (above) across days
-
+% Track the chosen cell (above) across days
+%------------------------------------------------------------
 switch brain_area
     case 'ctx'
         matches = match_data.ctx_matches;
@@ -228,8 +247,9 @@ for d = days
 end
 tracked_data = tracked_data(1:tidx,:);
 
+% Show the tracked R2 on the appropriate summary plot
 figure(1);
 subplot(ax);
 hold on;
-plot(tracked_data(:,1), tracked_data(:,4), '.-', 'Color', [0 0.5 0]);
+plot(tracked_data(:,1), tracked_data(:,4), '.-', 'Color', day_color);
 hold off;

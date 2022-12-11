@@ -41,7 +41,7 @@ plot_cell_counts(days, str_cell_counts(:,2), str_cell_counts(:,1));
 title('Str cell counts');
 
 all_axes = [ax_ctx ax_str ax3 ax4];
-xlim(all_axes, [days(1)-0.5 days(end)+0.5]);
+xlim(all_axes, [0.5 days(end)+0.5]);
 set(all_axes, 'TickLength', [0 0]);
 
 datacursormode on;
@@ -75,7 +75,7 @@ function plot_top_k_cells(days, R2s)
 
 num_to_plot = 10;
 
-top_cells = cellfun(@ctxstr.analysis.regress.get_top_fits, R2s, 'UniformOutput', false);
+top_cells = cellfun(@ctxstr.analysis.regress.sort_R2s, R2s, 'UniformOutput', false);
 hold on;
 for k = 1:length(days)
     N = min([num_to_plot size(top_cells{k},1)]);

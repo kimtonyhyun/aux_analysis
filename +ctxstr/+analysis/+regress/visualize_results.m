@@ -33,9 +33,7 @@ datacursormode on; % Allows clicking of data points to retrieve cell idx and oth
 %% Get list of top fits for ctx & str, for the chosen regression model
 
 model_no = 8;
-
-ctx_top_fits = ctxstr.analysis.regress.sort_R2s(reg.ctx_fit.results.R2(:,model_no));
-str_top_fits = ctxstr.analysis.regress.sort_R2s(reg.str_fit.results.R2(:,model_no));
+[ctx_top_fits, str_top_fits] = ctxstr.analysis.regress.get_top_fits(reg, model_no);
 
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
