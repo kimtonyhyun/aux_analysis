@@ -80,6 +80,10 @@ num_days = length(days);
 % Load regression data
 regs = cell(num_days,1);
 tdt_data = cell(num_days,1);
+
+ctx_map = cell(num_days,1);
+str_map = cell(num_days,1);
+
 for k = 1:num_days
     path_to_source = sources{k,2};
 
@@ -87,9 +91,13 @@ for k = 1:num_days
     fprintf('%s: Loading "%s"...\n', datetime, path_to_reg_mat);
     regs{k} = load(path_to_reg_mat);
 
-    % Get striatum tdTomato labeling from resampled_data
+    % Get auxiliary information from resampled_data.mat
     path_to_tdt = fullfile(path_to_source, 'resampled_data.mat');
-    temp = load(path_to_tdt, 'str_info');
+    temp = load(path_to_tdt, 'ctx_info', 'str_info');
+
+    ctx_map{k} = struct('ind2rec', temp.ctx_info.ind2rec, 'rec2ind', temp.ctx_info.rec2ind);
+    str_map{k} = struct('ind2rec', temp.str_info.ind2rec, 'rec2ind', temp.str_info.rec2ind);
+
     tdt_data{k} = temp.str_info.tdt;
     if isempty(tdt_data{k})
         cprintf('red', 'Warning: tdTomato labels missing for "%s"\n', path_to_source);
@@ -97,7 +105,9 @@ for k = 1:num_days
 end
 fprintf('Done!\n'); clear temp path_to_*;
 
-% Load cell matching data
+% Load cell matching data. Note that match matrices are computed with
+% respect to 'rec' cell indices, whereas regressions are performed only for
+% classified cells.
 match_data = load('all_matches.mat');
 
 % Dock all figures for convenience
@@ -173,8 +183,8 @@ reg = regs{days==day};
 
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
-brain_area = 'ctx'; % 'ctx' or 'str'
-cell_idx = 56;
+brain_area = 'str'; % 'ctx' or 'str'
+cell_idx = 43;
 split_no = 1;
 
 % Retrieve the regression data for the chosen day
@@ -194,10 +204,12 @@ switch brain_area
     case 'ctx'
         matches = match_data.ctx_matches;
         ax = ax_ctx;
+        map = ctx_map;
 
     case 'str'
         matches = match_data.str_matches;
         ax = ax_str;
+        map = str_map;
 end
 
 % Format: [Day, Cell#, ActiveFrac, R2]
@@ -224,12 +236,16 @@ for d = days
         ctxstr.analysis.regress.visualize_binned_raster(reg, brain_area, cell_idx,...
             'fig_name', sprintf('Day %d', d));
     else
-        m = matches{day, d}{cell_idx};
+        % Matches are computed with respect to REC indices, whereas
+        % regressions are performed with respect to IND indices. So we nee
+        % to convert and convert back.
+        cell_idx_rec = map{days==day}.ind2rec(cell_idx);
+        m = matches{day, d}{cell_idx_rec};
         if isempty(m)
             fprintf('- Day %d: No match\n', d);
         else
             other_reg = regs{days==d};
-            other_cell_idx = m(1);
+            other_cell_idx = map{days==d}.rec2ind(m(1));
             other_active_frac = 100*ctxstr.analysis.regress.get_active_frac(other_reg, brain_area, other_cell_idx);
             other_R2_val = ctxstr.analysis.regress.get_R2(other_reg, brain_area, other_cell_idx, model_no);
 
