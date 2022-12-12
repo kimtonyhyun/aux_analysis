@@ -3,7 +3,7 @@ clear all;
 match_data = load('all_matches.mat');
 num_sessions = length(match_data.session_names);
 
-sessions_to_track = [1 2 4 5 6 7 8];
+sessions_to_track = 1:8;
 
 %%
 
@@ -13,6 +13,8 @@ sessions_to_track = [1 2 4 5 6 7 8];
 % datasets, but load in only those specified in 'sessions_to_track' (e.g.
 % those with identified ST trials).
 
+bin_threshold = 0.2; % Binarization threshold for CASCADE traces
+
 ds_ctx = cell(num_sessions,1);
 for k = 1:num_sessions
     if ismember(k, sessions_to_track)
@@ -20,7 +22,7 @@ for k = 1:num_sessions
         ds_ctx{k} = DaySummary(...
             fullfile(session_name, 'ctx/ctx-st_15hz.txt'),...
             fullfile(session_name, 'ctx/union_15hz/dff'),...
-            'cascade');
+            'cascade-bin', bin_threshold);
     end
 end
 
@@ -31,7 +33,7 @@ for k = 1:num_sessions
         ds_str{k} = DaySummary(...
             fullfile(session_name, 'str/str-st_15hz.txt'),...
             fullfile(session_name, 'str/union_15hz/dff'),...
-            'cascade');
+            'cascade-bin', bin_threshold);
     end
 end
 
