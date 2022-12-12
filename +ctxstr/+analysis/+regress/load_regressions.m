@@ -153,7 +153,7 @@ for k = 1:num_days
     tdt_neg(tdt_data{k}.neg) = true;
     str_tdtneg_R2s = regs{k}.str_fit.results.R2(tdt_neg & fit_performed, model_no);
 
-    % Format: [Day CtxR2Median StrR2Median]
+    % Print to console
     fprintf('%d %.4f %.4f %.4f %.4f; %% %s\n',...
         sources{k,1},...
         median(ctx_R2s{k}(:,1)),...
@@ -172,26 +172,23 @@ figure(1);
 
 %% Find top cells for a given day
 
-day = 8;
+day = 6;
 switch day
     case {1, 2}
         day_color = 'm';
     case {7, 8}
         day_color = [0 0.5 0];
     otherwise
-        day_color = 'c';
+        day_color = 'k';
 end
 reg = regs{days==day};
 [ctx_top_fits, str_top_fits] = ctxstr.analysis.regress.get_top_fits(reg, model_no);
 
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
-brain_area = 'ctx'; % 'ctx' or 'str'
-cell_idx = 56;
+brain_area = 'str'; % 'ctx' or 'str'
+cell_idx = 28;
 split_no = 1;
-
-% Retrieve the regression data for the chosen day
-reg = regs{days==day}; 
 
 % Show the cell raster
 figure(2);
@@ -205,71 +202,45 @@ ctxstr.analysis.regress.visualize_fit(reg, brain_area, cell_idx, model_no, split
 %------------------------------------------------------------
 switch brain_area
     case 'ctx'
-        matches = match_data.ctx_matches;
         ax = ax_ctx;
-        map = ctx_map;
+        tracked_cell = ctxstr.analysis.track_cell(day, cell_idx, days, ctx_map, match_data.ctx_matches);
 
     case 'str'
-        matches = match_data.str_matches;
         ax = ax_str;
-        map = str_map;
+        tracked_cell = ctxstr.analysis.track_cell(day, cell_idx, days, str_map, match_data.str_matches);
 end
 
+% Additionally compute ActiveFrac and R2 values.
 % Format: [Day, Cell#, ActiveFrac, R2]
-tracked_data = zeros(num_days, 4);
-tidx = 0;
+tracked_stats = ctxstr.analysis.regress.track_stats(days, regs, brain_area, tracked_cell, model_no);
 
+% Plot the tracked rasters
 if exist('figure_idx', 'var')
     close(4:figure_idx);
 end
-figure_idx = 4;
+figure_idx = 3;
 
-cprintf('blue', 'Matching Day %d, %s cell=%d...\n', day, brain_area, cell_idx);
+cprintf('blue', 'Tracked Day %d, %s cell=%d...\n', day, brain_area, cell_idx);
 for d = days
-    if d == day
-        active_frac = 100*ctxstr.analysis.regress.get_active_frac(reg, brain_area, cell_idx);
-        R2_val = ctxstr.analysis.regress.get_R2(reg, brain_area, cell_idx, model_no);
-        fprintf('- Day %d: Selected %s cell=%d (AF=%.1f%%, R^2=%.4f)\n',...
-            d, brain_area, cell_idx, active_frac, R2_val);
-
-        tidx = tidx + 1;
-        tracked_data(tidx,:) = [d, cell_idx, active_frac, R2_val];
-
-        figure(figure_idx); figure_idx = figure_idx + 1;
-        ctxstr.analysis.regress.visualize_binned_raster(reg, brain_area, cell_idx,...
-            'fig_name', sprintf('Day %d', d));
+    k = find(tracked_stats(:,1)==d);
+    if isempty(k)
+        fprintf('- Day %d: No match\n', d);
     else
-        % Matches are computed with respect to REC indices, whereas
-        % regressions are performed with respect to IND indices. So we nee
-        % to convert and convert back.
-        cell_idx_rec = map{days==day}.ind2rec(cell_idx);
-        m = matches{day, d}{cell_idx_rec};
-        if isempty(m)
-            fprintf('- Day %d: No match\n', d);
-        else
-            other_reg = regs{days==d};
-            other_cell_idx = map{days==d}.rec2ind(m(1));
-            other_active_frac = 100*ctxstr.analysis.regress.get_active_frac(other_reg, brain_area, other_cell_idx);
-            other_R2_val = ctxstr.analysis.regress.get_R2(other_reg, brain_area, other_cell_idx, model_no);
+        c = tracked_stats(k,2);
+        fprintf('- Day %d: %s cell=%3d (AF=%.1f%%, R^2=%.4f)\n',...
+            d, brain_area, c, tracked_stats(k,3), tracked_stats(k,4));
 
-            tidx = tidx + 1;
-            tracked_data(tidx,:) = [d, other_cell_idx, other_active_frac, other_R2_val];
-
-            fprintf('- Day %d: Matched to %s cell=%d (AF=%.1f%%, R^2=%.4f)\n',...
-                d, brain_area, other_cell_idx, other_active_frac, other_R2_val);
-    
-            figure(figure_idx); figure_idx = figure_idx + 1;
-            ctxstr.analysis.regress.visualize_binned_raster(other_reg, brain_area, other_cell_idx,...
-                'fig_name', sprintf('Day %d', d));
-        end
+        figure_idx = figure_idx + 1;
+        figure(figure_idx);
+        ctxstr.analysis.regress.visualize_binned_raster(regs{days==d}, brain_area, c,...
+            'fig_name', sprintf('Day %d', d));
     end
 end
-tracked_data = tracked_data(1:tidx,:);
 
 % Show the tracked R2 on the appropriate summary plot
 figure(1);
 subplot(ax);
 hold on;
-plot(tracked_data(:,1), tracked_data(:,4), '.-',...
+plot(tracked_stats(:,1), tracked_stats(:,4), '.-',...
     'Color', day_color, 'MarkerSize', 14);
 hold off;

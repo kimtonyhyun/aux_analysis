@@ -6,3 +6,5 @@ switch brain_area
     case 'str'
         active_frac = reg.str_fit.results.active_fracs(cell_idx);
 end
+
+active_frac = 100.0 * active_frac; % Return as percentage
