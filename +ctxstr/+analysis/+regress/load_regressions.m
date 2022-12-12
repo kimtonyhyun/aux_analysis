@@ -172,7 +172,7 @@ figure(1);
 
 %% Find top cells for a given day
 
-day = 6;
+day = 8;
 switch day
     case {1, 2}
         day_color = 'm';
@@ -188,7 +188,7 @@ fprintf('Top fits computed for Day=%d\n', day);
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
 brain_area = 'ctx'; % 'ctx' or 'str'
-cell_idx = 32;
+cell_idx = 18;
 
 % Track the chosen cell across days
 %------------------------------------------------------------

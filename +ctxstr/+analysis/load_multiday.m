@@ -1,7 +1,7 @@
 clear all;
 
-load('all_matches.mat');
-num_sessions = length(session_names);
+match_data = load('all_matches.mat');
+num_sessions = length(match_data.session_names);
 
 sessions_to_track = [1 2 4 5 6 7 8];
 
@@ -16,9 +16,10 @@ sessions_to_track = [1 2 4 5 6 7 8];
 ds_ctx = cell(num_sessions,1);
 for k = 1:num_sessions
     if ismember(k, sessions_to_track)
+        session_name = match_data.session_names{k};
         ds_ctx{k} = DaySummary(...
-            fullfile(session_names{k}, 'ctx/ctx-st_15hz.txt'),...
-            fullfile(session_names{k}, 'ctx/union_15hz/dff'),...
+            fullfile(session_name, 'ctx/ctx-st_15hz.txt'),...
+            fullfile(session_name, 'ctx/union_15hz/dff'),...
             'cascade');
     end
 end
@@ -26,25 +27,26 @@ end
 ds_str = cell(num_sessions,1);
 for k = 1:num_sessions
     if ismember(k, sessions_to_track)
+        session_name = match_data.session_names{k};
         ds_str{k} = DaySummary(...
-            fullfile(session_names{k}, 'str/str-st_15hz.txt'),...
-            fullfile(session_names{k}, 'str/union_15hz/dff'),...
+            fullfile(session_name, 'str/str-st_15hz.txt'),...
+            fullfile(session_name, 'str/union_15hz/dff'),...
             'cascade');
     end
 end
 
 %%
 
-region = 'ctx';
-md = ctxstr.core.generate_md(ds_ctx, ctx_matches,...
-        cellfun(@(x) sprintf('%s-ctx', x), session_names, 'UniformOutput', false),...
+brain_area = 'ctx';
+md = ctxstr.core.generate_md(ds_ctx, match_data.ctx_matches,...
+        cellfun(@(x) sprintf('%s-ctx', x), match_data.session_names, 'UniformOutput', false),...
         sessions_to_track);
 
 %%
 
-region = 'str';
-md = ctxstr.core.generate_md(ds_str, str_matches,...
-    cellfun(@(x) sprintf('%s-str', x), session_names, 'UniformOutput', false),...
+brain_area = 'str';
+md = ctxstr.core.generate_md(ds_str, match_data.str_matches,...
+    cellfun(@(x) sprintf('%s-str', x), match_data.session_names, 'UniformOutput', false),...
     sessions_to_track);
 
 %% Visualization #1: Plot tracked cell rasters across days
@@ -56,7 +58,7 @@ for k = 1:md.num_cells
     draw_md_cell(md, k, raster_fns);
     drawnow;
     
-    filename = sprintf('%s-%s_md%03d_bin0-2.png', mouse_name, region, k);
-    print('-dpng', filename);
-%     pause;
+%     filename = sprintf('%s-%s_md%03d_bin0-2.png', mouse_name, brain_area, k);
+%     print('-dpng', filename);
+    pause;
 end
