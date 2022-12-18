@@ -3,7 +3,7 @@ clear all;
 match_data = load('all_matches.mat');
 num_sessions = length(match_data.session_names);
 
-sessions_to_track = 1:8;
+sessions_to_track = [1 2 4 5 6 7 8];
 
 %%
 
@@ -40,16 +40,18 @@ end
 %%
 
 brain_area = 'ctx';
+match_type = 'full';
 md = ctxstr.core.generate_md(ds_ctx, match_data.ctx_matches,...
         cellfun(@(x) sprintf('%s-ctx', x), match_data.session_names, 'UniformOutput', false),...
-        sessions_to_track);
+        sessions_to_track, 'match_type', match_type);
 
 %%
 
 brain_area = 'str';
+match_type = 'link';
 md = ctxstr.core.generate_md(ds_str, match_data.str_matches,...
     cellfun(@(x) sprintf('%s-str', x), match_data.session_names, 'UniformOutput', false),...
-    sessions_to_track);
+    sessions_to_track, 'match_type', match_type);
 
 %% Visualization #1: Plot tracked cell rasters across days
 

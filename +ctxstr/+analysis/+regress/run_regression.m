@@ -1,10 +1,10 @@
 clear;
 
-load('resampled_data.mat');
+load('resampled_data3.mat');
 
 % Load neural data (CASCADE traces) and binarize
 %----------------------------------------------------------------------
-bin_threshold = 0.2;
+bin_threshold = 0.1;
 
 [binned_ctx_traces, binned_ctx_traces_by_trial] = ...
     ctxstr.core.binarize_traces(ctx_traces, ctx_traces_by_trial, bin_threshold);
@@ -73,7 +73,8 @@ motion_regressor = ctxstr.analysis.regress.define_regressor_smooth('motion', mot
 
 generate_model = @(rs) ctxstr.analysis.regress.model(rs); % Shorthand
 
-models = {generate_model(velocity_regressor);
+models = {
+          generate_model(velocity_regressor);
           generate_model(accel_regressor);
           generate_model(lick_regressor);
           generate_model(motion_regressor);
@@ -110,7 +111,7 @@ end
 %   _not_ a part of 'resampled_data'.
 % - Includes 'trials' and 'st_trial_inds' to facilitate downstream 
 %   visualizations without having to separately load 'resampled_data'.
-save('regression.mat', 'ctx_fit', 'str_fit', 'active_frac_thresh', 'alpha', 'num_splits',...
+save('regression3_bin0-1.mat', 'ctx_fit', 'str_fit', 'active_frac_thresh', 'alpha', 'num_splits',...
     'models', 'dataset_name', 'reward_frames', 'motion_frames', 'velocity', 'accel', 'lick_rate',...
     't', 'time_by_trial',...
     'bin_threshold', 'binned_ctx_traces', 'binned_str_traces',...
