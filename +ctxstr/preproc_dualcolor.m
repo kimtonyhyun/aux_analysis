@@ -80,8 +80,10 @@ zoom xon;
 
 % str
 run_normcorre([str_stem '-gcamp_uc.hdf5'], '');
-% delete([str_stem '_uc.hdf5']);
-
 bin_movie_in_time([str_stem '-gcamp_uc_nc.hdf5'], '', 12);
+
+run_normcorre([str_stem '-rda_uc.hdf5'], '');
+bin_movie_in_time([str_stem '-rda_uc_nc.hdf5'], '', 12);
+
 
 fprintf('<strong>%s: DONE with run_normcorre!</strong>\n', datestr(now));
