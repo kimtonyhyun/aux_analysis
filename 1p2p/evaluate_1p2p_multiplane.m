@@ -47,6 +47,25 @@ for k = 1:num_slices
     movefile('corrlist.mat', paths_to_dataset2{k});
 end
 
+%% Generate 'corrlist.mat' from 'matched_corrlist'
+
+for k = 1:num_slices
+    mc = load(fullfile(paths_to_dataset2{k}, 'matched_corrlist.mat'));
+    mc = mc.matched_corrlist;
+    num_matches = size(mc, 1);
+    
+    matched = zeros(num_matches, 5);
+    for j = 1:num_matches
+        tr1 = ds1.get_trace(mc(j,1), 'zsc');
+        tr2 = ds2{k}.get_trace(mc(j,2), 'zsc');
+        [~, metric] = fit_1p2p(tr1, tr2, fps);
+        matched(j,:) = [mc(j,1:3) metric.fraction_good_fit metric.fraction_variance_explained];
+    end
+    
+    save('corrlist.mat', 'matched');
+    movefile('corrlist.mat', paths_to_dataset2{k});
+end
+
 %% Show 1P:2P cell maps, filling in cells that matched
 
 % Load all matched_corrlists
