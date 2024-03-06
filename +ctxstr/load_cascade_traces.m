@@ -36,7 +36,15 @@ if normalize_traces
         % assumed to be 0, hence normalization by just the max value. On
         % the other hand, other types of traces, such as fluorescence
         % traces, should probably subtract off the min value as well.
-        traces(k,:) = tr / max(tr);
+        
+        tr_max = max(tr);
+        if (tr_max > 0)
+            traces(k,:) = tr / tr_max;
+        else
+            % We have seen cases where the CASCADE output is strictly zero,
+            % which causes division by 0 during normalization
+            cprintf('blue', '  Warning: Trace %d has unusual max(tr) = %.3f! Did not normalize trace\n', k, tr_max);
+        end
     end
 end
 
