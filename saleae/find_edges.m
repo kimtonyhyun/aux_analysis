@@ -5,14 +5,14 @@ function edges = find_edges(saleae_file, channel, find_neg)
 %   - Channel indexed from 0
 %   - Assumes no header line in 'saleae_file'
 %   - Set 'find_neg' == true to find falling edges
-%
-% TODO:
-%   - Option for finding falling edges
-%
+%   - Set 'find_neg' == 'all' to find both rising and falling edges
+
 if ~exist('find_neg', 'var')
-    find_neg = false;
+    edge_fn = @(prev, curr) ~prev && curr;
+elseif any(strcmp(find_neg, {'all', 'both'}))
+    edge_fn = @(prev, curr) (~prev && curr) || (prev && ~curr);
 else
-    find_neg = true;
+    edge_fn = @(prev, curr) (prev && ~curr);
 end
 
 if isstring(saleae_file)
@@ -29,16 +29,9 @@ num_edges = 0;
 prev_val = trace(1);
 for k = 2:length(trace)
     val = trace(k);
-    if ~find_neg % Find rising edges (default behavior)
-        if (~prev_val && val)
-            num_edges = num_edges + 1;
-            edges(num_edges) = times(k);
-        end    
-    else % Find negative edges
-        if (prev_val && ~val)
-            num_edges = num_edges + 1;
-            edges(num_edges) = times(k);
-        end
+    if edge_fn(prev_val, val)
+        num_edges = num_edges + 1;
+        edges(num_edges) = times(k);
     end
     prev_val = val;
 end
