@@ -61,6 +61,8 @@ for k = 1:s.num_trials
     s.read_times_with_movement{k} = s.read_times{k}(nonzero_read_inds{k});
 end
 
+% We use the digitized photodiode signal to determine the _number_ of
+% screen transitions, but won't use it for the precise timings
 approx_screen_update_times = find_edges(sdata, screen_ind_ch, 'both');
 s_aux.approx_screen_update_times = parse_times_by_trial(approx_screen_update_times, s_aux.trial_times);
 
@@ -70,8 +72,6 @@ s_aux.approx_screen_update_times = cellfun(@(x) x(2:end), s_aux.approx_screen_up
     'UniformOutput', false);
 
 % Format: [num_all_reads, num_display_updates]
-%   Note that each trial has an extra screen indicator edge corresponding
-%   to the first frame of the trial
 s.num_reads = cat(2,...
     cellfun(@length, s.read_times, 'UniformOutput', true), ...
     cellfun(@length, s_aux.approx_screen_update_times, 'UniformOutput', true));
@@ -82,10 +82,10 @@ else
     cprintf('red', 'Detected mismatch in Matlab reads and/or screen transitions\n');
 end
 
-% Finally, we compute the precise screen transition times by analyzing the
+% Finally, we compute the exact screen transition times by analyzing the
 % analog photodiode signal. This computation has two numerical parameters
-% that may need to be tuned to get the correct result. Always check the
-% result against the native Saleae recording!
+% that may need to be tuned to get the correct result. Periodically check
+% the result against the native Saleae recording!
 %------------------------------------------------------------
 threshold_percentile = 99;
 median_filter_window = 3;
