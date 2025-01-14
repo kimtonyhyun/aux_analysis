@@ -1,10 +1,19 @@
 function [m, s, s_aux] = validate_screen(matlab_results_file)
+% Validate screen function during the behavioral task, i.e.:
+%   - Confirm there are expected number of screen transitions as measured 
+%     by the photodiode
+%   - Calculate precise latency of screen updates using photodiode data
+%
 % Assumes that the Saleae data has been exported as:
 %   - digital.csv: All digital traces (i.e. no analog)
 %   - analog.csv: Photodiode trace only
 %
+% Outputs are mainly organized into two structs:
+%   - m: Quantities as expected from Matlab
+%   - s: Quantities as measured from Saleae log
+%
 % Example:
-%   [m, s, s_aux] = bmi.validate_screen('Results_phase9_AB_flash_250113-122604.mat');
+%   [m, s] = bmi.validate_screen('Results_phase9_AB_flash_250113-122604.mat');
 %   all_screen_latency = cell2mat(s.screen_update_latency) * 1e3; % ms
 
 % Parse data from Matlab side
@@ -18,12 +27,12 @@ m.num_trials = length([results.x0]);
 % Format: [num_all_reads, num_reads_with_movement]
 m.num_reads = zeros(m.num_trials, 2);
 
-nonzero_reads = cell(m.num_trials, 1);
+nonzero_read_inds = cell(m.num_trials, 1);
 
 for k = 1:m.num_trials
     counts_k = results(k).counts;
     
-    nonzero_reads{k} = (counts_k ~= 0);
+    nonzero_read_inds{k} = (counts_k~=0);
     m.num_reads(k,:) = [length(counts_k) sum(counts_k~=0)];
 end
 
@@ -49,7 +58,7 @@ read_times = find_edges(sdata, matlab_read_ch, 'neg');
 s.read_times = parse_times_by_trial(read_times, s_aux.trial_times);
 s.read_times_with_movement = cell(s.num_trials, 1);
 for k = 1:s.num_trials
-    s.read_times_with_movement{k} = s.read_times{k}(nonzero_reads{k});
+    s.read_times_with_movement{k} = s.read_times{k}(nonzero_read_inds{k});
 end
 
 approx_screen_update_times = find_edges(sdata, screen_ind_ch, 'both');
