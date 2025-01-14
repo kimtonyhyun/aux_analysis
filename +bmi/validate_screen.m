@@ -39,7 +39,7 @@ s_aux.trial_times = find_pulses(sdata, trial_ch);
 s.num_trials = size(s_aux.trial_times, 1);
 
 if m.num_trials == s.num_trials
-    cprintf('blue', 'Matlab and Saleae report the same number of trials\n');
+    cprintf('blue', 'Matlab and Saleae agree on the number of trials\n');
 else
     cprintf('red', 'Matlab and Saleae report DIFFERENT numbers of trials!\n');
 end
@@ -68,7 +68,7 @@ s.num_reads = cat(2,...
     cellfun(@length, s_aux.approx_screen_update_times, 'UniformOutput', true));
 
 if all(m.num_reads == s.num_reads)
-    cprintf('blue', 'Number of Matlab reads and screen transitions in agreement\n');
+    cprintf('blue', 'Matlab and Saleae agree on the number of Matlab reads and screen transitions\n');
 else
     cprintf('red', 'Detected mismatch in Matlab reads and/or screen transitions\n');
 end
@@ -117,7 +117,7 @@ for k = 1:s.num_trials
 end
 
 if num_mismatch == 0
-    cprintf('blue', 'Successfully calculated screen update times from the analog trace\n')
+    cprintf('blue', 'Calculated the correct number of screen update times from the analog photodiode trace\n')
 end
 
 % Calculate the latency from Matlab read to screen update
