@@ -16,6 +16,11 @@ function [m, s, s_aux] = validate_screen(matlab_results_file)
 %   [m, s] = bmi.validate_screen('Results_phase9_AB_flash_250113-122604.mat');
 %   all_screen_latency = cell2mat(s.screen_update_latency) * 1e3; % ms
 
+if ~exist('matlab_results_file', 'var')
+    matlab_results_file = get_most_recent_file('.', 'Results_*.mat');
+    fprintf('Using "%s"...\n', matlab_results_file);
+end
+
 % Parse data from Matlab side
 %------------------------------------------------------------
 rdata = load(matlab_results_file);
