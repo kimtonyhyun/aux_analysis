@@ -16,12 +16,16 @@ t_lims = [s.screen_update_times{1}(1) s.screen_update_times{end}(end)];
 
 all_latency = cell2mat(s.screen_update_latency) * 1e3;
 mean_latency = mean(all_latency);
+std_latency = std(all_latency);
 plot(t_lims, mean_latency * [1 1], 'k--');
 
 hold off;
 xlabel('Time (s)');
 ylabel('Screen update latency (ms)');
-title(sprintf('Mean latency = %.3f ms', mean_latency))
+title({sprintf('Mean latency = %.3f \\pm %.3f ms', mean_latency, std_latency),...
+       sprintf('%d screen updates', length(all_latency))});
 xlim(t_lims);
 grid on;
 set(gca, 'FontSize', 18);
+
+zoom xon;
