@@ -3,9 +3,21 @@ function RT_delay_by_frame = validate_rt_processing(saleae_file, si_integration_
 % - Check whether there are any dropped frames in the SI integration file
 % - Confirm that the number of RT clock edges matches the number of
 %     processed frames in the SI integration file
+%
 % TODO:
-% - Confirm that the classifier output at the time of RT clock edge matches
-%     the intended one as logged in the SI integration file
+% 1. Confirm that the classifier output at the time of RT clock edge 
+%    matches the intended one as logged in the SI integration file
+% 2. Calculate the expected "BMI counts" for each Matlab read, so that we
+%    can verify against the downstream Matlab log.
+
+if ~exist('saleae_file', 'var')
+    saleae_file = 'untitled.csv';
+end
+
+if ~exist('si_integration_file', 'var')
+    si_integration_file = get_most_recent_file('.', '*_IntegrationRois_*.csv');
+    fprintf('Using "%s"...\n', si_integration_file);
+end
 
 % Load Saleae data
 %------------------------------------------------------------
@@ -66,7 +78,7 @@ for k = 1:3
 end
 max_RT_delay = max(RT_delay_by_frame(~isinf(RT_delay_by_frame)));
 fprintf('  Maximum delay: %.1f ms (=%.3f frames)\n',...
-    max_RT_delay * 1000.0, max_RT_delay/frame_period);
+    max_RT_delay * 1e3, max_RT_delay/frame_period);
 
 % Visualize results
 %------------------------------------------------------------
