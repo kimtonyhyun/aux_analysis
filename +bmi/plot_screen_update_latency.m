@@ -1,4 +1,5 @@
 function plot_screen_update_latency(s)
+% Use with the output of bmi.validate_screen
 
 figure;
 hold on;

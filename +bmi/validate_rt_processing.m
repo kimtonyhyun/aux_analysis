@@ -13,6 +13,9 @@ function [m, s] = validate_rt_processing(saleae_file, si_integration_file)
 % Outputs are mainly organized into two structs:
 %   - m: Quantities as expected from Matlab/ScanImage
 %   - s: Quantities as measured from Saleae log
+%
+% Associated visualization functions:
+%   - bmi.plot_RT_delays(s);
 
 if ~exist('saleae_file', 'var')
     saleae_file = 'untitled.csv';
@@ -35,7 +38,7 @@ s.frame_clk.end_times = find_edges(data, frame_clk_ch, 1); % Negedge
 
 s.frame_clk.period = mean(diff(s.frame_clk.start_times));
 s.num_frames = length(s.frame_clk.start_times);
-fprintf('validate_rt_processing:\n  Found %d imaging frames in Saleae log with period %.1f ms\n',...
+fprintf('validate_rt_processing:\n  Saleae shows %d imaging frames with period %.1f ms\n',...
     s.num_frames, s.frame_clk.period * 1e3);
 
 s.RT_clk_times = find_edges(data, RT_clk_ch, 'both'); % Detect both rising and falling edges
@@ -59,12 +62,12 @@ cprintf(text_color, '  Found %d dropped frames in SI integration log (%.1f%%)\n'
     num_dropped_frames, num_dropped_frames/s.num_frames * 100.0);
 
 if num_processed_frames == num_RT_clks
-    cprintf('blue', '  Number of RT clock edges in Saleae matches that of ScanImage log\n');
+    cprintf('blue', '  Number of RT clock edges in Saleae matches that of IntegrationRois log\n');
 elseif num_processed_frames == (num_RT_clks - 1)
-    cprintf('red', '  Warning: Number of RT clock edges in Saleae exceeds that of ScanImage log by 1. Omitting last RT clock edge!\n');
+    cprintf('red', '  Warning: Number of RT clock edges in Saleae exceeds that of IntegrationRois log by 1. Omitting last RT clock edge!\n');
     s.RT_clk_times = s.RT_clk_times(1:end-1);
 else
-    cprintf('red', 'Number of RT clock edges in Saleae does NOT match that of ScanImage log!\n');
+    cprintf('red', 'Number of RT clock edges in Saleae does NOT match that of IntegrationRois log!\n');
 end
 
 % Compute the per-frame RT output time and delay
@@ -84,19 +87,3 @@ end
 max_RT_delay = max(s.RT_delay_by_frame(~isinf(s.RT_delay_by_frame)));
 fprintf('  Maximum delay: %.1f ms (=%.3f frames)\n',...
     max_RT_delay * 1e3, max_RT_delay/s.frame_clk.period);
-
-% % Visualize results
-% %------------------------------------------------------------
-% t_lims = [1 num_frames];
-% stem(RT_delay_by_frame * 1e3, '.', 'MarkerSize', 12);
-% % grid on;
-% hold on;
-% plot(t_lims, frame_period*[1 1] * 1e3, ':', 'LineWidth', 2, 'Color', [0.4660 0.6740 0.1880]); % Green
-% plot(t_lims, 2*frame_period*[1 1] * 1e3, ':', 'LineWidth', 2, 'Color', [0.8500 0.3250 0.0980]); % Orange
-% plot(t_lims, 3*frame_period*[1 1] * 1e3, ':', 'LineWidth', 2, 'Color', [0.6350 0.0780 0.1840]); % Red
-% hold off;
-% xlabel('Frame index');
-% ylabel('BMI output delay (ms)');
-% set(gca, 'TickLength', [0 0]);
-% xlim(t_lims);
-% zoom xon;
