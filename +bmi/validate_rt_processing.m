@@ -71,12 +71,15 @@ else
 end
 
 % Compute the per-frame RT output time and delay
+%------------------------------------------------------------
 s.RT_output_time_by_frame = Inf * ones(s.num_frames, 1);
 for k = 1:num_processed_frames
     frame_ind = m.RT_processed_frames(k);
     s.RT_output_time_by_frame(frame_ind) = s.RT_clk_times(k);
 end
 
+% If a frame's RT output was dropped by ScanImage, then RT_delay_by_frame
+% for that frame is Inf
 s.RT_delay_by_frame = s.RT_output_time_by_frame - s.frame_clk.end_times;
 
 for k = 1:3
@@ -84,6 +87,13 @@ for k = 1:3
     fprintf('  Number of frames processed within %d frame period: %d (%.1f%%)\n',...
         k, num_frames_within_delay, num_frames_within_delay/s.num_frames * 100.0);
 end
-max_RT_delay = max(s.RT_delay_by_frame(~isinf(s.RT_delay_by_frame)));
+
+nonInf_RT_delay_by_frame = s.RT_delay_by_frame(~isinf(s.RT_delay_by_frame));
+
+avg_RT_delay = mean(nonInf_RT_delay_by_frame);
+fprintf('  Average delay: %.1f ms (=%.3f frames)\n',...
+    avg_RT_delay * 1e3, avg_RT_delay/s.frame_clk.period);
+
+max_RT_delay = max(nonInf_RT_delay_by_frame);
 fprintf('  Maximum delay: %.1f ms (=%.3f frames)\n',...
     max_RT_delay * 1e3, max_RT_delay/s.frame_clk.period);

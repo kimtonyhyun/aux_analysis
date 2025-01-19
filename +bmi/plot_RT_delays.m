@@ -4,6 +4,7 @@ function plot_RT_delays(s)
 t_lims = [1 s.num_frames];
 frame_period = s.frame_clk.period;
 
+figure;
 stem(s.RT_delay_by_frame * 1e3, '.', 'MarkerSize', 12);
 % grid on;
 hold on;
@@ -14,5 +15,6 @@ hold off;
 xlabel('Frame index');
 ylabel('BMI output delay (ms)');
 set(gca, 'TickLength', [0 0]);
+set(gca, 'FontSize', 18);
 xlim(t_lims);
 zoom xon;
