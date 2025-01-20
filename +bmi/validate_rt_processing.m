@@ -1,4 +1,4 @@
-function [m, s] = validate_RT_processing(saleae_file, si_integration_file)
+function [m, s] = validate_rt_processing(saleae_file, si_integration_file)
 % Validate real-time processing results, i.e.:
 % - Check whether there are any dropped frames in the SI integration file
 % - Confirm that the number of RT clock edges matches the number of
