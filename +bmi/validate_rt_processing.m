@@ -15,7 +15,12 @@ function [m, s] = validate_rt_processing(saleae_file, si_integration_file)
 %
 
 if ~exist('saleae_file', 'var')
-    saleae_file = 'untitled.csv';
+    saleae_file = get_most_recent_file('.', 'untitled.csv'); % Default export name in Logic v1
+    num_header_lines = 0;
+    if isempty(saleae_file)
+        saleae_file = 'digital.csv'; % Default export name in Logic v2
+        num_header_lines = 1;
+    end
 end
 
 if ~exist('si_integration_file', 'var')
@@ -25,7 +30,7 @@ end
 
 % Load Saleae data
 %------------------------------------------------------------
-data = load(saleae_file);
+data = readmatrix(saleae_file, 'NumHeaderLines', num_header_lines);
 
 RT_clk_ch = 0;
 frame_clk_ch = 1;
