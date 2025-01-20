@@ -78,7 +78,7 @@ else
     cprintf('red', 'Number of RT clock edges in Saleae does NOT match that of IntegrationRois log!\n');
 end
 
-if all(s.RT_preds == m.RT_preds)
+if all(s.RT_preds == m.RT_preds, 'all')
     cprintf('blue', '  RT predictions (LL/L/0/R/RR) in Saleae matches that of IntegrationRois log\n');
 else
     cprintf('red', '  Warning: RT predictions (LL/L/0/R/RR) in Saleae does NOT that of IntegrationRois log!\n');
