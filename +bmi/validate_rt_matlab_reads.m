@@ -37,8 +37,12 @@ m.num_matlab_reads = sum(m.num_matlab_reads_by_trial);
 if s.num_matlab_reads == m.num_matlab_reads
     cprintf('blue', '  Number of Matlab reads in Saleae matches that of Results.mat (%d Matlab reads)\n',...
         m.num_matlab_reads);
+elseif s.num_matlab_reads > m.num_matlab_reads
+    cprintf('red', '  Warning: Number of Matlab reads in Saleae (%d) EXCEEDS that of Results.mat (%d)!\n',...
+        s.num_matlab_reads, m.num_matlab_reads);
 else
-    cprintf('red', 'Number of Matlab reads in Saleae does NOT match that of Results.mat!\n');
+    cprintf('red', '  Error: Number of Matlab reads in Saleae (%d) is FEWER than that of Results.mat (%d)!\n',...
+        s.num_matlab_reads, m.num_matlab_reads);
 end
 
 % Validate Matlab read values
