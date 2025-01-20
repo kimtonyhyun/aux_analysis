@@ -98,6 +98,8 @@ for k = 1:num_processed_frames
     RT_clk_time = s.RT_clk_times(k);
     s.RT_output_time_by_frame(frame_ind) = RT_clk_time;
 
+    % Find the first Matlab read that comes after the RT clock edge. This
+    % is the Matlab read that "reads in" the RT calculation
     MR_ind = find(s.matlab_read_times > RT_clk_time, 1, 'first');
     if ~isempty(MR_ind)
         MR_time_by_frame(frame_ind) = s.matlab_read_times(MR_ind);
@@ -108,6 +110,8 @@ end
 % for that frame is Inf
 s.RT_delay_by_frame = s.RT_output_time_by_frame - s.frame_times;
 
+% MR_delay_by_frame measures the delay until the RT calculation is read in
+% by a Matlab read. Note: Outside of trials, MR delays can be very long
 s.MR_delay_by_frame = MR_time_by_frame - s.frame_times;
 
 for k = 1:3
