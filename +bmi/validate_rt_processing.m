@@ -3,6 +3,8 @@ function [m, s] = validate_rt_processing(saleae_file, si_integration_file)
 % - Check whether there are any dropped frames in the SI integration file
 % - Confirm that the number of RT clock edges matches the number of
 %     processed frames in the SI integration file
+% - Confirm that RT preds (LL/L/0/R/RR) at each RT clock edge correctly
+%     reproduces the RT prediction in the SI integration file
 %
 % Outputs are mainly organized into two structs:
 %   - m: Quantities as expected from Matlab/ScanImage
