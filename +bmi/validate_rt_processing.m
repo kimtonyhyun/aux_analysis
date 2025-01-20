@@ -1,4 +1,4 @@
-function [m, s] = validate_rt_processing(saleae_file, si_integration_file)
+function [m, s] = validate_RT_processing(saleae_file, si_integration_file)
 % Validate real-time processing results, i.e.:
 % - Check whether there are any dropped frames in the SI integration file
 % - Confirm that the number of RT clock edges matches the number of
@@ -33,19 +33,20 @@ data = load(saleae_file);
 RT_clk_ch = 0;
 frame_clk_ch = 1;
 RT_pred_chs = [2 3 4 5 6]; % [LL, L, 0, R, RR]
+matlab_read_ch = 7;
 
-s.frame_clk.start_times = find_edges(data, frame_clk_ch);
-s.frame_clk.end_times = find_edges(data, frame_clk_ch, 1); % Negedge
-
-s.frame_clk.period = mean(diff(s.frame_clk.start_times));
-s.num_frames = length(s.frame_clk.start_times);
+s.frame_times = find_edges(data, frame_clk_ch, 1); % Negedge
+s.frame_period = mean(diff(s.frame_times));
+s.num_frames = length(s.frame_times);
 fprintf('validate_rt_processing:\n  Saleae shows %d imaging frames with period %.1f ms\n',...
-    s.num_frames, s.frame_clk.period * 1e3);
+    s.num_frames, s.frame_period * 1e3);
 
 [s.RT_clk_times, edge_inds] = find_edges(data, RT_clk_ch, 'both'); % Detect both rising and falling edges
 num_RT_clks = length(s.RT_clk_times);
 
 s.RT_preds = data(edge_inds, 2 + RT_pred_chs);
+
+s.matlab_read_times = find_edges(data, matlab_read_ch, 1); % Negedge
 
 % Load ScanImage integration file
 %------------------------------------------------------------
@@ -91,17 +92,26 @@ end
 % Compute the per-frame RT output time and delay
 %------------------------------------------------------------
 s.RT_output_time_by_frame = Inf * ones(s.num_frames, 1);
+MR_time_by_frame = Inf * ones(s.num_frames, 1);
 for k = 1:num_processed_frames
     frame_ind = m.RT_processed_frames(k);
-    s.RT_output_time_by_frame(frame_ind) = s.RT_clk_times(k);
+    RT_clk_time = s.RT_clk_times(k);
+    s.RT_output_time_by_frame(frame_ind) = RT_clk_time;
+
+    MR_ind = find(s.matlab_read_times > RT_clk_time, 1, 'first');
+    if ~isempty(MR_ind)
+        MR_time_by_frame(frame_ind) = s.matlab_read_times(MR_ind);
+    end
 end
 
 % If a frame's RT output was dropped by ScanImage, then RT_delay_by_frame
 % for that frame is Inf
-s.RT_delay_by_frame = s.RT_output_time_by_frame - s.frame_clk.end_times;
+s.RT_delay_by_frame = s.RT_output_time_by_frame - s.frame_times;
+
+s.MR_delay_by_frame = MR_time_by_frame - s.frame_times;
 
 for k = 1:3
-    num_frames_within_delay = sum(s.RT_delay_by_frame < k*s.frame_clk.period);
+    num_frames_within_delay = sum(s.RT_delay_by_frame < k*s.frame_period);
     fprintf('  Number of frames processed within %d frame period: %d (%.1f%%)\n',...
         k, num_frames_within_delay, num_frames_within_delay/s.num_frames * 100.0);
 end
@@ -110,8 +120,8 @@ nonInf_RT_delay_by_frame = s.RT_delay_by_frame(~isinf(s.RT_delay_by_frame));
 
 avg_RT_delay = mean(nonInf_RT_delay_by_frame);
 fprintf('  Average delay: %.1f ms (=%.3f frames)\n',...
-    avg_RT_delay * 1e3, avg_RT_delay/s.frame_clk.period);
+    avg_RT_delay * 1e3, avg_RT_delay/s.frame_period);
 
 max_RT_delay = max(nonInf_RT_delay_by_frame);
 fprintf('  Maximum delay: %.1f ms (=%.3f frames)\n',...
-    max_RT_delay * 1e3, max_RT_delay/s.frame_clk.period);
+    max_RT_delay * 1e3, max_RT_delay/s.frame_period);

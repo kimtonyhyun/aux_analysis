@@ -1,8 +1,8 @@
-function plot_RT_delays(s)
+function plot_RT_latency(s)
 % Use with the output of 'bmi.validate_rt_processing'
 
 t_lims = [1 s.num_frames];
-frame_period = s.frame_clk.period;
+frame_period = s.frame_period;
 
 figure;
 stem(s.RT_delay_by_frame * 1e3, '.', 'MarkerSize', 12);
