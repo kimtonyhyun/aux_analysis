@@ -4,18 +4,16 @@ function [m, s] = validate_rt_processing(saleae_file, si_integration_file)
 % - Confirm that the number of RT clock edges matches the number of
 %     processed frames in the SI integration file
 %
-% TODO:
-% 1. Confirm that the classifier output at the time of RT clock edge 
-%    matches the intended one as logged in the SI integration file
-% 2. Calculate the expected "BMI counts" for each Matlab read, so that we
-%    can verify against the downstream Matlab log.
-%
 % Outputs are mainly organized into two structs:
 %   - m: Quantities as expected from Matlab/ScanImage
 %   - s: Quantities as measured from Saleae log
 %
 % Associated visualization functions:
 %   - bmi.plot_RT_delays(s);
+%
+% TODO:
+%  Calculate the expected "BMI counts" for each Matlab read, so that we
+%  can verify against the downstream Matlab log.
 
 if ~exist('saleae_file', 'var')
     saleae_file = 'untitled.csv';
@@ -32,6 +30,7 @@ data = load(saleae_file);
 
 RT_clk_ch = 0;
 frame_clk_ch = 1;
+RT_pred_chs = [2 3 4 5 6]; % [LL, L, 0, R, RR]
 
 s.frame_clk.start_times = find_edges(data, frame_clk_ch);
 s.frame_clk.end_times = find_edges(data, frame_clk_ch, 1); % Negedge
@@ -41,14 +40,21 @@ s.num_frames = length(s.frame_clk.start_times);
 fprintf('validate_rt_processing:\n  Saleae shows %d imaging frames with period %.1f ms\n',...
     s.num_frames, s.frame_clk.period * 1e3);
 
-s.RT_clk_times = find_edges(data, RT_clk_ch, 'both'); % Detect both rising and falling edges
+[s.RT_clk_times, edge_inds] = find_edges(data, RT_clk_ch, 'both'); % Detect both rising and falling edges
 num_RT_clks = length(s.RT_clk_times);
+
+s.RT_preds = data(edge_inds, 2 + RT_pred_chs);
 
 % Load ScanImage integration file
 %------------------------------------------------------------
-data_si = readmatrix(si_integration_file);
+data_si = readmatrix(si_integration_file); % [timestamp, frameNumber, ROI 1, ROI 2,...]
 m.RT_processed_frames = data_si(:,2);
 m.RT_dropped_frames = setdiff(1:s.num_frames, m.RT_processed_frames)';
+
+% The last 7 "ROIs" are placeholders corresponding to RT calculations:
+%   [LL, L, 0, R, RR, RT_clk, DecoderResult (analog)]
+m.RT_preds = data_si(:,end-6:end);
+m.RT_preds = m.RT_preds(:,1:5);
 
 num_processed_frames = length(m.RT_processed_frames);
 num_dropped_frames = length(m.RT_dropped_frames);
@@ -68,6 +74,12 @@ elseif num_processed_frames == (num_RT_clks - 1)
     s.RT_clk_times = s.RT_clk_times(1:end-1);
 else
     cprintf('red', 'Number of RT clock edges in Saleae does NOT match that of IntegrationRois log!\n');
+end
+
+if all(s.RT_preds == m.RT_preds)
+    cprintf('blue', '  RT predictions (LL/L/0/R/RR) in Saleae matches that of IntegrationRois log\n');
+else
+    cprintf('red', '  Warning: RT predictions (LL/L/0/R/RR) in Saleae does NOT that of IntegrationRois log!\n');
 end
 
 % Compute the per-frame RT output time and delay
