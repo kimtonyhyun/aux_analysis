@@ -11,11 +11,8 @@ function [m, s] = validate_rt_processing(saleae_file, si_integration_file)
 %   - s: Quantities as measured from Saleae log
 %
 % Associated visualization functions:
-%   - bmi.plot_RT_delays(s);
+%   - bmi.plot_RT_latency(s);
 %
-% TODO:
-%  Calculate the expected "BMI counts" for each Matlab read, so that we
-%  can verify against the downstream Matlab log.
 
 if ~exist('saleae_file', 'var')
     saleae_file = 'untitled.csv';
@@ -47,6 +44,10 @@ num_RT_clks = length(s.RT_clk_times);
 s.RT_preds = data(edge_inds, 2 + RT_pred_chs);
 
 s.matlab_read_times = find_edges(data, matlab_read_ch, 1); % Negedge
+num_matlab_reads = length(s.matlab_read_times);
+
+s.matlab_read_vals = zeros(num_matlab_reads, 1);
+s.num_matlab_reads = num_matlab_reads; % Ordered this way for pretty struct formatting
 
 % Load ScanImage integration file
 %------------------------------------------------------------
@@ -73,6 +74,10 @@ cprintf(text_color, '  Found %d dropped frames in SI integration log (%.1f%%)\n'
 if num_processed_frames == num_RT_clks
     cprintf('blue', '  Number of RT clock edges in Saleae matches that of IntegrationRois log\n');
 elseif num_processed_frames == (num_RT_clks - 1)
+    % In previous (slow) PCs with dropped frames, we found that we get an
+    % extra, falling RT clock edge at the end of the recording. This extra
+    % edge doesn't correspond to a processed frame, but seems to be just
+    % the ScanImage outputs turning off at the end of a recording.
     cprintf('red', '  Warning: Number of RT clock edges in Saleae exceeds that of IntegrationRois log by 1. Omitting last RT clock edge!\n');
     s.RT_clk_times = s.RT_clk_times(1:end-1);
 else
@@ -114,6 +119,8 @@ s.RT_delay_by_frame = s.RT_output_time_by_frame - s.frame_times;
 % by a Matlab read. Note: Outside of trials, MR delays can be very long
 s.MR_delay_by_frame = MR_time_by_frame - s.frame_times;
 
+% Report RT latency stats
+%------------------------------------------------------------
 for k = 1:3
     num_frames_within_delay = sum(s.RT_delay_by_frame < k*s.frame_period);
     fprintf('  Number of frames processed within %d frame period: %d (%.1f%%)\n',...
@@ -129,3 +136,24 @@ fprintf('  Average delay: %.1f ms (=%.3f frames)\n',...
 max_RT_delay = max(nonInf_RT_delay_by_frame);
 fprintf('  Maximum delay: %.1f ms (=%.3f frames)\n',...
     max_RT_delay * 1e3, max_RT_delay/s.frame_period);
+
+% For each Matlab read, calculate the expected read value
+%------------------------------------------------------------
+RT_vals = s.RT_preds * [-2 -1 0 1 2]'; % Convert one-hot vec to value
+
+matlab_read_vals = zeros(s.num_matlab_reads, 1);
+
+% First, find the cumulative position at the time of each Matlab read
+for k = 1:s.num_matlab_reads
+    mr_time_k = s.matlab_read_times(k);
+    RT_ind = find(s.RT_clk_times < mr_time_k, 1, 'last');
+    matlab_read_vals(k) = sum(RT_vals(1:RT_ind));
+end
+
+% Next, compute the difference in the cumulative position between Matlab
+% reads. This is because each Matlab read resets the counter.
+for k = fliplr(2:s.num_matlab_reads) % The fliplr is important!
+    matlab_read_vals(k) = matlab_read_vals(k) - matlab_read_vals(k-1);
+end
+matlab_read_vals(1) = 0;
+s.matlab_read_vals = matlab_read_vals;
