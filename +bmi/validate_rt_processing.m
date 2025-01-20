@@ -78,10 +78,14 @@ else
     cprintf('red', 'Number of RT clock edges in Saleae does NOT match that of IntegrationRois log!\n');
 end
 
-if all(s.RT_preds == m.RT_preds, 'all')
+RT_match_by_frame = all(s.RT_preds == m.RT_preds, 2);
+if all(RT_match_by_frame)
     cprintf('blue', '  RT predictions (LL/L/0/R/RR) in Saleae matches that of IntegrationRois log\n');
 else
-    cprintf('red', '  Warning: RT predictions (LL/L/0/R/RR) in Saleae does NOT that of IntegrationRois log!\n');
+    s.frames_with_wrong_preds = find(~RT_match_by_frame);
+    num_mismatched_frames = length(s.frames_with_wrong_preds);
+    cprintf('red', '  Warning: RT predictions (LL/L/0/R/RR) in Saleae does NOT match that of IntegrationRois log (num mismatches=%d)!\n',...
+        num_mismatched_frames);
 end
 
 % Compute the per-frame RT output time and delay
