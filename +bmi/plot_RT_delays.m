@@ -13,7 +13,7 @@ plot(t_lims, 2*frame_period*[1 1] * 1e3, ':', 'LineWidth', 2, 'Color', [0.8500 0
 plot(t_lims, 3*frame_period*[1 1] * 1e3, ':', 'LineWidth', 2, 'Color', [0.6350 0.0780 0.1840]); % Red
 hold off;
 xlabel('Frame index');
-ylabel('BMI output delay (ms)');
+ylabel('Real-time processing latency (ms)');
 set(gca, 'TickLength', [0 0]);
 set(gca, 'FontSize', 18);
 xlim(t_lims);
