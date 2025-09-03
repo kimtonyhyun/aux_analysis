@@ -33,7 +33,7 @@ t = toc; fprintf('Done in %.1f seconds!\n', t);
 % the samples where at least one of the digital values changed. This is the
 % way that Saleae stores digital data.
 
-fprintf('Sparsifying OneBox data... '); tic;
+fprintf('Sparsifying OneBox data (this can take a few minutes)... '); tic;
 
 keep_sample = false(num_samples, 1);
 keep_sample(1) = true;
