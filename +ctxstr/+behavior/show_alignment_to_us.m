@@ -15,7 +15,7 @@ if ~exist('bdata', 'var')
 end
 
 % Note: Assumes directory name is the dataset name
-dataset_name = dirname;
+dataset_name = strrep(dirname, '_', '\_');
 num_rewards = length(bdata.us_times);
 lick_times = bdata.lick_times;
 
