@@ -1,21 +1,24 @@
 function plot_spikes(unit_inds, spikes, bdata)
 
 rec_duration = bdata.info.onebox.time_window(2);
+bin_width = 0.25; % s
+t = 0:bin_width:rec_duration;
 
 vel = bdata.behavior.velocity;
 pos = cell2mat(bdata.behavior.position.by_trial);
 us_times = bdata.behavior.us_times;
 
 % Plot
-num_rows = 2;
+num_rows = 3;
 axes = zeros(num_rows, 1);
 
 axes(1) = subplot(num_rows, 1, 1); cla;
 hold on;
+axes(2) = subplot(num_rows, 1, 2); cla;
+hold on;
 
 spikeamp_lims = [Inf, -Inf];
-colors = 'ckbrm';
-num_colors = length(colors);
+fr_lims = [Inf, -Inf];
 
 num_inds = length(unit_inds);
 legend_labels = cell(num_inds,1);
@@ -23,30 +26,40 @@ for k = 1:num_inds
     unit_ind = unit_inds(k);
     si_unit_id = spikes.orig_unit_ids(unit_ind);
     spikes_k = spikes.spike_data{unit_ind};
+    firing_rate = ctxstr.np.compute_firing_rate(spikes_k, t);
     
     num_spikes = length(spikes_k);
     avg_firing_rate = num_spikes / rec_duration;
        
-    color = colors(mod(k, num_colors)+1);
+    color = get_color(k);
     legend_labels{k} = sprintf('SI unit %d (%d spikes; %.2f Hz)',...
         si_unit_id, num_spikes, avg_firing_rate);
     
+    subplot(axes(1));
     y_lims = tight_plot(spikes_k(:,1), spikes_k(:,2), '.', 'Color', color);
-    if y_lims(1) < spikeamp_lims(1)
-        spikeamp_lims(1) = y_lims(1);
-    end
-    if y_lims(2) > spikeamp_lims(2)
-        spikeamp_lims(2) = y_lims(2);
-    end
+    spikeamp_lims = adjust_ylims(spikeamp_lims, y_lims);
+    
+    subplot(axes(2));
+    y_lims = tight_plot(t, firing_rate, 'Color', color);
+    fr_lims = adjust_ylims(fr_lims, y_lims);
 end
+
+subplot(axes(1));
 plot_vertical_lines(us_times, spikeamp_lims, 'b:');
 ylim(spikeamp_lims);
 hold off;
 ylabel('Spike amplitude (uV)');
-title(strrep(dirname, '_', '\_'));
 legend(legend_labels, 'Location', 'SouthWest');
+title(strrep(dirname, '_', '\_'));
 
-axes(2) = subplot(num_rows, 1, 2);
+subplot(axes(2));
+plot_vertical_lines(us_times, fr_lims, 'b:');
+ylim(fr_lims);
+hold off;
+ylabel(sprintf('# spikes per %.2f s bin', bin_width));
+% legend(legend_labels, 'Location', 'NorthWest');
+
+axes(3) = subplot(num_rows, 1, 3);
 yyaxis left;
 v_lims = tight_plot(vel(:,1), vel(:,2));
 hold on;
@@ -62,3 +75,25 @@ ylabel('Position (encoder units)');
 set(axes, 'TickLength', [0 0]);
 linkaxes(axes, 'x');
 zoom xon;
+
+end
+
+function color = get_color(i)
+
+colors = 'ckbrm';
+num_colors = length(colors);
+color = colors(mod(i, num_colors)+1);
+
+end
+
+function y_lims = adjust_ylims(y_lims, new_y_lims)
+
+if new_y_lims(1) < y_lims(1)
+    y_lims(1) = new_y_lims(1);
+end
+
+if new_y_lims(2) > y_lims(2)
+    y_lims(2) = new_y_lims(2);
+end
+
+end
