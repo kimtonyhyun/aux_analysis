@@ -1,4 +1,6 @@
-function plot_spikes(unit_inds, spikes, bdata)
+function plot_spikes(unit_inds, spikes, bdata, sdata)
+% bdata = load('ctxstr.mat');
+% sdata = load('skeleton.mat');
 
 rec_duration = bdata.info.onebox.time_window(2);
 bin_width = 0.25; % s
@@ -9,7 +11,12 @@ pos = cell2mat(bdata.behavior.position.by_trial);
 us_times = bdata.behavior.us_times;
 
 % Plot
-num_rows = 3;
+if ~exist('sdata', 'var')
+    sdata = [];
+    num_rows = 3;
+else
+    num_rows = 4;
+end
 axes = zeros(num_rows, 1);
 
 axes(1) = subplot(num_rows, 1, 1); cla;
@@ -68,10 +75,32 @@ hold off;
 ylabel('Velocity (cm/s)');
 yyaxis right;
 tight_plot(pos(:,1), pos(:,2));
-xlabel('Time (s)');
 ylabel('Position (encoder units)');
 
-% Formatting
+if ~isempty(sdata)
+    axes(4) = subplot(num_rows, 1, 4);
+    
+    y_lims = [0 180];
+    yyaxis left;
+    tight_plot(sdata.t, sdata.beta_f);
+    hold on;
+    plot([0 rec_duration], 90*[1 1], 'k--');
+    plot_vertical_lines(us_times, y_lims, 'b:');
+    hold off;
+    ylim(y_lims);
+    set(gca, 'YTick', [0 45 90 135 180]);
+    ylabel('Front limb angle, \beta_f (degrees)');
+    
+    yyaxis right;
+    tight_plot(sdata.t, sdata.beta_h);
+    ylim(y_lims);
+    set(gca, 'YTick', [0 45 90 135 180]);
+    ylabel('Hind limb angle, \beta_h (degrees)');
+end
+
+xlabel('Time (s)'); % x-label on bottom subplot
+
+% Overall formatting
 set(axes, 'TickLength', [0 0]);
 linkaxes(axes, 'x');
 zoom xon;
