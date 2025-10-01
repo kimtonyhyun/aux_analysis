@@ -20,6 +20,7 @@ fprintf('Loading %s into memory... ', source); tic;
 path = '.';
 meta = SGLX_readMeta.ReadMeta(source, path);
 Fs = SGLX_readMeta.SampRate(meta); % Sampling rate
+t0 = str2double(meta.firstSample) / Fs;
 dataArray = SGLX_readMeta.ReadBin(0, inf, meta, source, path);
 
 dw = 1;
@@ -187,6 +188,7 @@ info.hw_params.cpr = cpr; % Encoder counts per rotation
 info.hw_params.R = R; % radius of wheel (cm)
 info.onebox.time_window = times([1 end])'; % seconds
 info.onebox.Fs = Fs;
+info.onebox.first_sample_time = t0;
 info.onebox.meta = meta;
 info.params.velocity_dt = dt; % Used for velocity computation
 info.params.movement_onset_threshold = movement_onset_threshold;

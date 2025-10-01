@@ -3,7 +3,7 @@ function plot_spikes(unit_inds, spikes, bdata, sdata)
 % sdata = load('skeleton.mat');
 
 rec_duration = bdata.info.onebox.time_window(2);
-bin_width = 0.1; % s
+bin_width = 1; % s
 t = 0:bin_width:rec_duration;
 
 vel = bdata.behavior.velocity;
@@ -33,6 +33,15 @@ for k = 1:num_inds
     unit_ind = unit_inds(k);
     si_unit_id = spikes.orig_unit_ids(unit_ind);
     spikes_k = spikes.spike_data{unit_ind};
+    
+    % By default, ks4 exports spike times relative to the start time of
+    % SpikeGLX, whereas ks2.5 exports times relative to the start of the
+    % recording!
+    switch spikes.sorter_name
+        case 'kilosort4'
+            spikes_k(:,1) = spikes_k(:,1) - bdata.info.onebox.first_sample_time;
+    end
+    
     firing_rate = compute_firing_rate(spikes_k, t);
     
     num_spikes = length(spikes_k);
