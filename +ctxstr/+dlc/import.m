@@ -34,13 +34,20 @@ switch lower(ext)
         num_dlc_frames = size(data,1);
         cprintf('blue', 'Found %d frames in DeepLabCut CSV output\n', num_dlc_frames);
         
-        front_left = data(:,2:3); % [x y]
-        front_right = data(:,5:6);
-        hind_left = data(:,8:9);
-        hind_right = data(:,11:12);
-        nose = data(:,14:15);
-        tail = data(:,17:18);
+%         front_left = data(:,2:3); % [x y]
+%         front_right = data(:,5:6);
+%         hind_left = data(:,8:9);
+%         hind_right = data(:,11:12);
+%         nose = data(:,14:15);
+%         tail = data(:,17:18);
         
+        front_left = data(:,23:24); % [x y]
+        front_right = data(:,26:27);
+        hind_left = data(:,29:30);
+        hind_right = data(:,32:33);
+        nose = data(:,35:36);
+        tail = data(:,38:39);
+
     case '.mat'
         data = load(dlc_filename);
         num_dlc_frames = length(data.FLX);

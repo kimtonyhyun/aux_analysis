@@ -65,7 +65,7 @@ end
 
 %% Omit trials for grooming, etc., and filter out NaN's
 
-omitted_trials = [113 260]; % e.g. grooming trials
+omitted_trials = [44 136 164]; % e.g. grooming trials
 st_trial_inds = setdiff(st_trial_inds, omitted_trials);
 
 % Filter for NaN values, arising from CASCADE
@@ -81,7 +81,7 @@ fprintf('Found %d usable stereotyped trials out of %d imaged trials total\n',...
 
 %% Save data
 
-save('resampled_data.mat', 'dataset_name', 'session',...
+save('resampled_data3.mat', 'dataset_name', 'session',...
         'trials', 'st_trial_inds', ...
         't', 'fps', 'ctx_traces', 'ctx_info', 'str_traces', 'str_info',...
         'time_by_trial', 'ctx_traces_by_trial', 'str_traces_by_trial');

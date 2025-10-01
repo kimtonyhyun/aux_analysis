@@ -1,7 +1,8 @@
 clear all; %close all;
 
 reg = load('regression.mat');
-cprintf('blue', 'Loaded regression results for "%s"\n', reg.dataset_name);
+cprintf('blue', 'Loaded regression results for "%s" (bin threshold=%.2f)\n',...
+    reg.dataset_name, reg.bin_threshold);
 
 % Dock all figures for convenience
 set(0, 'DefaultFigureWindowStyle', 'docked');
@@ -38,7 +39,7 @@ model_no = 8;
 %% Visualize a specific fit (defined by cell_idx × model_no × split_no)
 
 brain_area = 'ctx'; % 'ctx' or 'str'
-cell_idx = 66;
+cell_idx = 38;
 model_no = 8;
 split_no = 1;
 

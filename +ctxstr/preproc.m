@@ -3,7 +3,7 @@ clear all; close all;
 dataset_name = dirname;
 fprintf('%s: Preprocessing "%s"...\n', datestr(now), dataset_name);
 
-ctx_stem = sprintf('%s-ctx', dataset_name);
+ctx_stem = sprintf('%s-tha', dataset_name);
 str_stem = sprintf('%s-str', dataset_name);
 
 %% Convert to HDF5
@@ -25,7 +25,7 @@ clear Mr Fr;
 
 delete(ctx_source); clear ctx_source;
 
-% str
+%% str
 str_source = 'str_00001.tif';
 
 Mg = load_scanimage_tif2(str_source, 'odd'); % Green channel
@@ -48,12 +48,12 @@ fprintf('<strong>%s: DONE with HDF5 conversion!</strong>\n', datestr(now));
 
 % ctx
 meancorr_movie([ctx_stem '.hdf5'], '');
-meancorr_movie([ctx_stem '-tdt.hdf5'], '');
+% meancorr_movie([ctx_stem '-tdt.hdf5'], '');
 
 delete([ctx_stem '.hdf5']);
 delete([ctx_stem '-tdt.hdf5']);
 
-% str
+%% str
 meancorr_movie([str_stem '.hdf5'], '');
 meancorr_movie([str_stem '-tdt.hdf5'], '');
 
@@ -65,24 +65,24 @@ fprintf('<strong>%s: DONE with meancorr_movie!</strong>\n', datestr(now));
 %% Normcorre
 
 % ctx
-run_normcorre([ctx_stem '-tdt_uc.hdf5'], '');
-A = compute_mean_image([ctx_stem '-tdt_uc_nc.hdf5']);
-save([ctx_stem '-tdt.mat'], 'A');
-figure; imagesc(A, [0.3 3.5]); truesize; colormap gray;
-title([ctx_stem '-tdt']);
-print('-dpng', [ctx_stem '-tdt']);
+run_normcorre([ctx_stem '_uc.hdf5'], '', 'rigid');
+% A = compute_mean_image([ctx_stem '-tdt_uc_nc.hdf5']);
+% save([ctx_stem '-tdt.mat'], 'A');
+% figure; imagesc(A, [0.3 3.5]); truesize; colormap gray;
+% title([ctx_stem '-tdt']);
+% print('-dpng', [ctx_stem '-tdt']);
+% 
+% delete([ctx_stem '-tdt_uc.hdf5']);
+% delete([ctx_stem '-tdt_uc_nc.hdf5']);
+% 
+% load([ctx_stem '-tdt_uc_nc.mat']);
+% apply_shifts([ctx_stem '_uc.hdf5'], shifts, info.nc_options);
 
-delete([ctx_stem '-tdt_uc.hdf5']);
-delete([ctx_stem '-tdt_uc_nc.hdf5']);
+% delete([ctx_stem '_uc.hdf5']);
 
-load([ctx_stem '-tdt_uc_nc.mat']);
-apply_shifts([ctx_stem '_uc.hdf5'], shifts, info.nc_options);
+bin_movie_in_time([ctx_stem '_uc_nc-rigid.hdf5'], '', 8); % for visualization
 
-delete([ctx_stem '_uc.hdf5']);
-
-bin_movie_in_time([ctx_stem '_uc_nc.hdf5'], '', 8); % for visualization
-
-% str
+%% str
 run_normcorre([str_stem '-tdt_uc.hdf5'], '');
 A = compute_mean_image([str_stem '-tdt_uc_nc.hdf5']);
 save([str_stem '-tdt.mat'], 'A');

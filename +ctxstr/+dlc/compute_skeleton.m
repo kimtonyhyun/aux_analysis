@@ -17,6 +17,13 @@ hind_right = dlc_data.hind_right(:,1:2);
 nose = dlc_data.nose(:,1:2);
 tail = dlc_data.tail(:,1:2);
 
+front_left(:,1) = -front_left(:,1);
+front_right(:,1) = -front_right(:,1);
+hind_left(:,1) = -hind_left(:,1);
+hind_right(:,1) = -hind_right(:,1);
+nose(:,1) = -nose(:,1);
+tail(:,1) = -tail(:,1);
+
 % Convert coordinates to skeleton parameters
 %------------------------------------------------------------
 

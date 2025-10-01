@@ -3,7 +3,7 @@ function plot_spikes(unit_inds, spikes, bdata, sdata)
 % sdata = load('skeleton.mat');
 
 rec_duration = bdata.info.onebox.time_window(2);
-bin_width = 0.25; % s
+bin_width = 0.1; % s
 t = 0:bin_width:rec_duration;
 
 vel = bdata.behavior.velocity;
@@ -33,7 +33,7 @@ for k = 1:num_inds
     unit_ind = unit_inds(k);
     si_unit_id = spikes.orig_unit_ids(unit_ind);
     spikes_k = spikes.spike_data{unit_ind};
-    firing_rate = ctxstr.np.compute_firing_rate(spikes_k, t);
+    firing_rate = compute_firing_rate(spikes_k, t);
     
     num_spikes = length(spikes_k);
     avg_firing_rate = num_spikes / rec_duration;

@@ -61,7 +61,7 @@ hold on;
 plot(t_rda, fdata.F_rda_uc(:,2), 'm');
 plot(t_gcamp, fdata.F_gcamp_uc(:,2), 'Color', [0 0.5 0]);
 
-y_lims = [0.9 1.1];
+y_lims = [0.8 1.2];
 plot_vertical_lines(bdata.behavior.us_times, y_lims, 'b-');
 plot(bdata.behavior.lick_times,...
      (y_lims(2)-0.05*diff(y_lims))*ones(size(bdata.behavior.lick_times)),...
