@@ -1,9 +1,9 @@
-function plot_spikes(unit_inds, spikes, bdata, sdata)
+function plot_spikes(si_unit_ids, spikes, bdata, sdata)
 % bdata = load('ctxstr.mat');
 % sdata = load('skeleton.mat');
 
 rec_duration = bdata.info.onebox.time_window(2);
-bin_width = 1; % s
+bin_width = 0.25; % s
 t = 0:bin_width:rec_duration;
 
 vel = bdata.behavior.velocity;
@@ -27,20 +27,20 @@ hold on;
 spikeamp_lims = [Inf, -Inf];
 fr_lims = [Inf, -Inf];
 
-num_inds = length(unit_inds);
-legend_labels = cell(num_inds,1);
-for k = 1:num_inds
-    unit_ind = unit_inds(k);
-    si_unit_id = spikes.orig_unit_ids(unit_ind);
-    spikes_k = spikes.spike_data{unit_ind};
+num_ids = length(si_unit_ids);
+legend_labels = cell(num_ids,1);
+for k = 1:num_ids
+    si_unit_id = si_unit_ids(k); % Unit # as assigned by SpikeInterface
+    ind = find(spikes.orig_unit_ids == si_unit_id, 1, 'first');
+    spikes_k = spikes.spike_data{ind};
     
-    % By default, ks4 exports spike times relative to the start time of
+    % Sometimes(?) ks4 exports spike times relative to the start time of
     % SpikeGLX, whereas ks2.5 exports times relative to the start of the
     % recording!
-    switch spikes.sorter_name
-        case 'kilosort4'
-            spikes_k(:,1) = spikes_k(:,1) - bdata.info.onebox.first_sample_time;
-    end
+%     switch spikes.sorter_name
+%         case 'kilosort4'
+%             spikes_k(:,1) = spikes_k(:,1) - bdata.info.onebox.first_sample_time;
+%     end
     
     firing_rate = compute_firing_rate(spikes_k, t);
     
@@ -66,7 +66,8 @@ ylim(spikeamp_lims);
 hold off;
 ylabel('Spike amplitude (uV)');
 legend(legend_labels, 'Location', 'SouthWest');
-title(strrep(dirname, '_', '\_'));
+dataset_name = strrep(dirname, '_', '\_');
+title(sprintf('%s (%s)', dataset_name, spikes.sorter_name));
 
 subplot(axes(2));
 plot_vertical_lines(us_times, fr_lims, 'b:');
