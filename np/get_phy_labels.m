@@ -1,9 +1,14 @@
-function [good, mua, noise] = get_phy_labels()
+function [good, mua, noise] = get_phy_labels(path_to_phy)
+
+if ~exist('path_to_phy', 'var')
+    path_to_phy = '_phy';
+end
 
 % Note:
 %   'cluster_si_unit_ids.tsv' only lists cluster_ids as originally exported
 %   by SpikeInterface.
-data = readtable('cluster_si_unit_ids.tsv', 'FileType', 'text', 'Delimiter', '\t');
+data = readtable(fullfile(path_to_phy, 'cluster_si_unit_ids.tsv'),...
+    'FileType', 'text', 'Delimiter', '\t');
 data = table2array(data);
 
 max_phy_ind = data(end,1);
@@ -13,7 +18,8 @@ good = [];
 mua = [];
 noise = [];
 
-data = readtable('cluster_group.tsv', 'FileType', 'text', 'Delimiter', '\t');
+data = readtable(fullfile(path_to_phy, 'cluster_group.tsv'),...
+    'FileType', 'text', 'Delimiter', '\t');
 
 for k = 1:size(data, 1)
     phy_ind = data{k,1};
